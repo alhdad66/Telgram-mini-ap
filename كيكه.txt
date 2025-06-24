@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ar"> <!-- تم تغيير اللغة إلى العربية لتحسين إمكانية الوصول الافتراضية -->
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-key="app_title">Premium Ad Reward System</title>
+    
+    <!-- Adsgram SDK -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    
+    <!-- Telegram Mini Apps SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        :root {
+            /* الألوان الأصلية من النسخة الشغالة (الأزرق واللبني) */
+            --primary: #007BFF; /* Bright Blue */
+            --primary-dark: #0056b3; /* Darker shade for shadows */
+            --secondary: #00BFFF; /* Deep Sky Blue, for a vibrant accent */
+            --secondary-dark: #0099CC; /* Darker shade of secondary */
+            
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --light: #f5f5f5;
+            --gray: #2a2a2a;
+            --card-bg: #1f1f1f;
+            --gold: #ffd700;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker), #1a1a2e);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(0, 123, 255, 0.1) 0%, transparent 20%), /* الألوان الزرقاء الأصلية */
+                radial-gradient(circle at 90% 80%, rgba(0, 191, 255, 0.1) 0%, transparent 20%); /* الألوان الزرقاء الأصلية */
+            z-index: -1;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .header {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0.1) 0%,
+                rgba(255,255,255,0) 50%,
+                rgba(255,255,255,0.1) 100%);
+            z-index: 1;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .user-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        .user-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px 10px;
+            width: 45%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary); 
+        }
+        
+        .progress-container {
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .progress-label {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary)); 
+            border-radius: 10px;
+            width: 30%;
+            transition: width 0.5s ease;
+        }
+        
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        /* 3D Button Styles */
+        .btn-3d {
+            position: relative;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            text-align: center;
+            transition: all 0.2s ease;
+            transform-style: preserve-3d;
+            perspective: 500px;
+            box-shadow: 
+                0 8px 0 var(--primary-dark), 
+                0 15px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-3d::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-3d::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: all 0.5s ease;
+            z-index: -1;
+        }
+        
+        .btn-3d:hover {
+            transform: translateY(4px);
+            box-shadow: 
+                0 4px 0 var(--primary-dark),
+                0 8px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-3d:hover::after {
+            left: 100%;
+        }
+        
+        .btn-3d:active {
+            transform: translateY(8px);
+            box-shadow: 
+                0 0 0 var(--primary-dark),
+                0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            box-shadow: 
+                0 8px 0 var(--secondary-dark), 
+                0 15px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-secondary::before {
+            background: linear-gradient(45deg, var(--secondary), var(--primary-dark)); 
+        }
+        
+        .btn-blue { 
+            box-shadow: 
+                0 8px 0 var(--primary-dark), 
+                0 15px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-blue::before {
+            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+        }
+        
+        .website-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .website-section h3 {
+            color: var(--secondary); 
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #777;
+            font-size: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .firebase-logo {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 10px;
+            background: rgba(255, 152, 0, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #ffa726;
+        }
+        
+        .ad-container {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .ad-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+        
+        /* Animation for ad watching */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+        
+        .ad-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+        
+        /* Language Selector Styles */
+        .language-selector {
+            position: absolute;
+            top: 15px; 
+            right: 15px; 
+            display: flex;
+            gap: 5px;
+            z-index: 999; 
+            background-color: rgba(0, 0, 0, 0.3); 
+            border-radius: 10px; 
+            padding: 5px; 
+            backdrop-filter: blur(5px); 
+        }
+        .language-selector button {
+            width: auto;
+            padding: 5px 10px;
+            font-size: 13px;
+            background-color: rgba(255, 255, 255, 0.1); 
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px; 
+            cursor: pointer;
+            min-width: 30px;
+            transition: all 0.2s ease; 
+        }
+        .language-selector button.active {
+            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+            border-color: var(--primary); 
+        }
+        .language-selector button:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.2); 
+        }
+
+        /* Withdrawal Section Styles */
+        .withdraw-section {
+            margin-top: 20px;
+            display: none;
+            padding: 25px; 
+            background-color: rgba(255, 255, 255, 0.05); 
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .withdraw-section h3 {
+            color: var(--secondary); 
+            margin-bottom: 5px; 
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .withdraw-section .warning-message { 
+            font-size: 13px;
+            color: #FFC107; 
+            margin-bottom: 15px;
+            line-height: 1.4;
+            white-space: pre-wrap; 
+        }
+        .withdraw-section input, 
+        .withdraw-section select { 
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0; 
+            border-radius: 10px; 
+            border: 1px solid var(--primary); 
+            background-color: var(--dark); 
+            color: var(--light);
+            font-size: 14px;
+        }
+        .withdraw-section input::placeholder {
+            color: #aaa;
+        }
+        .withdraw-section input:focus, 
+        .withdraw-section select:focus {
+            border-color: var(--gold); 
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+        }
+        .withdraw-section button {
+            background: linear-gradient(90deg, var(--primary), var(--secondary)); 
+            width: 100%;
+            padding: 14px; 
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px; 
+            border-radius: 15px; 
+            cursor: pointer;
+            color: white; 
+            border: none; 
+            box-shadow: 0 8px 0 var(--primary-dark), 0 15px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        .withdraw-section button:hover {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 var(--primary-dark), 0 8px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(90deg, var(--secondary), var(--primary)); 
+        }
+        .withdraw-section button:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 var(--primary-dark), 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* أنماط قسم الإحالة */
+        .referral-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        .referral-section h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .referral-link-container {
+            background-color: var(--dark);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .referral-link-container input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: var(--light);
+            font-size: 14px;
+            padding: 0;
+            cursor: text;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .referral-link-container button {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            border: none;
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 var(--secondary-dark);
+        }
+        .referral-link-container button:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--secondary-dark);
+        }
+        .referral-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        .referral-stat-item {
+            text-align: center;
+        }
+        .referral-stat-item .value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        .referral-stat-item .label {
+            font-size: 12px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="ad-notification" id="ad-notification"></div>
+    
+    <div class="container">
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <button data-lang="ar" onclick="setLanguage('ar')">AR</button>
+            <button data-lang="en" onclick="setLanguage('en')">EN</button>
+            <button data-lang="ru" onclick="setLanguage('ru')">RU</button>
+        </div>
+
+        <div class="header">
+            <h1 data-key="app_title">⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵</h1>
+        </div>
+        
+        <div class="content">
+            <div class="user-info">
+                <p data-key="earn_per_click_message">اربح 5 عملات dogs لكل نقرة🔥</p>
+                <p data-key="min_withdrawal_message_static">السحب من 100 عملة فقط ✅</p>
+                <!-- معرف المستخدم (لأغراض داخلية ورابط الإحالة) -->
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 data-key="watched_ads_label">الإعلانات المشاهدة</h3>
+                    <div class="value" id="watched-ads">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3 data-key="earned_points_label">عملات Dogs المكتسبة</h3>
+                    <div class="value" id="earned-points">0.00</div>
+                </div>
+            </div>
+            
+            <div class="stats"> 
+                <div class="stat-card">
+                    <h3 data-key="daily_limit_label">المشاهدات اليومية</h3>
+                    <div class="value" id="daily-watched-ads">0 / 100</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span data-key="progress_to_bonus">التقدم للمكافأة</span>
+                    <span id="ads-progress">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="ad-container">
+                <div class="ad-label" data-key="ad_type_label">إعلان Adsgram بيني</div>
+                <div class="buttons">
+                    <button class="btn-3d" id="watch-ad-btn" onclick="watchAd()" data-key="watch_ad_btn_with_points">شاهد إعلان (+2.00 عملة dogs)</button>
+                    <button class="btn-3d btn-secondary" id="auto-ad-btn" onclick="startAutoAds()" data-key="auto_show_ads_btn">عرض الإعلانات تلقائياً</button>
+                    <button class="btn-3d" id="stop-auto-btn" onclick="stopAutoAds()" data-key="stop_auto_ads_btn">إيقاف العرض التلقائي</button>
+                    <button class="btn-3d btn-blue" id="show-withdraw-btn" onclick="showWithdrawForm()" data-key="withdraw_points_btn">سحب عملات Dogs</button>
+                </div>
+            </div>
+
+            <!-- قسم نظام الإحالة -->
+            <div class="referral-section">
+                <h3 data-key="referral_title">نظام الإحالة</h3>
+                <p data-key="referral_desc">ادع أصدقائك واكسب مكافآت!</p>
+                <div class="referral-link-container">
+                    <input type="text" id="referral-link" readonly value="جاري تحميل رابط الإحالة...">
+                    <button onclick="copyReferralLink()" data-key="copy_link_btn">نسخ الرابط</button>
+                </div>
+                <div class="referral-stats">
+                    <div class="referral-stat-item">
+                        <div class="value" id="referred-users-count">0</div>
+                        <div class="label" data-key="referred_users_label">المستخدمون المدعوون</div>
+                    </div>
+                    <div class="referral-stat-item">
+                        <div class="value" id="referral-bonus-earned">0.00</div>
+                        <div class="label" data-key="referral_bonus_earned_label">مكافآت الإحالة</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="website-section">
+                <h3 data-key="visit_channel_title">قم بزيارة قناتنا على تيليجرام</h3>
+                <button class="btn-3d btn-blue" onclick="window.open('https://t.me/dogsarn', '_blank')" data-key="visit_channel_button">زيارة القناة</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p data-key="footer_text">مدعوم بواسطة Adsgram</p> 
+        </div>
+
+        <!-- قسم السحب -->
+        <div class="withdraw-section" id="withdraw-section">
+            <h3 data-key="withdrawal_request_title">طلب السحب</h3>
+            <p class="warning-message" data-key="withdrawal_warning">تنبيه 🙋🏻‍♂️
+ضع عنوانك من محفظة
+Tonkeeper
+او اي محفظة غيرها لا تطلب
+memo
+لكي يصلك السحب بدون مشاكل (◍•ᴗ•◍)</p>
+            <input type="number" id="withdraw-amount" data-key-placeholder="enter_points_placeholder" placeholder="أدخل الكمية لسحب عملات Dogs" />
+            <select id="payment-method"> 
+                <option value="dogs" data-key="dogs_wallet_option">محفظة Dogs</option>
+                <option value="ton" data-key="ton_wallet_option">محفظة TON</option>
+            </select>
+            <input type="text" id="wallet-address" data-key-placeholder="wallet_address_placeholder" placeholder="أدخل عنوان المحفظة" /> 
+            <button onclick="withdrawPoints()" data-key="withdraw_button">سحب</button>
+            <p id="withdraw-status"></p>
+        </div>
+    </div>
+
+    <script>
+        // الثوابت
+        const POINTS_PER_AD = 2.00; // المكافأة لكل إعلان هي 2.00 عملة Dogs
+        const ADS_FOR_BONUS = 10; 
+        const MIN_WITHDRAW_POINTS = 100; // الحد الأدنى للسحب هو 100 عملة Dogs
+        const DAILY_AD_LIMIT = 100; // الحد اليومي للإعلانات المشاهدة هو 100
+        const ADMIN_USER_ID = "-1002705355317"; 
+        const BOT_TOKEN = "7509054222:AAFhFhVXFCOs4kXtHQBigGU2QeNamHX42LQ"; 
+        const BOT_USERNAME = "ididkd46_bot"; // اسم مستخدم بوت تيليجرام الخاص بك
+        const REFERRAL_COMMISSION_PERCENTAGE = 0.10; // 10% عمولة إحالة
+
+        // متغيرات الحالة (باستخدام localStorage)
+        let watchedAdsCount = 0;
+        let earnedPoints = 0.00; 
+        let dailyWatchedAdsCount = 0; 
+        let lastWatchDate = ""; 
+        let autoAdInterval;
+        let userId = null; // معرف المستخدم لهذا الجهاز/المتصفح (لتتبع الإحالات من هنا)
+        let telegramUsername = "AnonymousUser"; // اسم المستخدم من تيليجرام
+        let referrerId = null; // معرف المحيل الذي أحال هذا المستخدم
+        let referredUsersCount = 0; // عدد المستخدمين الذين أحالهم هذا المستخدم (محلياً فقط)
+        let referralBonusEarned = 0.00; // إجمالي المكافأة المكتسبة من الإحالات (محلياً فقط)
+        let isNewUser = true; // يتم تحديده عند التحميل الأول أو من رابط الإحالة
+
+        // DOM Elements
+        const watchedAdsEl = document.getElementById('watched-ads');
+        const earnedPointsEl = document.getElementById('earned-points');
+        const dailyWatchedAdsEl = document.getElementById('daily-watched-ads'); 
+        const adsProgressEl = document.getElementById('ads-progress');
+        const progressFillEl = document.getElementById('progress-fill');
+        const adNotificationEl = document.getElementById('ad-notification');
+        const withdrawSectionEl = document.getElementById('withdraw-section');
+        const withdrawStatusEl = document.getElementById('withdraw-status');
+        const watchAdBtn = document.getElementById('watch-ad-btn');
+        const autoAdBtn = document.getElementById('auto-ad-btn');
+        const stopAutoBtn = document.getElementById('stop-auto-btn');
+        // عناصر DOM لنظام الإحالة
+        const referralLinkInput = document.getElementById('referral-link');
+        const referredUsersCountEl = document.getElementById('referred-users-count');
+        const referralBonusEarnedEl = document.getElementById('referral-bonus-earned');
+        
+        // --- Translation Logic ---
+        const translations = {
+            ar: {
+                app_title: "⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵",
+                earn_per_click_message: "اربح 5 عملات dogs لكل نقرة🔥", 
+                min_withdrawal_message_static: `السحب من ${MIN_WITHDRAW_POINTS} عملة فقط ✅`, 
+                watched_ads_label: "الإعلانات المشاهدة",
+                earned_points_label: "عملات Dogs المكتسبة", 
+                daily_limit_label: "المشاهدات اليومية", 
+                progress_to_bonus: "التقدم للمكافأة",
+                ad_type_label: "إعلان Adsgram بيني",
+                watch_ad_btn_with_points: `شاهد إعلان (+${POINTS_PER_AD.toFixed(2)} عملة dogs)`, 
+                auto_show_ads_btn: "عرض الإعلانات تلقائياً",
+                stop_auto_ads_btn: "إيقاف العرض التلقائي",
+                withdraw_points_btn: "سحب عملات Dogs", 
+                visit_channel_title: "قم بزيارة قناتنا على تيليجرام", 
+                visit_channel_button: "زيارة القناة", 
+                footer_text: "مدعوم بواسطة Adsgram", 
+                withdrawal_request_title: "طلب السحب",
+                withdrawal_warning: "تنبيه 🙋🏻‍♂️\nضع عنوانك من محفظة\nTonkeeper\nاو اي محفظة غيرها لا تطلب\nmemo\nلكي يصلك السحب بدون مشاكل (◍•ᴗ•◍)", 
+                enter_points_placeholder: "أدخل الكمية لسحب عملات Dogs", 
+                dogs_wallet_option: "محفظة Dogs",
+                ton_wallet_option: "محفظة TON",
+                wallet_address_placeholder: "أدخل عنوان المحفظة",
+                withdraw_button: "سحب",
+                ad_loading: "جاري تحميل الإعلان... يرجى الانتظار",
+                ad_completed_success: `اكتمل الإعلان! تمت إضافة ${POINTS_PER_AD.toFixed(2)} عملة dogs إلى حسابك`, 
+                ad_failed: "فشل عرض الإعلان. يرجى المحاولة مرة أخرى.",
+                auto_ads_started_notification: "بدأ العرض التلقائي للإعلانات. ستعمل الإعلانات كل 30 ثانية.",
+                auto_ads_stopped_notification: "تم إيقاف العرض التلقائي للإعلانات.",
+                daily_limit_reached: `لقد وصلت للحد الأقصى من المشاهدات اليومية (${DAILY_AD_LIMIT}). يرجى المحاولة غدًا.`, 
+                min_withdraw_message: `الحد الأدنى للسحب هو ${MIN_WITHDRAW_POINTS} عملة dogs.`, 
+                insufficient_balance: `رصيدك غير كافٍ. لديك {earnedPoints} عملة dogs.`, 
+                enter_wallet_address: "يرجى إدخال عنوان المحفظة.",
+                withdrawal_success_message: 'تم إرسال طلب السحب بنجاح!',
+                telegram_send_fail: `فشل إرسال الطلب: {error}`,
+                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`,
+                unknown_method: "طريقة غير معروفة:",
+                // ترجمات نظام الإحالة
+                referral_title: "نظام الإحالة",
+                referral_desc: `ادع أصدقائك واكسب ${REFERRAL_COMMISSION_PERCENTAGE * 100}% من أرباحهم من إعلانات Dogs!`, 
+                copy_link_btn: "نسخ الرابط",
+                copy_link_success: "تم نسخ رابط الإحالة!",
+                referred_users_label: "المستخدمون المدعوون",
+                referral_bonus_earned_label: "مكافآت الإحالة",
+                user_id_display_link_error: "غير قادر على إنشاء رابط الإحالة: معرف مستخدم تيليجرام غير متاح. يرجى فتح التطبيق عبر زر البوت في تيليجرام.",
+            },
+            en: {
+                app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", 
+                earn_per_click_message: "Earn 5 Dogs coins per click🔥", 
+                min_withdrawal_message_static: `Withdrawal from ${MIN_WITHDRAW_POINTS} coins only ✅`, 
+                watched_ads_label: "Watched Ads",
+                earned_points_label: "Earned Dogs Coins", 
+                daily_limit_label: "Daily Views", 
+                progress_to_bonus: "Progress to Bonus",
+                ad_type_label: "Adsgram Interstitial Ad",
+                watch_ad_btn_with_points: `Watch Ad (+${POINTS_PER_AD.toFixed(2)} Dogs Coins)`, 
+                auto_show_ads_btn: "Auto Show Ads",
+                stop_auto_ads_btn: "Stop Auto Ads",
+                withdraw_points_btn: "Withdraw Dogs Coins", 
+                visit_channel_title: "Visit Our Telegram Channel", 
+                visit_channel_button: "Visit Channel", 
+                footer_text: "Powered by Adsgram", 
+                withdrawal_request_title: "Withdrawal Request",
+                withdrawal_warning: "Warning 🙋🏻‍♂️\nPlease use your Tonkeeper wallet address\nor any other wallet that does not require\nmemo\nto ensure smooth withdrawals (◍•ᴗ•◍)", 
+                enter_points_placeholder: "Enter Amount to Withdraw Dogs Coins", 
+                dogs_wallet_option: "Dogs Wallet",
+                ton_wallet_option: "TON Wallet",
+                wallet_address_placeholder: "Enter Wallet Address",
+                withdraw_button: "Withdraw",
+                ad_loading: "Loading ad... Please wait",
+                ad_completed_success: `Ad completed! +${POINTS_PER_AD.toFixed(2)} Dogs Coins added to your account`, 
+                ad_failed: "Failed to show ad. Please try again.",
+                auto_ads_started_notification: "Auto ads started. Ads will play every 30 seconds.",
+                auto_ads_stopped_notification: "Auto ads stopped.",
+                daily_limit_reached: `You have reached the daily ad limit (${DAILY_AD_LIMIT}). Please try again tomorrow.`, 
+                min_withdraw_message: `Minimum withdrawal amount is ${MIN_WITHDRAW_POINTS} Dogs Coins.`, 
+                insufficient_balance: `Insufficient balance. You have {earnedPoints} Dogs Coins.`, 
+                enter_wallet_address: "Please enter the wallet address.",
+                withdrawal_success_message: 'Withdrawal request sent successfully!',
+                telegram_send_fail: `Failed to send request: {error}`,
+                telegram_connect_error: `Error connecting to Telegram service: {error}`,
+                unknown_method: "Unknown method:",
+                // Referral system translations
+                referral_title: "Referral System",
+                referral_desc: `Invite your friends and earn ${REFERRAL_COMMISSION_PERCENTAGE * 100}% of their Dogs ad earnings!`, 
+                copy_link_btn: "Copy Link",
+                copy_link_success: "Referral link copied!",
+                referred_users_label: "Referred Users",
+                referral_bonus_earned_label: "Referral Bonus Earned",
+                user_id_display_link_error: "Cannot generate referral link: Telegram user ID not available. Please open the app via the bot button in Telegram.",
+            },
+            ru: {
+                app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", 
+                earn_per_click_message: "Заработайте 5 монет Dogs за клик🔥", 
+                min_withdrawal_message_static: `Вывод от ${MIN_WITHDRAW_POINTS} монет только ✅`, 
+                watched_ads_label: "Просмотрено объявлений",
+                earned_points_label: "Заработанные монеты Dogs", 
+                daily_limit_label: "Ежедневные просмотры", 
+                progress_to_bonus: "Прогресс к бонусу",
+                ad_type_label: "Межстраничная реклама Adsgram",
+                watch_ad_btn_with_points: `Смотреть рекламу (+${POINTS_PER_AD.toFixed(2)} монет Dogs)`, 
+                auto_show_ads_btn: "Автоматический показ рекламы",
+                stop_auto_ads_btn: "Остановить автопоказ",
+                withdraw_points_btn: "Вывести монеты Dogs", 
+                visit_channel_title: "Посетите наш Telegram-канал", 
+                visit_channel_button: "Посетить канал", 
+                footer_text: "Powered by Adsgram", 
+                withdrawal_request_title: "Запрос на вывод",
+                withdrawal_warning: "Внимание 🙋🏻‍♂️\nИспользуйте адрес своего кошелька\nTonkeeper\nили любой другой кошелек, который не требует\nmemo\nдля беспроблемного вывода средств (◍•ᴗ•◍)", 
+                enter_points_placeholder: "Введите сумму для вывода монет Dogs", 
+                dogs_wallet_option: "Кошелек Dogs",
+                ton_wallet_option: "Кошелек TON",
+                wallet_address_placeholder: "Введите адрес кошелька",
+                withdraw_button: "Вывести",
+                ad_loading: "Загрузка рекламы... Пожалуйста, подождите",
+                ad_completed_success: `Реклама завершена! +${POINTS_PER_AD.toFixed(2)} монет Dogs добавлено на ваш счет`, 
+                ad_failed: "Не удалось показать рекламу. Пожалуйста, попробуйте еще раз.",
+                auto_ads_started_notification: "Автоматический показ рекламы запущен. Реклама будет воспроизводиться каждые 30 секунд.",
+                auto_ads_stopped_notification: "Остановить автопоказ.",
+                daily_limit_reached: `Вы достигли дневного лимита по рекламе (${DAILY_AD_LIMIT}). Пожалуйста, попробуйте завтра.`, 
+                min_withdraw_message: `Минимальная сумма вывода ${MIN_WITHDRAW_POINTS} монет Dogs.`, 
+                insufficient_balance: `Недостаточный баланс. У вас {earnedPoints} монет Dogs.`, 
+                enter_wallet_address: "Пожалуйста, введите адрес кошелька.",
+                withdrawal_success_message: 'Запрос на вывод успешно отправлен!',
+                telegram_send_fail: `Не удалось отправить запрос: {error}`,
+                telegram_connect_error: `Ошибка подключения к службе Telegram: {error}`,
+                unknown_method: "Неизвестный метод:",
+                // Referral system translations
+                referral_title: "Реферальная система",
+                referral_desc: `Приглашайте друзей и зарабатывайте ${REFERRAL_COMMISSION_PERCENTAGE * 100}% от их заработка на рекламе Dogs!`, 
+                copy_link_btn: "Скопировать ссылку",
+                copy_link_success: "Реферальная ссылка скопирована!",
+                referred_users_label: "Приглашенные пользователи",
+                referral_bonus_earned_label: "Заработано по реферальной программе",
+                user_id_display_link_error: "Невозможно сгенерировать реферальную ссылку: идентификатор пользователя Telegram недоступен. Пожалуйста, откройте приложение через кнопку бота в Telegram.",
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('appLanguage') || 'ar'; // Default to Arabic
+
+        // Function to get today's date in YYYY-MM-DD format
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Function to set the language
+        window.setLanguage = function(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('appLanguage', lang);
+            document.documentElement.lang = lang; // Set HTML lang attribute
+
+            // Update active button style
+            document.querySelectorAll('.language-selector button').forEach(button => {
+                if (button.dataset.lang === lang) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+
+            // Translate all elements with data-key
+            document.querySelectorAll('[data-key]').forEach(element => {
+                const key = element.dataset.key;
+                if (translations[lang] && translations[lang][key]) {
+                    if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) {
+                        element.placeholder = translations[lang][key];
+                    } else if (key === 'watch_ad_btn_with_points' || key === 'ad_completed_success' || key === 'min_withdrawal_message_static') { 
+                         element.textContent = translations[lang][key];
+                    } else if (key === 'daily_limit_reached') { 
+                        element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); 
+                    } else if (key === 'insufficient_balance') {
+                        element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2));
+                    } else if (key === 'referral_desc') { 
+                        element.textContent = translations[lang][key];
+                    }
+                    else {
+                        element.textContent = translations[lang][key];
+                    }
+                }
+            });
+
+            // Translate all elements with data-key-placeholder
+            document.querySelectorAll('[data-key-placeholder]').forEach(element => {
+                const placeholderKey = element.dataset.keyPlaceholder;
+                if (translations[lang] && translations[lang][placeholderKey]) {
+                    element.placeholder = translations[lang][placeholderKey];
+                }
+            });
+
+            // Translate options in select dropdowns
+            document.querySelectorAll('#payment-method option').forEach(option => {
+                const key = option.dataset.key;
+                if (translations[lang] && translations[lang][key]) {
+                    option.textContent = translations[lang][key];
+                }
+            });
+
+            // Re-render dynamic content (like numbers)
+            updateUI(); 
+            showAdNotification(''); 
+            withdrawStatusEl.textContent = ''; 
+        };
+
+
+        // Function to save user data to localStorage
+        function saveUserDataToLocalStorage() {
+            localStorage.setItem('watchedAdsCount', watchedAdsCount);
+            localStorage.setItem('earnedPoints', earnedPoints);
+            localStorage.setItem('dailyWatchedAdsCount', dailyWatchedAdsCount);
+            localStorage.setItem('lastWatchDate', lastWatchDate);
+            localStorage.setItem('userId', userId);
+            localStorage.setItem('telegramUsername', telegramUsername); 
+            if (referrerId) {
+                localStorage.setItem('referrerId', referrerId);
+            }
+            localStorage.setItem('referredUsersCount', referredUsersCount);
+            localStorage.setItem('referralBonusEarned', referralBonusEarned);
+            localStorage.setItem('isNewUser', isNewUser); 
+        }
+
+        // Initialize the app
+        function initApp() {
+            // Load user data
+            if (localStorage.getItem('watchedAdsCount')) {
+                watchedAdsCount = parseFloat(localStorage.getItem('watchedAdsCount'));
+                earnedPoints = parseFloat(localStorage.getItem('earnedPoints'));
+                dailyWatchedAdsCount = parseInt(localStorage.getItem('dailyWatchedAdsCount'));
+                lastWatchDate = localStorage.getItem('lastWatchDate');
+                userId = localStorage.getItem('userId');
+                telegramUsername = localStorage.getItem('telegramUsername') || 'AnonymousUser';
+                referrerId = localStorage.getItem('referrerId') || null;
+                referredUsersCount = parseInt(localStorage.getItem('referredUsersCount')) || 0;
+                referralBonusEarned = parseFloat(localStorage.getItem('referralBonusEarned')) || 0.00;
+                isNewUser = localStorage.getItem('isNewUser') === 'true'; 
+            } else {
+                // First-time user, initialize referral stats
+                referredUsersCount = 0;
+                referralBonusEarned = 0.00;
+                isNewUser = true; 
+            }
+            
+            // Check Telegram WebApp initData for user ID and referrer
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
+                const tgInitData = window.Telegram.WebApp.initDataUnsafe;
+                if (tgInitData.user) {
+                    userId = String(tgInitData.user.id);
+                    telegramUsername = tgInitData.user.username || tgInitData.user.first_name || 'AnonymousUser';
+                    
+                    // Check for referrer ID from start_param
+                    // Only set referrerId if it's a new user and referrer ID is present and not self-referral
+                    if (isNewUser && tgInitData.start_param && tgInitData.start_param !== userId) {
+                        referrerId = tgInitData.start_param;
+                        console.log(`initApp: User referred by ${referrerId}`);
+                    }
+                } else if (!userId) { 
+                     userId = 'USR-' + Math.floor(100000 + Math.random() * 900000); 
+                }
+            } else if (!userId) { 
+                userId = 'USR-' + Math.floor(100000 + Math.random() * 900000); 
+            }
+            
+            // Daily reset logic
+            const todayDate = getTodayDate();
+            if (lastWatchDate !== todayDate) {
+                dailyWatchedAdsCount = 0;
+                lastWatchDate = todayDate;
+            }
+
+            saveUserDataToLocalStorage(); 
+
+            // Apply language on load and update UI
+            setLanguage(currentLanguage);
+            updateUI();
+            updateButtonStates(); 
+            generateReferralLink(); 
+        }
+        
+        // Update UI elements
+        function updateUI() {
+            watchedAdsEl.textContent = watchedAdsCount;
+            earnedPointsEl.textContent = earnedPoints.toFixed(2);
+            dailyWatchedAdsEl.textContent = `${dailyWatchedAdsCount} / ${DAILY_AD_LIMIT}`; 
+            
+            const progress = (watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100;
+            adsProgressEl.textContent = `${Math.round(progress)}%`;
+            progressFillEl.style.width = `${progress}%`;
+            
+            // Add animation when points change
+            earnedPointsEl.classList.remove('pulse');
+            void earnedPointsEl.offsetWidth; 
+            earnedPointsEl.classList.add('pulse');
+
+            // Update referral UI
+            referredUsersCountEl.textContent = referredUsersCount;
+            referralBonusEarnedEl.textContent = referralBonusEarned.toFixed(2);
+
+            updateButtonStates(); 
+        }
+
+        // Function to update button enabled/disabled states
+        function updateButtonStates() {
+            const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
+            watchAdBtn.disabled = limitReached;
+            autoAdBtn.disabled = limitReached; 
+            
+            if (limitReached) {
+                clearInterval(autoAdInterval);
+                autoAdInterval = null; 
+                stopAutoBtn.disabled = true; 
+            } else {
+                stopAutoBtn.disabled = !autoAdInterval; 
+            }
+        }
+        
+        // Watch ad function using Adsgram
+        async function watchAd() {
+            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+                showAdNotification(translations[currentLanguage].daily_limit_reached);
+                return; 
+            }
+
+            showAdNotification(translations[currentLanguage].ad_loading);
+            
+            try {
+                if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
+                    // تم تغيير Block ID هنا
+                    await window.Adsgram.init({ blockId: "12189" }).show(); 
+                    
+                    watchedAdsCount++;
+                    earnedPoints += POINTS_PER_AD; 
+                    dailyWatchedAdsCount++; 
+
+                    lastWatchDate = getTodayDate(); 
+                    
+                    if (watchedAdsCount % ADS_FOR_BONUS === 0) {
+                        earnedPoints += 1.00; 
+                    }
+                    
+                    // منطق عمولة الإحالة (ملاحظة: هذا يعمل محليًا فقط مع localStorage!)
+                    // لكي يعمل نظام الإحالة بشكل صحيح (المحيل يكسب من المُحال)، تحتاج إلى قاعدة بيانات خلفية.
+                    // مع localStorage، سيتم تحديث هذه القيم فقط للمستخدم الحالي على جهازه الخاص.
+                    if (referrerId) { 
+                        const commissionAmount = POINTS_PER_AD * REFERRAL_COMMISSION_PERCENTAGE;
+                        console.warn(`[ملاحظة هامة لنظام الإحالة]: المستخدم ${userId} تم إحالته بواسطة ${referrerId}. سيتم حساب عمولة ${commissionAmount.toFixed(2)} بشكل محلي لهذا المستخدم فقط (المُحال). لتطبيق هذا بشكل صحيح وتحديث رصيد المحيل الفعلي، تحتاج إلى قاعدة بيانات backend.`);
+                        
+                        // هنا لا يمكننا تحديث رصيد المحيل الفعلي في localStorage الخاص به.
+                        // لكن يمكننا إضافة منطق محلي هنا لـ *محاكاة* تأثير الإحالة على الواجهة إذا أردت.
+                        // على سبيل المثال، يمكننا زيادة `referredUsersCount` و `referralBonusEarned` للمستخدم الحالي
+                        // لتعكس أن هذا المستخدم قد أحال شخصًا ما وقد "كسب" مكافأة، لكن هذا لن ينعكس على حساب المحيل الحقيقي.
+                        // لأغراض العرض المحلي: إذا كنت المحيل، يمكننا زيادة إحصائياتك المحلية
+                        // وهذا يتطلب تخزين بيانات عن "المستخدمين المحالين" بشكل دائم هنا.
+                        // بما أننا لا نستخدم Firebase، لن نطبق أي تحديث لبيانات المحيل هنا،
+                        // فقط نستخدم `referrerId` لإنشاء الرابط.
+                    }
+
+                    // For local display purposes, if this is a new user and they were referred,
+                    // we can simulate increasing the referrer's count. This is NOT cross-user.
+                    if (isNewUser && watchedAdsCount === 1) { // Check if this is the first ad watched by a new user
+                        // This logic is for local display only, NOT for actual referral earnings across users.
+                        // To properly update a referrer's count and earnings, a backend database (like Firebase) is essential.
+                        console.log(`[Referral Local Simulation]: New user ${userId} watched their first ad. Incrementing referredUsersCount locally for demonstration.`);
+                        // Here, you might attempt to get the referrer's local storage and update it,
+                        // but this would only work if the referrer's app is open on the same browser.
+                        // Given localStorage limitations, we won't directly update `referredUsersCount`
+                        // or `referralBonusEarned` for the referrer here.
+                    }
+                    
+                    isNewUser = false; // Mark user as not new after their first interaction with ads.
+                    saveUserDataToLocalStorage(); 
+                    updateUI(); 
+                    
+                    showAdNotification(translations[currentLanguage].ad_completed_success);
+                } else {
+                    console.error("Adsgram SDK is not loaded. Please check the script tag.");
+                    showAdNotification(translations[currentLanguage].ad_failed);
+                }
+
+            } catch (error) {
+                console.error("Adsgram ad error or no ad to show:", error);
+                showAdNotification(translations[currentLanguage].ad_failed);
+            }
+        }
+        
+        // Auto show ads 
+        function startAutoAds() {
+            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+                showAdNotification(translations[currentLanguage].daily_limit_reached);
+                return;
+            }
+
+            if (autoAdInterval) {
+                clearInterval(autoAdInterval);
+            }
+            autoAdInterval = setInterval(watchAd, 30000); 
+            autoAdBtn.disabled = true; 
+            stopAutoBtn.disabled = false; 
+            showAdNotification(translations[currentLanguage].auto_ads_started_notification);
+        }
+        
+        function stopAutoAds() {
+            clearInterval(autoAdInterval);
+            autoAdInterval = null; 
+            autoAdBtn.disabled = false; 
+            stopAutoBtn.disabled = true; 
+            showAdNotification(translations[currentLanguage].auto_ads_stopped_notification);
+        }
+        
+        // Show ad notification
+        function showAdNotification(message) {
+            adNotificationEl.textContent = message;
+            adNotificationEl.style.display = 'block';
+            
+            setTimeout(() => {
+                adNotificationEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Function to show withdraw form
+        function showWithdrawForm() {
+            withdrawSectionEl.style.display = 'block';
+        }
+
+        // Function to handle withdrawal
+        function withdrawPoints() {
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const paymentMethod = document.getElementById('payment-method').value; 
+            const walletAddress = document.getElementById('wallet-address').value; 
+
+            let minRequiredPoints = MIN_WITHDRAW_POINTS; 
+            let methodName;
+
+            if (paymentMethod === 'dogs') {
+                methodName = translations[currentLanguage].dogs_wallet_option;
+            } else if (paymentMethod === 'ton') {
+                methodName = translations[currentLanguage].ton_wallet_option;
+            } else {
+                methodName = translations[currentLanguage].unknown_method; 
+            }
+
+            if (isNaN(amount) || amount < minRequiredPoints) {
+                let message = translations[currentLanguage].min_withdraw_message; 
+                showTemporaryMessage(message, 'red');
+                return;
+            }
+
+            if (amount > earnedPoints) {
+                let message = translations[currentLanguage].insufficient_balance.replace('{earnedPoints}', earnedPoints.toFixed(2));
+                showTemporaryMessage(message, 'red');
+                return;
+            }
+
+            if (!walletAddress.trim()) { 
+                showTemporaryMessage(translations[currentLanguage].enter_wallet_address, 'red');
+                return;
+            }
+
+            earnedPoints -= amount;
+            saveUserDataToLocalStorage(); 
+            updateUI(); 
+
+            // Construct Telegram message based on selected payment method
+            let messageToAdmin = `New Withdrawal Request:\n`;
+            messageToAdmin += `User: @${telegramUsername} (ID: ${userId})\n`; 
+            messageToAdmin += `Amount: ${amount} Dogs coins\nPayment Method: ${methodName}\nWallet Address: ${walletAddress}`;
+            
+            sendWithdrawRequestToAdmin(messageToAdmin); 
+
+            showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green');
+
+            document.getElementById('withdraw-amount').value = '';
+            document.getElementById('wallet-address').value = '';
+        }
+
+        // Function to send withdrawal request to admin via Telegram
+        function sendWithdrawRequestToAdmin(message) {
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_USER_ID}&text=${encodeURIComponent(message)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ok) {
+                        console.log('Message sent to admin');
+                    } else {
+                        console.error('Failed to send message to Telegram:', data.description || data);
+                        let errorMessage = translations[currentLanguage].telegram_send_fail.replace('{error}', data.description || data);
+                        showTemporaryMessage(errorMessage, 'red');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error during fetch to Telegram API:', error);
+                    let errorMessage = translations[currentLanguage].telegram_connect_error.replace('{error}', error.message);
+                    showTemporaryMessage(errorMessage, 'red');
+                });
+        }
+
+        // Utility for showing temporary messages
+        let messageTimeout;
+        function showTemporaryMessage(msg, color) {
+            withdrawStatusEl.textContent = msg;
+            withdrawStatusEl.style.color = color;
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                withdrawStatusEl.textContent = '';
+            }, 5000); 
+        }
+
+        // Referral System Functions
+        async function generateReferralLink() {
+            // Get user ID from Telegram WebApp initData if available, otherwise generate a local one.
+            let currentUserId = userId; // Use the userId stored in state
+
+            // Ensure Telegram WebApp is ready and user data is available
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                currentUserId = String(window.Telegram.WebApp.initDataUnsafe.user.id);
+                // Also update the local userId variable for consistency
+                userId = currentUserId;
+                telegramUsername = window.Telegram.WebApp.initDataUnsafe.user.username || window.Telegram.WebApp.initDataUnsafe.user.first_name || 'AnonymousUser';
+                saveUserDataToLocalStorage(); // Save updated userId and username
+            } else if (!currentUserId) {
+                // If Telegram user ID is not available, and no local ID yet, generate one
+                currentUserId = 'USR-' + Math.floor(100000 + Math.random() * 900000);
+                userId = currentUserId; // Update state
+                saveUserDataToLocalStorage();
+            }
+
+            if (currentUserId) {
+                const referralLink = `https://t.me/${BOT_USERNAME}?start=${currentUserId}`;
+                referralLinkInput.value = referralLink;
+                console.log("generateReferralLink: Referral link generated:", referralLink);
+            } else {
+                referralLinkInput.value = translations[currentLanguage].user_id_display_link_error; 
+                console.warn("generateReferralLink: Could not generate referral link: Telegram user ID or local user ID not available.");
+            }
+        }
+
+
+        function copyReferralLink() {
+            referralLinkInput.select();
+            document.execCommand('copy');
+            showAdNotification(translations[currentLanguage].copy_link_success);
+        }
+
+        // Telegram Mini App SDK Initialization
+        if (window.Telegram && window.Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand(); 
+            console.log("Telegram WebApp SDK initialized.");
+        } else {
+            console.warn("Telegram WebApp SDK not detected. Running as a standalone web page.");
+        }
+
+        // Initialize app on load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
