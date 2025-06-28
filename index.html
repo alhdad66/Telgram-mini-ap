@@ -7,6 +7,10 @@
     
     <!-- Adsgram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    
+    <!-- Telegram WebApp SDK -->
+    <!-- هذا السكريبت ضروري لجعل تطبيقك يعمل كتطبيق تيليجرام مصغر -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
         :root {
@@ -873,8 +877,8 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // لا نحتاج لـ getAuth أو signInAnonymously هنا، لأن Mini App يوفر Telegram User ID مباشرة
 
         // <<< معلومات تكوين Firebase الخاصة بك >>>
         // هذا الكائن يحتوي على بيانات مشروع Firebase الخاص بك.
@@ -889,12 +893,11 @@
         };
         // <<< نهاية معلومات التكوين >>>
 
-        // المتغيرات العامة لـ Firebase
+        // المتغيرات العامة لـ Firebase و Telegram Mini App
         window.firebaseApp = null;
         window.db = null;
-        window.auth = null;
-        window.currentUserId = null; // هذا هو معرف المستخدم المصادق عليه (UID)
-        let isFirebaseReady = false; // NEW: Flag to track Firebase initialization and authentication state
+        window.telegramUserId = null; // NEW: هذا هو معرف المستخدم الذي نحصل عليه من Telegram WebApp
+        let isAppReady = false; // Flag to track if Telegram WebApp and Firebase are initialized
 
         // الثوابت من السكريبت الأصلي الخاص بك
         const POINTS_PER_AD = 1.00;
@@ -986,7 +989,7 @@
                 earned_from_referrals: "الربح من الإحالات:",
                 link_copied_success: "تم نسخ رابط الإحالة بنجاح!",
                 your_user_id: "معرف المستخدم:",
-                loading_user_id: "جاري تحميل معرف المستخدم...", // NEW translation key
+                loading_app: "جاري تحميل التطبيق...", 
             },
             en: {
                 app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", 
@@ -1032,7 +1035,7 @@
                 earned_from_referrals: "Earned from Referrals:",
                 link_copied_success: "Referral link copied successfully!",
                 your_user_id: "User ID:",
-                loading_user_id: "Loading User ID...", // NEW translation key
+                loading_app: "Loading App...", 
             },
             ru: {
                 app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", 
@@ -1078,11 +1081,12 @@
                 earned_from_referrals: "Заработано с рефералов:",
                 link_copied_success: "Реферальная ссылка успешно скопирована!",
                 your_user_id: "ID пользователя:",
-                loading_user_id: "Загрузка ID пользователя...", // NEW translation key
+                loading_app: "Загрузка приложения...", 
             }
         };
 
         let currentLanguage = localStorage.getItem('appLanguage') || 'ar'; // Default to Arabic
+        let currentSection = 'main'; // Tracks current visible section (main, withdraw, referral)
 
         // دالة للحصول على تاريخ اليوم بتنسيق YYYY-MM-DD
         function getTodayDate() {
@@ -1115,7 +1119,6 @@
                     if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) {
                         element.placeholder = translations[lang][key];
                     } else if (key === 'ad_completed_success') {
-                        // Use placeholder for POINTS_PER_AD
                         element.textContent = translations[lang][key].replace('{POINTS_PER_AD}', POINTS_PER_AD.toFixed(2));
                     } else if (key === 'daily_limit_reached') { 
                         element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); 
@@ -1163,104 +1166,108 @@
             earnedFromReferralsEl.textContent = earnedFromReferrals.toFixed(2);
             referralLinkInput.value = generateReferralLink();
             
-            // Update user ID display based on authentication status
-            displayUserIdEl.textContent = window.currentUserId ? window.currentUserId : translations[currentLanguage].loading_user_id;
+            // Update user ID display based on Telegram User ID
+            displayUserIdEl.textContent = window.telegramUserId ? window.telegramUserId : translations[currentLanguage].loading_app;
         };
 
         // Initialize Firebase and load user data
-        async function initFirebase() {
+        async function initApp() {
             try {
-                // Use the firebaseConfig defined above
-                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
-                    console.error("Firebase config is missing or incomplete. Please ensure firebaseConfig is set correctly.");
-                    showAdNotification("Error: Firebase configuration missing.");
-                    return;
-                }
-                
-                // We use projectId as the appId in the Firestore path for GitHub Pages
-                const appId = firebaseConfig.projectId; 
+                // Initialize Telegram WebApp
+                if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.ready();
+                    // Optional: Expand app to full screen
+                    window.Telegram.WebApp.expand();
+                    // Set theme for Mini App if available (optional)
+                    document.body.style.backgroundColor = window.Telegram.WebApp.themeParams.bg_color || '#1a1a2e';
+                    document.body.style.color = window.Telegram.WebApp.themeParams.text_color || '#f5f5f5';
 
-                window.firebaseApp = initializeApp(firebaseConfig);
-                window.db = getFirestore(window.firebaseApp);
-                window.auth = getAuth(window.firebaseApp);
-
-                // Sign in anonymously for GitHub Pages (no custom token)
-                // Ensure "Anonymous Authentication" is enabled in your Firebase project (Authentication -> Sign-in method)
-                await signInAnonymously(window.auth);
-                console.log("Signed in anonymously.");
-
-                // Listen for authentication state changes to get the user ID
-                onAuthStateChanged(window.auth, (user) => {
-                    if (user) {
-                        window.currentUserId = user.uid;
-                        console.log("Authenticated User ID:", window.currentUserId);
-                        displayUserIdEl.textContent = window.currentUserId; // Display User ID
-                        isFirebaseReady = true; // NEW: Set flag to true
-
-                        // Now that we have a user ID, load/set up user data
-                        loadUserDataFromFirestore(appId); // Pass appId here
-
-                        // Check for referrer ID in URL parameters (Telegram Mini App context)
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const ref = urlParams.get('startapp'); // Telegram Mini App passes params via 'startapp'
-                        if (ref && ref.startsWith('ref_')) {
-                            const foundReferrerId = ref.substring(4); // Extract referrer ID
-                            if (foundReferrerId !== window.currentUserId) { // Prevent self-referral
-                                referrerId = foundReferrerId;
-                                // Store referrerId in Firestore for the current user
-                                const userRef = doc(window.db, `artifacts/${appId}/users`, window.currentUserId);
-                                
-                                getDoc(userRef).then(docSnap => {
-                                    // Only set referrerId if it hasn't been set before for this user
-                                    if (!docSnap.exists() || !docSnap.data().referrerId) {
-                                        updateDoc(userRef, { referrerId: referrerId }, { merge: true }) // Use merge to avoid overwriting
-                                            .then(() => console.log(`Set referrerId ${referrerId} for user ${window.currentUserId}`))
-                                            .catch(e => console.error("Error setting referrerId:", e, userRef));
-                                    } else {
-                                        console.log(`ReferrerId already set for user ${window.currentUserId}. Skipping.`);
-                                    }
-                                }).catch(e => console.error("Error checking user doc for referrerId:", e));
-
-                                // Increment totalReferrals for the referrer (simplified, ideally backend)
-                                const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
-                                getDoc(referrerRef).then(docSnap => {
-                                    if (docSnap.exists()) {
-                                        // A simple increment. For robust systems, use Cloud Functions and transactions.
-                                        updateDoc(referrerRef, {
-                                            totalReferrals: increment(1)
-                                        }).then(() => console.log(`Incremented totalReferrals for ${referrerId}`));
-                                    } else {
-                                        console.warn(`Referrer ${referrerId} does not exist in Firestore. Cannot increment totalReferrals.`);
-                                    }
-                                }).catch(e => console.error("Error updating referrer's totalReferrals:", e));
-                            }
-                        }
+                    if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                        window.telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
+                        console.log("Telegram User ID:", window.telegramUserId);
+                        displayUserIdEl.textContent = window.telegramUserId;
                     } else {
-                        window.currentUserId = null;
-                        displayUserIdEl.textContent = translations[currentLanguage].loading_user_id; // Still loading or error
-                        isFirebaseReady = false; // Firebase not ready for operations without user
-                        console.log("No user signed in.");
+                        console.error("Telegram User ID not available. Mini App not launched correctly or user data missing.");
+                        showAdNotification("Error: Not launched as Telegram Mini App or user data missing.");
+                        displayUserIdEl.textContent = "Error"; // Indicate error
+                        return; // Stop initialization if no Telegram User ID
                     }
-                    updateButtonStates(); // Update button states immediately after auth change
-                });
+
+                    // Initialize Firebase
+                    if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
+                        console.error("Firebase config is missing or incomplete. Please ensure firebaseConfig is set correctly.");
+                        showAdNotification("Error: Firebase configuration missing.");
+                        return;
+                    }
+                    
+                    const appId = firebaseConfig.projectId; 
+                    window.firebaseApp = initializeApp(firebaseConfig);
+                    window.db = getFirestore(window.firebaseApp);
+
+                    // Load user data using Telegram User ID
+                    loadUserDataFromFirestore(appId, window.telegramUserId);
+
+                    // Handle Back Button in Telegram Mini App
+                    window.Telegram.WebApp.onEvent('backButtonClicked', handleBackButtonClick);
+                    updateBackButtonVisibility(); // Initial visibility based on current section
+
+                    isAppReady = true; // Set flag to true when app (Telegram + Firebase) is ready
+
+                    // Process startapp parameter from Telegram initData
+                    const urlParams = new URLSearchParams(window.Telegram.WebApp.initData); // Parse initData from WebApp
+                    const ref = urlParams.get('start_param'); // Telegram Mini Apps use 'start_param' for deep links
+                    if (ref && ref.startsWith('ref_')) {
+                        const foundReferrerId = ref.substring(4); 
+                        if (foundReferrerId !== window.telegramUserId) { 
+                            referrerId = foundReferrerId;
+                            // Update referrerId in Firestore when user doc is loaded
+                            const userRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
+                            getDoc(userRef).then(docSnap => {
+                                if (docSnap.exists() && !docSnap.data().referrerId) {
+                                    updateDoc(userRef, { referrerId: referrerId }, { merge: true })
+                                        .then(() => console.log(`Set referrerId ${referrerId} for user ${window.telegramUserId}`))
+                                        .catch(e => console.error("Error setting referrerId:", e, userRef));
+                                }
+                            }).catch(e => console.error("Error checking user doc for referrerId:", e));
+
+                            // Increment totalReferrals for the referrer (client-side simplified)
+                            const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
+                            getDoc(referrerRef).then(docSnap => {
+                                if (docSnap.exists()) {
+                                    updateDoc(referrerRef, { totalReferrals: increment(1) })
+                                        .then(() => console.log(`Incremented totalReferrals for ${referrerId}`))
+                                        .catch(e => console.error(`Error awarding referrer points to ${referrerId}:`, e));
+                                } else {
+                                    console.warn(`Referrer ${referrerId} does not exist in Firestore. Cannot increment totalReferrals.`);
+                                }
+                            }).catch(e => console.error("Error updating referrer's totalReferrals:", e));
+                        }
+                    }
+
+                } else {
+                    console.error("Telegram WebApp SDK not found. Not running as a Mini App.");
+                    showAdNotification("Error: Not launched as Telegram Mini App.");
+                    displayUserIdEl.textContent = "N/A (Not Mini App)";
+                }
 
             } catch (error) {
-                console.error("Error initializing Firebase or signing in:", error);
+                console.error("Error initializing App:", error);
                 showAdNotification("Error initializing app. Please try again.");
-                displayUserIdEl.textContent = "Error loading user";
-                isFirebaseReady = false; // Firebase not ready
-                updateButtonStates(); // Update button states on error
+                displayUserIdEl.textContent = "Error";
+            } finally {
+                updateButtonStates(); // Update button states regardless of init success/fail
+                setLanguage(currentLanguage); // Ensure UI is translated
             }
         }
 
         // Load user data from Firestore and set up real-time listener
-        async function loadUserDataFromFirestore(appId) { // Receive appId as parameter
-            if (!window.db || !window.currentUserId || !appId) {
+        async function loadUserDataFromFirestore(appId, userId) {
+            if (!window.db || !userId || !appId) {
                 console.log("Firestore, User ID, or App ID not ready for data load.");
                 return;
             }
 
-            const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.currentUserId);
+            const userDocRef = doc(window.db, `artifacts/${appId}/users`, userId);
 
             // Use onSnapshot to get real-time updates
             onSnapshot(userDocRef, (docSnap) => {
@@ -1270,8 +1277,7 @@
                     watchedAdsCount = data.watchedAdsCount || 0;
                     dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
                     lastWatchDate = data.lastWatchDate || "";
-                    // Only update referrerId from docSnap if it's currently null in our state
-                    if (!referrerId && data.referrerId) {
+                    if (!referrerId && data.referrerId) { // Only update referrerId if it's currently null
                         referrerId = data.referrerId; 
                     }
                     totalReferrals = data.totalReferrals || 0;
@@ -1280,14 +1286,12 @@
                     const todayDate = getTodayDate();
                     if (lastWatchDate !== todayDate) {
                         dailyWatchedAdsCount = 0;
-                        // Update only if there's a date change
                         updateDoc(userDocRef, { dailyWatchedAdsCount: 0, lastWatchDate: todayDate })
                             .then(() => console.log("Daily count reset for new day."))
                             .catch(e => console.error("Error resetting daily count:", e));
                     }
                     console.log("User data loaded/updated from Firestore:", data);
                 } else {
-                    // User document not found, create a new one. This path should only hit for brand new users.
                     console.log("User document not found, creating new one.");
                     earnedPoints = 0.00;
                     watchedAdsCount = 0;
@@ -1295,23 +1299,22 @@
                     lastWatchDate = getTodayDate();
                     totalReferrals = 0;
                     earnedFromReferrals = 0.00;
-                    // When creating the document, include referrerId if available (from URL param)
                     setDoc(userDocRef, {
                         earnedPoints: earnedPoints,
                         watchedAdsCount: watchedAdsCount,
                         dailyWatchedAdsCount: dailyWatchedAdsCount,
                         lastWatchDate: lastWatchDate,
-                        referrerId: referrerId, // Will be null if not referred via URL param
+                        referrerId: referrerId, 
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
                     })
                     .then(() => console.log("New user document created."))
                     .catch(e => console.error("Error creating user document:", e));
                 }
-                updateUI(); // Update UI after data load/update
+                updateUI(); 
                 updateTapUI();
                 updateReferralUI();
-                updateButtonStates(); // Recalculate button states after data is loaded
+                updateButtonStates(); 
             }, (error) => {
                 console.error("Error listening to user document:", error);
                 showAdNotification("Failed to load user data.");
@@ -1326,45 +1329,42 @@
             adsProgressEl.textContent = `${Math.round(progress)}%`;
             progressFillEl.style.width = `${progress}%`;
             
-            // Add animation when points change
             earnedPointsEl.classList.remove('pulse');
-            void earnedPointsEl.offsetWidth; // Trigger reflow
+            void earnedPointsEl.offsetWidth; 
             earnedPointsEl.classList.add('pulse');
 
-            updateButtonStates(); // Ensure button states are updated after UI changes
+            updateButtonStates(); 
         }
 
         // Update tap UI elements
         function updateTapUI() {
             tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
             if (tapsCount >= TAPS_REQUIRED) {
-                claimRewardBtn.style.display = 'block'; // Show claim button
-                tapsRemainingEl.style.display = 'none'; // Hide taps remaining
-                tapAreaEl.querySelector('p').style.display = 'none'; // Hide "taps to claim" text
+                claimRewardBtn.style.display = 'block'; 
+                tapsRemainingEl.style.display = 'none'; 
+                tapAreaEl.querySelector('p').style.display = 'none'; 
             } else {
-                claimRewardBtn.style.display = 'none'; // Hide claim button
-                tapsRemainingEl.style.display = 'block'; // Show taps remaining
-                tapAreaEl.querySelector('p').style.display = 'block'; // Show "taps to claim" text
+                claimRewardBtn.style.display = 'none'; 
+                tapsRemainingEl.style.display = 'block'; 
+                tapAreaEl.querySelector('p').style.display = 'block'; 
             }
         }
 
         // Function to update button enabled/disabled states
         function updateButtonStates() {
             const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            // NEW: Buttons are disabled if Firebase is not ready OR daily limit is reached
-            claimRewardBtn.disabled = !isFirebaseReady || limitReached; 
-            tapAreaEl.style.pointerEvents = (!isFirebaseReady || limitReached) ? 'none' : 'auto';
+            // Buttons are disabled if app is not ready OR daily limit is reached
+            claimRewardBtn.disabled = !isAppReady || limitReached; 
+            tapAreaEl.style.pointerEvents = (!isAppReady || limitReached) ? 'none' : 'auto';
 
-            // Also disable other main action buttons if Firebase not ready
-            document.getElementById('show-withdraw-btn').disabled = !isFirebaseReady;
-            document.getElementById('show-referral-btn').disabled = !isFirebaseReady;
+            document.getElementById('show-withdraw-btn').disabled = !isAppReady;
+            document.getElementById('show-referral-btn').disabled = !isAppReady;
         }
         
         // Handle tap area click
         tapAreaEl.addEventListener('click', async (event) => {
-            // NEW: Check isFirebaseReady before processing tap
-            if (!isFirebaseReady) {
-                showAdNotification(translations[currentLanguage].loading_user_id); // Show loading message
+            if (!isAppReady) {
+                showAdNotification(translations[currentLanguage].loading_app); 
                 return;
             }
             if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
@@ -1376,20 +1376,17 @@
                 tapsCount++;
                 tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
                 
-                // Add visual feedback for tap
                 const feedback = document.createElement('div');
                 feedback.classList.add('tap-feedback');
                 feedback.textContent = `+1`;
-                // Position feedback relative to the tap area, but use event.clientX/Y for click location
                 feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`;
                 feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`;
                 tapAreaEl.appendChild(feedback);
 
-                // Add active class to tap area and image for visual feedback
                 tapAreaEl.classList.add('active');
                 setTimeout(() => {
                     feedback.remove();
-                    tapAreaEl.classList.remove('active'); // Remove active class after animation
+                    tapAreaEl.classList.remove('active'); 
                 }, 1000);
 
                 if (tapsCount >= TAPS_REQUIRED) {
@@ -1400,9 +1397,8 @@
 
         // Function to claim reward (show ad and update Firestore)
         window.claimReward = async function() {
-            // NEW: Check isFirebaseReady before claiming
-            if (!isFirebaseReady) {
-                showAdNotification(translations[currentLanguage].loading_user_id); // Show loading message
+            if (!isAppReady) {
+                showAdNotification(translations[currentLanguage].loading_app); 
                 return;
             }
             if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
@@ -1411,25 +1407,24 @@
             }
 
             showAdNotification(translations[currentLanguage].ad_loading);
-            claimRewardBtn.disabled = true; // Disable button while ad is loading
-            tapAreaEl.style.pointerEvents = 'none'; // Disable tapping during ad loading
+            claimRewardBtn.disabled = true; 
+            tapAreaEl.style.pointerEvents = 'none'; 
             
             try {
                 if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
                     await window.Adsgram.init({ blockId: "12082" }).show(); 
                     
-                    const appId = firebaseConfig.projectId; // Use projectId as appId
-                    const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.currentUserId);
+                    const appId = firebaseConfig.projectId; 
+                    const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                     
                     let pointsToAdd = POINTS_PER_AD;
                     let newDailyWatchedAdsCount = dailyWatchedAdsCount + 1;
                     let newWatchedAdsCount = watchedAdsCount + 1;
 
                     if (newWatchedAdsCount % ADS_FOR_BONUS === 0) {
-                        pointsToAdd += 1.00; // Bonus point
+                        pointsToAdd += 1.00; 
                     }
 
-                    // Update user points in Firestore
                     await updateDoc(userDocRef, {
                         earnedPoints: increment(pointsToAdd),
                         watchedAdsCount: increment(1),
@@ -1437,31 +1432,19 @@
                         lastWatchDate: getTodayDate()
                     });
 
-                    // --- Referral System Logic (Client-Side with Caveats) ---
-                    // IMPORTANT: For a robust and secure referral system, especially for awarding points to the referrer,
-                    // Firebase Cloud Functions and Firestore Transactions are highly recommended.
-                    // Direct client-side updates to other users' documents are prone to security issues and race conditions
-                    // without proper backend logic.
-
-                    if (referrerId && referrerId !== window.currentUserId) { // Ensure there is a referrer and it's not the user themselves
+                    if (referrerId && referrerId !== window.telegramUserId) { 
                         const referrerEarn = POINTS_PER_AD * REFERRAL_PERCENTAGE;
                         const referrerDocRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
                         
-                        // Attempt to update referrer's points directly.
-                        // This is simplified and can lead to race conditions if many referred users
-                        // update the same referrer document simultaneously from their clients.
-                        // A Cloud Function triggered by the referred user's points update is the ideal solution.
                         updateDoc(referrerDocRef, {
                             earnedFromReferrals: increment(referrerEarn)
                         })
                         .then(() => console.log(`Awarded ${referrerEarn.toFixed(2)} to referrer ${referrerId}`))
                         .catch(e => console.error(`Error awarding referrer points to ${referrerId}:`, e));
                     }
-                    // End of Referral System Logic
 
                     showAdNotification(translations[currentLanguage].ad_completed_success.replace('{POINTS_PER_AD}', pointsToAdd.toFixed(2)));
                     
-                    // Reset taps after successful claim
                     tapsCount = 0;
                     updateTapUI();
                 } else {
@@ -1473,7 +1456,6 @@
                 console.error("Adsgram ad error or Firestore update error:", error);
                 showAdNotification(translations[currentLanguage].ad_failed);
             } finally {
-                // NEW: Re-enable buttons based on current state (including firebase readiness)
                 updateButtonStates(); 
             }
         }
@@ -1490,26 +1472,30 @@
 
         // Function to show withdrawal form
         window.showWithdrawForm = function() {
-            if (!isFirebaseReady) { // NEW: Prevent showing if Firebase not ready
-                showAdNotification(translations[currentLanguage].loading_user_id);
+            if (!isAppReady) { 
+                showAdNotification(translations[currentLanguage].loading_app);
                 return;
             }
             hideAllSections();
             withdrawSectionEl.style.display = 'block';
             currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
+            currentSection = 'withdraw';
+            updateBackButtonVisibility();
         }
 
         // Function to hide withdrawal form
         window.hideWithdrawForm = function() {
             withdrawSectionEl.style.display = 'none';
-            withdrawStatusEl.textContent = ''; // Clear status message on hide
-            showMainContent(); // Show main content when withdrawal form is hidden
+            withdrawStatusEl.textContent = ''; 
+            showMainContent(); 
+            currentSection = 'main';
+            updateBackButtonVisibility();
         }
 
         // Function to handle withdrawal
         window.withdrawPoints = async function() {
-            if (!isFirebaseReady) { // NEW: Prevent withdrawal if Firebase not ready
-                showTemporaryMessage(translations[currentLanguage].loading_user_id, 'red');
+            if (!isAppReady) { 
+                showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
                 return;
             }
 
@@ -1548,15 +1534,14 @@
             }
 
             try {
-                const appId = firebaseConfig.projectId; // Use projectId as appId
-                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.currentUserId);
+                const appId = firebaseConfig.projectId; 
+                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                 
                 await updateDoc(userDocRef, {
                     earnedPoints: increment(-amount)
                 });
 
-                // Send withdrawal request to admin via Telegram
-                let messageToAdmin = `New Withdrawal Request:\nUser: ${window.currentUserId}\nAmount: ${amount} pepe coins\nPayment Method: `;
+                let messageToAdmin = `New Withdrawal Request:\nUser: ${window.telegramUserId}\nAmount: ${amount} pepe coins\nPayment Method: `;
                 if (paymentMethod === 'faucetpay') {
                     messageToAdmin += `FaucetPay\nWallet Address: ${walletAddress}`;
                 } else if (paymentMethod === 'other_wallet') {
@@ -1611,27 +1596,31 @@
 
         // Referral system functions
         function generateReferralLink() {
-            // Updated to use your Telegram bot username: @ididkd46_bot
-            const botUsername = "ididkd46_bot"; // Your Telegram bot username (without the @)
-            if (window.currentUserId) {
-                return `https://t.me/${botUsername}?startapp=ref_${window.currentUserId}`;
+            const botUsername = "ididkd46_bot"; 
+            if (window.telegramUserId) {
+                // Telegram Mini Apps use 'start_param' for deep links in this context
+                return `https://t.me/${botUsername}?startapp=ref_${window.telegramUserId}`;
             }
-            return translations[currentLanguage].loading_user_id; // Show loading if ID not ready
+            return translations[currentLanguage].loading_app; 
         }
 
         window.showReferralSection = function() {
-            if (!isFirebaseReady) { // NEW: Prevent showing if Firebase not ready
-                showAdNotification(translations[currentLanguage].loading_user_id);
+            if (!isAppReady) { 
+                showAdNotification(translations[currentLanguage].loading_app);
                 return;
             }
             hideAllSections();
             referralSectionEl.style.display = 'block';
             updateReferralUI();
+            currentSection = 'referral';
+            updateBackButtonVisibility();
         }
 
         window.hideReferralSection = function() {
             referralSectionEl.style.display = 'none';
-            showMainContent(); // Show main content when referral form is hidden
+            showMainContent(); 
+            currentSection = 'main';
+            updateBackButtonVisibility();
         }
 
         function updateReferralUI() {
@@ -1641,8 +1630,8 @@
         }
 
         window.copyReferralLink = function() {
-            if (!isFirebaseReady) { // NEW: Prevent copying if Firebase not ready
-                showTemporaryMessage(translations[currentLanguage].loading_user_id, 'red');
+            if (!isAppReady) { 
+                showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
                 return;
             }
             referralLinkInput.select();
@@ -1666,12 +1655,32 @@
             document.querySelector('.buttons').style.display = 'flex';
         }
 
-        // Initialize Firebase then app logic on window load
+        // Telegram WebApp Back Button Logic
+        function updateBackButtonVisibility() {
+            if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
+                if (currentSection !== 'main') {
+                    window.Telegram.WebApp.BackButton.show();
+                } else {
+                    window.Telegram.WebApp.BackButton.hide();
+                }
+            }
+        }
+
+        function handleBackButtonClick() {
+            if (currentSection === 'withdraw') {
+                hideWithdrawForm();
+            } else if (currentSection === 'referral') {
+                hideReferralSection();
+            }
+        }
+
+
+        // Initialize App on window load
         window.onload = async function() {
-            setLanguage(currentLanguage); // Set initial language and translate static elements
-            updateButtonStates(); // Set initial disabled state for buttons
-            await initFirebase();
-            // The onSnapshot listener in loadUserDataFromFirestore will handle further UI updates.
+            setLanguage(currentLanguage); 
+            updateButtonStates(); 
+            await initApp();
+            // `loadUserDataFromFirestore` and its `onSnapshot` will handle further UI updates
         };
     </script>
 </body>
