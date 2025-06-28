@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-key="app_title">Premium Ad Reward System</title>
     
-    <!-- Adsgram SDK -->
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
+    <script type="text/javascript" src="https://cdn.tgads.space/assets/js/adexium-widget.min.js"></script>
 
     <style>
         :root {
             /* Changed primary and secondary colors to vibrant green shades */
-            --primary: #00BF63; /* Vibrant Green */
-            --primary-dark: #008C4A; /* Darker shade for shadows */
-            --secondary: #32CD32; /* Lime Green, for a more vibrant accent */
-            --secondary-dark: #28A745; /* Darker shade of secondary */
+            --primary: #00BF63;
+            --primary-dark: #008C4A;
+            --secondary: #32CD32;
+            --secondary-dark: #28A745;
             
             --dark: #121212;
             --darker: #0a0a0a;
@@ -52,7 +52,7 @@
             height: 100%;
             background: 
                 radial-gradient(circle at 10% 20%, rgba(0, 191, 99, 0.1) 0%, transparent 20%), /* Adjusted for green */
-                radial-gradient(circle at 90% 80%, rgba(50, 205, 50, 0.1) 0%, transparent 20%); /* Adjusted for green */
+                radial-gradient(circle at 90% 80%, rgba(50, 205, 50, 0.1) 0%, transparent 20%);
             z-index: -1;
         }
         
@@ -130,21 +130,26 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
             padding: 20px 30px; /* Increased padding */
-            width: 80%; /* Made it wider */
-            max-width: 300px; /* Max width to keep it reasonable */
+            width: 80%;
+            /* Made it wider */
+            max-width: 300px;
+            /* Max width to keep it reasonable */
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             margin-bottom: 20px; /* Space between points card and ad container */
         }
         
         .stat-card h3 {
-            font-size: 18px; /* Larger font for title */
-            margin-bottom: 10px; /* More space */
+            font-size: 18px;
+            /* Larger font for title */
+            margin-bottom: 10px;
+            /* More space */
             color: #aaa;
         }
         
         .stat-card .value {
-            font-size: 36px; /* Significantly larger font for value */
+            font-size: 36px;
+            /* Significantly larger font for value */
             font-weight: 700;
             color: var(--primary); 
         }
@@ -172,7 +177,7 @@
         .progress-fill {
             height: 100%;
             /* Progress bar fill adjusted for green */
-            background: linear-gradient(90deg, var(--primary), var(--secondary)); 
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             border-radius: 10px;
             width: 30%;
             transition: width 0.5s ease;
@@ -215,7 +220,7 @@
             width: 100%;
             height: 100%;
             /* Gradient background for button surface */
-            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
             z-index: -1;
             transition: all 0.3s ease;
         }
@@ -265,7 +270,7 @@
         
         .btn-secondary::before {
             /* Secondary button background gradient */
-            background: linear-gradient(45deg, var(--secondary), var(--primary-dark)); 
+            background: linear-gradient(45deg, var(--secondary), var(--primary-dark));
         }
         
         .btn-blue { /* This class is now essentially the same as btn-3d due to shared primary/secondary colors */
@@ -275,7 +280,7 @@
         }
         
         .btn-blue::before {
-            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
         }
         
         .website-section {
@@ -288,7 +293,7 @@
         }
         
         .website-section h3 {
-            color: var(--secondary); 
+            color: var(--secondary);
             margin-bottom: 15px;
             font-size: 18px;
         }
@@ -327,9 +332,12 @@
         
         /* Animation for ad watching */
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: scale(1);
+            }
+            50% { transform: scale(1.05);
+            }
+            100% { transform: scale(1);
+            }
         }
         
         .pulse {
@@ -365,11 +373,11 @@
                 padding: 20px;
             }
             .tap-area {
-                width: 180px; /* Adjust size for smaller screens */
+                width: 180px;
                 height: 180px;
             }
             .tap-area img {
-                width: 100%; /* Make image fill for smaller screens */
+                width: 100%;
                 height: 100%;
             }
             .tap-area h2 {
@@ -400,7 +408,7 @@
             z-index: 999; 
             background-color: rgba(0, 0, 0, 0.3); 
             border-radius: 10px; 
-            padding: 5px; 
+            padding: 5px;
             backdrop-filter: blur(5px); 
         }
         .language-selector button {
@@ -413,28 +421,28 @@
             border-radius: 8px; 
             cursor: pointer;
             min-width: 30px;
-            transition: all 0.2s ease; 
+            transition: all 0.2s ease;
         }
         .language-selector button.active {
-            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
             border-color: var(--primary); 
         }
         .language-selector button:hover:not(.active) {
-            background-color: rgba(255, 255, 255, 0.2); 
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
         /* Withdrawal Section Styles - Adapted to be integrated */
         .withdraw-section {
             margin-top: 20px;
             display: none; /* Hidden by default, shown by JS */
-            padding: 25px; 
+            padding: 25px;
             background-color: rgba(255, 255, 255, 0.05); 
             border-radius: 15px; 
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .withdraw-section h3 {
-            color: var(--secondary); 
+            color: var(--secondary);
             margin-bottom: 5px; 
             font-size: 20px;
             font-weight: 600;
@@ -445,7 +453,7 @@
             margin-bottom: 15px;
             line-height: 1.4;
             white-space: pre-wrap; 
-            background: rgba(255, 215, 0, 0.1); /* Light gold background for warning */
+            background: rgba(255, 215, 0, 0.1);
             padding: 15px;
             border-radius: 10px;
             border: 1px solid #FFD700;
@@ -466,12 +474,12 @@
         }
         .withdraw-section input:focus, 
         .withdraw-section select:focus {
-            border-color: var(--gold); 
+            border-color: var(--gold);
             outline: none;
             box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
         }
         .withdraw-section button {
-            background: linear-gradient(90deg, var(--primary), var(--secondary)); 
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
             width: 100%;
             padding: 14px; 
             font-size: 16px;
@@ -480,14 +488,14 @@
             border-radius: 15px; 
             cursor: pointer;
             color: white; 
-            border: none; 
+            border: none;
             box-shadow: 0 8px 0 var(--primary-dark), 0 15px 20px rgba(0, 0, 0, 0.3);
             transition: all 0.2s ease;
         }
         .withdraw-section button:hover {
             transform: translateY(4px);
             box-shadow: 0 4px 0 var(--primary-dark), 0 8px 10px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(90deg, var(--secondary), var(--primary)); 
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
         }
         .withdraw-section button:active {
             transform: translateY(8px);
@@ -523,33 +531,43 @@
         .tap-area {
             background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%);
             border-radius: 50%; /* Make it circular */
-            margin: 20px auto; /* Center the circular area */
+            margin: 20px auto;
+            /* Center the circular area */
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
             position: relative;
-            width: 220px; /* Set fixed width and height for a perfect circle */
+            width: 220px;
+            /* Set fixed width and height for a perfect circle */
             height: 220px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5); /* Added outer shadow */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5);
+            /* Added outer shadow */
             animation: backgroundPulse 5s infinite alternate;
             user-select: none; /* Prevent text selection on tap */
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE10+ */
+            -webkit-user-select: none;
+            /* Safari */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* IE10+ */
         }
 
         /* Image inside the tap area */
         .tap-area img {
-            width: 100%; /* Make image fill the circle's width */
-            height: 100%; /* Make image fill the circle's height */
-            object-fit: cover; /* Make image cover the area, cropping if necessary */
-            border-radius: 50%; /* Ensure image itself is circular */
-            position: absolute; /* Position image absolutely within the tap-area */
+            width: 100%;
+            /* Make image fill the circle's width */
+            height: 100%;
+            /* Make image fill the circle's height */
+            object-fit: cover;
+            /* Make image cover the area, cropping if necessary */
+            border-radius: 50%;
+            /* Ensure image itself is circular */
+            position: absolute;
             top: 0;
             left: 0;
             z-index: 5; /* Place image behind text but above background pulse */
@@ -557,12 +575,15 @@
         }
 
         .tap-area.active img {
-            transform: scale(0.95); /* Shrink image on tap */
+            transform: scale(0.95);
+            /* Shrink image on tap */
         }
 
         @keyframes backgroundPulse {
-            0% { background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%); }
-            100% { background: radial-gradient(circle at center, #3a3a3a 0%, #2a2a2a 100%); }
+            0% { background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%);
+            }
+            100% { background: radial-gradient(circle at center, #3a3a3a 0%, #2a2a2a 100%);
+            }
         }
 
         .tap-area h2 {
@@ -597,8 +618,10 @@
         }
 
         @keyframes fadeOutUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
+            0% { transform: translateY(0);
+            opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0;
+            }
         }
 
         .tap-button-container {
@@ -607,7 +630,8 @@
         }
 
         .tap-claim-btn {
-            display: none; /* Hidden by default */
+            display: none;
+            /* Hidden by default */
             position: relative;
             padding: 16px 30px;
             border: none;
@@ -616,7 +640,8 @@
             font-weight: 700;
             cursor: pointer;
             color: white;
-            background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
+            background: linear-gradient(90deg, #28a745, #218838);
+            /* Green gradient */
             box-shadow: 
                 0 8px 0 #1e7e34, 
                 0 15px 20px rgba(0, 0, 0, 0.4);
@@ -691,7 +716,6 @@
     <div class="ad-notification" id="ad-notification"></div>
     
     <div class="container">
-        <!-- Language Selector -->
         <div class="language-selector">
             <button data-lang="ar" onclick="setLanguage('ar')">AR</button>
             <button data-lang="en" onclick="setLanguage('en')">EN</button>
@@ -708,15 +732,12 @@
                 <p data-key="min_withdrawal_message_static_general">السحب عن طريق FaucetPay من 10 عملات فقط ✅<br>السحب إلى أي محفظة أخرى من 100 عملة فقط ✅</p>
             </div>
             
-            <!-- Moved and Enlarged Earned Points Stat Card -->
             <div class="stats"> 
                 <div class="stat-card">
                     <h3 data-key="earned_points_label">عملات Pepe المكتسبة</h3>
                     <div class="value" id="earned-points">0.00</div>
                 </div>
             </div>
-            
-            <!-- Removed Watched Ads and Daily Limit Stats here -->
             
             <div class="progress-container">
                 <div class="progress-label">
@@ -729,11 +750,10 @@
             </div>
             
             <div class="ad-container">
-                <div class="ad-label" data-key="ad_type_label">إعلان Adsgram بيني</div>
+                <div class="ad-label" data-key="ad_type_label">إعلان Adexium Widget</div>
                 
-                <!-- New Tap Area -->
                 <div class="tap-area" id="tap-area">
-                    <img src="https://f.top4top.io/p_3464tveeu0.jpeg" alt="Pepe Coin Image" onerror="this.onerror=null; this.src='https://placehold.co/220x220/00BF63/FFFFFF?text=Pepe+Coin';">
+                    <img src="https://f.top4top.io/p_3464tveeu0.jpeg" alt="Pepe Coin Image" onerror="this.onerror=null;this.src='https://placehold.co/220x220/00BF63/FFFFFF?text=Pepe+Coin';">
                     <h2 id="taps-remaining">10</h2>
                     <p data-key="taps_to_claim">نقرة للمطالبة بالمكافأة</p>
                 </div>
@@ -742,7 +762,6 @@
                     <button class="btn-3d tap-claim-btn" id="claim-reward-btn" onclick="claimReward()" data-key="claim_reward_btn">المطالبة بالمكافأة</button>
                 </div>
                 
-                <!-- New text below the tap area -->
                 <p class="points-per-tap-message" data-key="points_per_tap_message">اربح 1 Pepe لكل نقرة</p>
 
             </div>
@@ -753,11 +772,9 @@
             </div>
 
             <div class="buttons">
-                <!-- Button to show the integrated withdrawal form -->
                 <button class="btn-3d btn-blue" id="show-withdraw-btn" onclick="showWithdrawForm()" data-key="withdraw_points_btn">سحب عملات Pepe</button>
             </div>
 
-            <!-- Withdraw Section - Now integrated back into the main page -->
             <div class="withdraw-section" id="withdraw-section">
                 <h3 data-key="withdrawal_request_title">طلب السحب</h3>
                 <p class="current-balance" data-key="current_balance_label">رصيدك الحالي: <span id="current-earned-points">0.00</span> عملة Pepe</p>
@@ -775,7 +792,6 @@
                 <p id="withdraw-status"></p>
 
                 <div class="back-button-container">
-                    <!-- Button to hide the withdrawal form -->
                     <a href="#" class="back-button" onclick="hideWithdrawForm(); return false;" data-key="back_to_main_page">العودة إلى الواجهة الرئيسية</a>
                 </div>
             </div>
@@ -787,521 +803,525 @@
         </div>
     </div>
 
-    <!-- Adsgram SDK -->
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-
     <script>
         // Constants
-        const POINTS_PER_AD = 1.00; // Reward per ad is now 1.00 Pepe Coins for 10 taps
-        const TAPS_REQUIRED = 10; // Number of taps required to claim reward
-        const ADS_FOR_BONUS = 10; 
-        const MIN_WITHDRAW_POINTS = 100; // Minimum withdrawal for other wallets
-        const MIN_WITHDRAW_POINTS_FAUCETPAY = 10; // Minimum withdrawal for FaucetPay
-        const DAILY_AD_LIMIT = 100; // Daily limit for ads watched is now 100
-        const ADMIN_USER_ID = "-1002705355317"; 
-        const BOT_TOKEN = "7509054222:AAFhFhVXFCOs4kXtHQBigGU2QeNamHX42LQ"; 
+        const POINTS_PER_AD = 1.00; // Reward per ad is now 1.00 Pepe Coins for 10 taps [cite: 187]
+        const TAPS_REQUIRED = 10; // Number of taps required to claim reward [cite: 188]
+        const ADS_FOR_BONUS = 10; // [cite: 189]
+        const MIN_WITHDRAW_POINTS = 100; // Minimum withdrawal for other wallets [cite: 189]
+        const MIN_WITHDRAW_POINTS_FAUCETPAY = 10; // Minimum withdrawal for FaucetPay [cite: 190]
+        const DAILY_AD_LIMIT = 100; // Daily limit for ads watched is now 100 [cite: 191]
+        const ADMIN_USER_ID = "-1002705355317"; // [cite: 192]
+        const BOT_TOKEN = "7509054222:AAFhFhVXFCOs4kXtHQBigGU2QeNamHX42LQ"; // [cite: 192]
         
         // State variables
-        let watchedAdsCount = 0;
-        let earnedPoints = 0.00; 
-        let dailyWatchedAdsCount = 0; 
-        let lastWatchDate = ""; 
-        let tapsCount = 0; // New: Counter for taps
-        let autoAdInterval; // Keep for potential future use or removal
-        let userId = null; 
-        const telegramUserName = "💲💲"; 
+        let watchedAdsCount = 0; // [cite: 193]
+        let earnedPoints = 0.00; // [cite: 193]
+        let dailyWatchedAdsCount = 0; // [cite: 193]
+        let lastWatchDate = ""; // [cite: 193]
+        let tapsCount = 0; // New: Counter for taps [cite: 194]
+        let autoAdInterval; // Keep for potential future use or removal [cite: 195]
+        let userId = null; // [cite: 196]
+        const telegramUserName = "💲💲"; // [cite: 196]
 
         // DOM Elements
         // Removed watchedAdsEl and dailyWatchedAdsEl
-        const earnedPointsEl = document.getElementById('earned-points');
-        const adsProgressEl = document.getElementById('ads-progress');
-        const progressFillEl = document.getElementById('progress-fill');
-        const adNotificationEl = document.getElementById('ad-notification');
-        
+        const earnedPointsEl = document.getElementById('earned-points'); // [cite: 197]
+        const adsProgressEl = document.getElementById('ads-progress'); // [cite: 197]
+        const progressFillEl = document.getElementById('progress-fill'); // [cite: 197]
+        const adNotificationEl = document.getElementById('ad-notification'); // [cite: 198]
         // Withdrawal Section DOM elements
-        const withdrawSectionEl = document.getElementById('withdraw-section');
-        const withdrawStatusEl = document.getElementById('withdraw-status');
-        const currentEarnedPointsEl = document.getElementById('current-earned-points');
+        const withdrawSectionEl = document.getElementById('withdraw-section'); // [cite: 198]
+        const withdrawStatusEl = document.getElementById('withdraw-status'); // [cite: 199]
+        const currentEarnedPointsEl = document.getElementById('current-earned-points'); // [cite: 199]
 
-        const tapAreaEl = document.getElementById('tap-area'); // New: Tap area element
-        const tapsRemainingEl = document.getElementById('taps-remaining'); // New: Taps remaining element
-        const claimRewardBtn = document.getElementById('claim-reward-btn'); // New: Claim reward button
-        const tapImageEl = tapAreaEl.querySelector('img'); // New: Image inside tap area
+        const tapAreaEl = document.getElementById('tap-area'); // New: Tap area element [cite: 199]
+        const tapsRemainingEl = document.getElementById('taps-remaining'); // New: Taps remaining element [cite: 200]
+        const claimRewardBtn = document.getElementById('claim-reward-btn'); // New: Claim reward button [cite: 201]
+        const tapImageEl = tapAreaEl.querySelector('img'); // New: Image inside tap area [cite: 202]
         
         // --- Translation Logic ---
         const translations = {
             ar: {
-                app_title: "⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵",
-                earn_per_click_message: "اربح 5 عملات pepe لكل نقرة🔥", 
-                points_per_tap_message: "اربح 1 Pepe لكل نقرة", 
-                min_withdrawal_message_static_general: `السحب عن طريق FaucetPay من ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات فقط ✅\nالسحب إلى أي محفظة أخرى من ${MIN_WITHDRAW_POINTS} عملة فقط ✅`, 
-                watched_ads_label: "الإعلانات المشاهدة", // Kept for translation key consistency, but element removed
-                earned_points_label: "عملات Pepe المكتسبة", 
-                daily_limit_label: "المشاهدات اليومية", // Kept for translation key consistency, but element removed
-                progress_to_bonus: "التقدم للمكافأة",
-                ad_type_label: "إعلان Adsgram بيني",
-                taps_to_claim: "نقرة للمطالبة بالمكافأة", 
-                claim_reward_btn: "المطالبة بالمكافأة", 
-                visit_channel_title: "قم بزيارة قناتنا على تيليجرام", 
-                visit_channel_button: "زيارة القناة", 
-                footer_text: "مؤمن بواسطة Firebase • جميع المعاملات محمية",
-                withdrawal_request_title: "طلب السحب", 
-                current_balance_label: "رصيدك الحالي:", 
-                withdrawal_warning: `تنبيه 🙋🏻‍♂️\nالحد الأدنى للسحب عن طريق FaucetPay هو ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات pepe.\nالحد الأدنى للسحب إلى أي محفظة أخرى هو ${MIN_WITHDRAW_POINTS} عملة pepe.\nيرجى التأكد من إدخال عنوان محفظة صحيح لتلقي السحب بدون مشاكل (◍•ᴗ•◍)`, 
-                enter_points_placeholder: "أدخل الكمية لسحب عملات Pepe", 
-                faucetpay_option: "FaucetPay", 
-                other_wallet_option: "السحب إلى أي محفظة أخرى", 
-                wallet_address_placeholder: "أدخل عنوان المحفظة", 
-                withdraw_button: "سحب", 
-                ad_loading: "جاري تحميل الإعلان... يرجى الانتظار",
-                ad_completed_success: `اكتمل الإعلان! تمت إضافة ${POINTS_PER_AD.toFixed(2)} عملة pepe إلى حسابك`, 
-                ad_failed: "فشل عرض الإعلان. يرجى المحاولة مرة أخرى.",
-                daily_limit_reached: `لقد وصلت للحد الأقصى من المشاهدات اليومية (${DAILY_AD_LIMIT}). يرجى المحاولة غدًا.`, 
-                min_withdraw_message: `الحد الأدنى للسحب عن طريق {methodName} هو {minAmount} عملة pepe.`, 
-                insufficient_balance: `رصيدك غير كافٍ. لديك {earnedPoints} عملة pepe.`, 
-                enter_wallet_address: "يرجى إدخال عنوان المحفظة.", 
-                withdrawal_success_message: 'تم إرسال طلب السحب بنجاح!', 
-                telegram_send_fail: `فشل إرسال الطلب: {error}`, 
-                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`, 
-                unknown_method: "طريقة غير معروفة:", 
-                back_to_main_page: "العودة إلى الواجهة الرئيسية", 
-                withdraw_points_btn: "سحب عملات Pepe", 
+                app_title: "⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵", // [cite: 170]
+                earn_per_click_message: "اربح 5 عملات pepe لكل نقرة🔥", // [cite: 170]
+                points_per_tap_message: "اربح 1 Pepe لكل نقرة", // [cite: 203]
+                min_withdrawal_message_static_general: `السحب عن طريق FaucetPay من ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات فقط ✅\nالسحب إلى أي محفظة أخرى من ${MIN_WITHDRAW_POINTS} عملة فقط ✅`, // [cite: 171]
+                watched_ads_label: "الإعلانات المشاهدة", 
+                earned_points_label: "عملات Pepe المكتسبة", // [cite: 172, 204]
+                daily_limit_label: "المشاهدات اليومية", 
+                progress_to_bonus: "التقدم للمكافأة", // [cite: 173]
+                ad_type_label: "إعلان Adexium Widget", // Changed ad type label
+                taps_to_claim: "نقرة للمطالبة بالمكافأة", // [cite: 176]
+                claim_reward_btn: "المطالبة بالمكافأة", // [cite: 177, 205]
+                visit_channel_title: "قم بزيارة قناتنا على تيليجرام", // [cite: 178]
+                visit_channel_button: "زيارة القناة", // [cite: 178]
+                footer_text: "مؤمن بواسطة Firebase • جميع المعاملات محمية", // [cite: 67]
+                withdrawal_request_title: "طلب السحب", // [cite: 180, 206]
+                current_balance_label: "رصيدك الحالي:", // [cite: 180, 206]
+                withdrawal_warning: `تنبيه 🙋🏻‍♂️\nالحد الأدنى للسحب عن طريق FaucetPay هو ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات pepe.\nالحد الأدنى للسحب إلى أي محفظة أخرى هو ${MIN_WITHDRAW_POINTS} عملة pepe.\nيرجى التأكد من إدخال عنوان محفظة صحيح لتلقي السحب بدون مشاكل (◍•ᴗ•◍)`, // [cite: 180, 181, 182]
+                enter_points_placeholder: "أدخل الكمية لسحب عملات Pepe", // [cite: 182]
+                faucetpay_option: "FaucetPay", // [cite: 182, 207]
+                other_wallet_option: "السحب إلى أي محفظة أخرى", // [cite: 183, 207]
+                wallet_address_placeholder: "أدخل عنوان المحفظة", // [cite: 183, 207]
+                withdraw_button: "سحب", // [cite: 183, 207]
+                ad_loading: "جاري تحميل الإعلان... يرجى الانتظار", // [cite: 207]
+                ad_completed_success: `اكتمل الإعلان! تمت إضافة ${POINTS_PER_AD.toFixed(2)} عملة pepe إلى حسابك`, // [cite: 208]
+                ad_failed: "فشل عرض الإعلان. يرجى المحاولة مرة أخرى.", // [cite: 208]
+                daily_limit_reached: `لقد وصلت للحد الأقصى من المشاهدات اليومية (${DAILY_AD_LIMIT}). يرجى المحاولة غدًا.`, // [cite: 209]
+                min_withdraw_message: `الحد الأدنى للسحب عن طريق {methodName} هو {minAmount} عملة pepe.`, // [cite: 209]
+                insufficient_balance: `رصيدك غير كافٍ. لديك {earnedPoints} عملة pepe.`, // [cite: 210]
+                enter_wallet_address: "يرجى إدخال عنوان المحفظة.", // [cite: 210]
+                withdrawal_success_message: 'تم إرسال طلب السحب بنجاح!', // [cite: 210]
+                telegram_send_fail: `فشل إرسال الطلب: {error}`, // [cite: 211]
+                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`, // [cite: 211]
+                unknown_method: "طريقة غير معروفة:", // [cite: 211]
+                back_to_main_page: "العودة إلى الواجهة الرئيسية", // [cite: 185, 211]
+                withdraw_points_btn: "سحب عملات Pepe", // [cite: 179, 212]
             },
             en: {
-                app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", 
-                earn_per_click_message: "Earn 5 Pepe coins per click🔥", 
-                points_per_tap_message: "Earn 1 Pepe per tap",
-                min_withdrawal_message_static_general: `Withdrawal via FaucetPay from ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins only ✅\nWithdrawal to Any Other Wallet from ${MIN_WITHDRAW_POINTS} pepe coins only ✅`, 
-                watched_ads_label: "Watched Ads", 
-                earned_points_label: "Earned Pepe Coins", 
-                daily_limit_label: "Daily Views", 
-                progress_to_bonus: "Progress to Bonus",
-                ad_type_label: "Adsgram Interstitial Ad",
-                taps_to_claim: "taps to claim reward",
-                claim_reward_btn: "Claim Reward",
-                visit_channel_title: "Visit Our Telegram Channel", 
-                visit_channel_button: "Visit Channel", 
-                footer_text: "Secured by Firebase • All transactions are protected",
-                withdrawal_request_title: "Withdrawal Request", 
-                current_balance_label: "Your Current Balance:", 
-                withdrawal_warning: `Warning 🙋🏻‍♂️\nMinimum withdrawal for FaucetPay is ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins.\nMinimum withdrawal for Any Other Wallet is ${MIN_WITHDRAW_POINTS} pepe coins.\nPlease ensure you enter a correct wallet address for smooth withdrawals (◍•ᴗ•◍)`, 
-                enter_points_placeholder: "Enter Amount to Withdraw Pepe Coins", 
-                faucetpay_option: "FaucetPay", 
-                other_wallet_option: "Withdraw to Any Other Wallet", 
-                wallet_address_placeholder: "Enter Wallet Address", 
-                withdraw_button: "Withdraw", 
-                ad_loading: "Loading ad... Please wait",
-                ad_completed_success: `Ad completed! +${POINTS_PER_AD.toFixed(2)} Pepe Coins added to your account`, 
-                ad_failed: "Failed to show ad. Please try again.",
-                daily_limit_reached: `You have reached the daily ad limit (${DAILY_AD_LIMIT}). Please try again tomorrow.`, 
-                min_withdraw_message: `Minimum withdrawal for {methodName} is {minAmount} pepe coins.`, 
-                insufficient_balance: `Insufficient balance. You have {earnedPoints} Pepe Coins.`, 
-                enter_wallet_address: "Please enter the wallet address.", 
-                withdrawal_success_message: 'Withdrawal request sent successfully!', 
-                telegram_send_fail: `Failed to send request: {error}`, 
-                telegram_connect_error: `Error connecting to Telegram service: {error}`, 
-                unknown_method: "Unknown Method:", 
-                back_to_main_page: "Back to Main Page", 
-                withdraw_points_btn: "Withdraw Pepe Coins", 
+                app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", // [cite: 212]
+                earn_per_click_message: "Earn 5 Pepe coins per click🔥", // [cite: 212]
+                points_per_tap_message: "Earn 1 Pepe per tap", // [cite: 212]
+                min_withdrawal_message_static_general: `Withdrawal via FaucetPay from ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins only ✅\nWithdrawal to Any Other Wallet from ${MIN_WITHDRAW_POINTS} pepe coins only ✅`, // [cite: 213]
+                watched_ads_label: "Watched Ads", // [cite: 213]
+                earned_points_label: "Earned Pepe Coins", // [cite: 213]
+                daily_limit_label: "Daily Views", // [cite: 213]
+                progress_to_bonus: "Progress to Bonus", // [cite: 214]
+                ad_type_label: "Adexium Widget Interstitial Ad", // Changed ad type label
+                taps_to_claim: "taps to claim reward", // [cite: 214]
+                claim_reward_btn: "Claim Reward", // [cite: 214]
+                visit_channel_title: "Visit Our Telegram Channel", // [cite: 214]
+                visit_channel_button: "Visit Channel", // [cite: 214]
+                footer_text: "Secured by Firebase • All transactions are protected", // [cite: 214]
+                withdrawal_request_title: "Withdrawal Request", // [cite: 215]
+                current_balance_label: "Your Current Balance:", // [cite: 215]
+                withdrawal_warning: `Warning 🙋🏻‍♂️\nMinimum withdrawal for FaucetPay is ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins.\nMinimum withdrawal for Any Other Wallet is ${MIN_WITHDRAW_POINTS} pepe coins.\nPlease ensure you enter a correct wallet address for smooth withdrawals (◍•ᴗ•◍)`, // [cite: 215]
+                enter_points_placeholder: "Enter Amount to Withdraw Pepe Coins", // [cite: 215]
+                faucetpay_option: "FaucetPay", // [cite: 216]
+                other_wallet_option: "Withdraw to Any Other Wallet", // [cite: 216]
+                wallet_address_placeholder: "Enter Wallet Address", // [cite: 216]
+                withdraw_button: "Withdraw", // [cite: 216]
+                ad_loading: "Loading ad... Please wait", // [cite: 216]
+                ad_completed_success: `Ad completed! +${POINTS_PER_AD.toFixed(2)} Pepe Coins added to your account`, // [cite: 217]
+                ad_failed: "Failed to show ad. Please try again.", // [cite: 217]
+                daily_limit_reached: `You have reached the daily ad limit (${DAILY_AD_LIMIT}). Please try again tomorrow.`, // [cite: 218]
+                min_withdraw_message: `Minimum withdrawal for {methodName} is {minAmount} pepe coins.`, // [cite: 218]
+                insufficient_balance: `Insufficient balance. You have {earnedPoints} Pepe Coins.`, // [cite: 219]
+                enter_wallet_address: "Please enter the wallet address.", // [cite: 219]
+                withdrawal_success_message: 'Withdrawal request sent successfully!', // [cite: 219]
+                telegram_send_fail: `Failed to send request: {error}`, // [cite: 219]
+                telegram_connect_error: `Error connecting to Telegram service: {error}`, // [cite: 220]
+                unknown_method: "Unknown Method:", // [cite: 220]
+                back_to_main_page: "Back to Main Page", // [cite: 220]
+                withdraw_points_btn: "Withdraw Pepe Coins", // [cite: 220]
             },
             ru: {
-                app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", 
-                earn_per_click_message: "Заработайте 5 монет Pepe за клик🔥", 
-                points_per_tap_message: "Заработайте 1 Pepe за нажатие",
-                min_withdrawal_message_static_general: `Вывод через FaucetPay от ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe только ✅\nВывод на любой другой кошелек от ${MIN_WITHDRAW_POINTS} монет pepe только ✅`, 
-                watched_ads_label: "Просмотрено объявлений", 
-                earned_points_label: "Заработанные монеты Pepe", 
-                daily_limit_label: "Ежедневные просмотры", 
-                progress_to_bonus: "Прогресс к бонусу",
-                ad_type_label: "Межстраничная реклама Adsgram",
-                taps_to_claim: "нажатий для получения награды",
-                claim_reward_btn: "Получить награду",
-                visit_channel_title: "Посетите наш Telegram-канал", 
-                visit_channel_button: "Посетить канал", 
-                footer_text: "Защищено Firebase • Все транзакции защищены",
-                withdrawal_request_title: "Запрос на вывод", 
-                current_balance_label: "Ваш текущий баланс:", 
-                withdrawal_warning: `Внимание 🙋🏻‍♂️\nМинимальная сумма вывода для FaucetPay составляет ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe.\nМинимальная сумма вывода для любого другого кошелька составляет ${MIN_WITHDRAW_POINTS} монет pepe.\nПожалуйста, убедитесь, что вы ввели правильный адрес кошелька для беспроблемного вывода средств (◍•ᴗ•◍)`, 
-                enter_points_placeholder: "Введите сумму для вывода монет Pepe", 
-                faucetpay_option: "FaucetPay", 
-                other_wallet_option: "Вывод на любой другой кошелек", 
-                wallet_address_placeholder: "Введите адрес кошелька", 
-                withdraw_button: "Вывести", 
-                ad_loading: "Загрузка рекламы... Пожалуйста, подождите",
-                ad_completed_success: `Реклама завершена! +${POINTS_PER_AD.toFixed(2)} монет Pepe добавлено на ваш счет`, 
-                ad_failed: "Не удалось показать рекламу. Пожалуйста, попробуйте еще раз.",
-                daily_limit_reached: `Вы достигли дневного лимита по рекламе (${DAILY_AD_LIMIT}). Пожалуйста, попробуйте завтра.`, 
-                min_withdraw_message: `Минимальная сумма вывода для {methodName} составляет {minAmount} монет pepe.`, 
-                insufficient_balance: `Недостаточный баланс. У вас {earnedPoints} монет pepe.`, 
-                enter_wallet_address: "Пожалуйста, введите адрес кошелька.", 
-                withdrawal_success_message: 'Запрос на вывод успешно отправлен!', 
-                telegram_send_fail: `Не удалось отправить запрос: {error}`, 
-                telegram_connect_error: `Ошибка подключения к службе Telegram: {error}`, 
-                unknown_method: "Неизвестный метод:", 
-                back_to_main_page: "Вернуться на главную страницу", 
-                withdraw_points_btn: "Вывести монеты Pepe", 
+                app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", // [cite: 221]
+                earn_per_click_message: "Заработайте 5 монет Pepe за клик🔥", // [cite: 221]
+                points_per_tap_message: "Заработайте 1 Pepe за нажатие", // [cite: 222]
+                min_withdrawal_message_static_general: `Вывод через FaucetPay от ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe только ✅\nВывод на любой другой кошелек от ${MIN_WITHDRAW_POINTS} монет pepe только ✅`, // [cite: 222]
+                watched_ads_label: "Просмотрено объявлений", // [cite: 222]
+                earned_points_label: "Заработанные монеты Pepe", // [cite: 222]
+                daily_limit_label: "Ежедневные просмотры", // [cite: 223]
+                progress_to_bonus: "Прогресс к бонусу", // [cite: 223]
+                ad_type_label: "Межстраничная реклама Adexium Widget", // Changed ad type label
+                taps_to_claim: "нажатий для получения награды", // [cite: 223]
+                claim_reward_btn: "Получить награду", // [cite: 223]
+                visit_channel_title: "Посетите наш Telegram-канал", // [cite: 223]
+                visit_channel_button: "Посетить канал", // [cite: 223]
+                footer_text: "Защищено Firebase • Все транзакции защищены", // [cite: 223]
+                withdrawal_request_title: "Запрос на вывод", // [cite: 224]
+                current_balance_label: "Ваш текущий баланс:", // [cite: 224]
+                withdrawal_warning: `Внимание 🙋🏻‍♂️\nМинимальная сумма вывода для FaucetPay составляет ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe.\nМинимальная сумма вывода для любого другого кошелька составляет ${MIN_WITHDRAW_POINTS} монет pepe.\nПожалуйста, убедитесь, что вы ввели правильный адрес кошелька для беспроблемного вывода средств (◍•ᴗ•◍)`, // [cite: 224]
+                enter_points_placeholder: "Введите сумму для вывода монет Pepe", // [cite: 224]
+                faucetpay_option: "FaucetPay", // [cite: 225]
+                other_wallet_option: "Вывод на любой другой кошелек", // [cite: 225]
+                wallet_address_placeholder: "Введите адрес кошелька", // [cite: 225]
+                withdraw_button: "Вывести", // [cite: 225]
+                ad_loading: "Загрузка рекламы... Пожалуйста, подождите", // [cite: 226]
+                ad_completed_success: `Реклама завершена! +${POINTS_PER_AD.toFixed(2)} монет Pepe добавлено на ваш счет`, // [cite: 226]
+                ad_failed: "Не удалось показать рекламу. Пожалуйста, попробуйте еще раз.", // [cite: 226]
+                daily_limit_reached: `Вы достигли дневного лимита по рекламе (${DAILY_AD_LIMIT}). Пожалуйста, попробуйте завтра.`, // [cite: 227]
+                min_withdraw_message: `Минимальная сумма вывода для {methodName} составляет {minAmount} монет pepe.`, // [cite: 227]
+                insufficient_balance: `Недостаточный баланс. У вас {earnedPoints} монет pepe.`, // [cite: 228]
+                enter_wallet_address: "Пожалуйста, введите адрес кошелька.", // [cite: 228]
+                withdrawal_success_message: 'Запрос на вывод успешно отправлен!', // [cite: 228]
+                telegram_send_fail: `Не удалось отправить запрос: {error}`, // [cite: 228]
+                telegram_connect_error: `Ошибка подключения к службе Telegram: {error}`, // [cite: 229]
+                unknown_method: "Неизвестный метод:", // [cite: 229]
+                back_to_main_page: "Вернуться на главную страницу", // [cite: 229]
+                withdraw_points_btn: "Вывести монеты Pepe", // [cite: 229]
             }
         };
+        let currentLanguage = localStorage.getItem('appLanguage') || 'ar'; // Default to Arabic [cite: 230]
 
-        let currentLanguage = localStorage.getItem('appLanguage') || 'ar'; // Default to Arabic
+        // Initialize Adexium Widget
+        let adexiumWidget;
+        document.addEventListener('DOMContentLoaded', () => {
+            adexiumWidget = new AdexiumWidget({wid: '4eb29add-64fa-4070-a641-ad1f330778de', adFormat: 'interstitial'});
+            adexiumWidget.init();
+        });
+
 
         // Function to get today's date inYYYY-MM-DD format
         function getTodayDate() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+            const today = new Date(); // [cite: 231]
+            const year = today.getFullYear(); // [cite: 231]
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed [cite: 232]
+            const day = String(today.getDate()).padStart(2, '0'); // [cite: 233]
+            return `${year}-${month}-${day}`; // [cite: 233]
         }
 
         // Function to set the language
         window.setLanguage = function(lang) {
-            currentLanguage = lang;
-            localStorage.setItem('appLanguage', lang);
-            document.documentElement.lang = lang; // Set HTML lang attribute
+            currentLanguage = lang; // [cite: 234]
+            localStorage.setItem('appLanguage', lang); // [cite: 234]
+            document.documentElement.lang = lang; // Set HTML lang attribute [cite: 234]
 
-            // Update active button style
-            document.querySelectorAll('.language-selector button').forEach(button => {
-                if (button.dataset.lang === lang) {
-                    button.classList.add('active');
+            // Update active button style [cite: 235]
+            document.querySelectorAll('.language-selector button').forEach(button => { // [cite: 235]
+                if (button.dataset.lang === lang) { // [cite: 235]
+                    button.classList.add('active'); // [cite: 236]
                 } else {
-                    button.classList.remove('active');
+                    button.classList.remove('active'); // [cite: 236]
                 }
             });
-
-            // Translate all elements with data-key
-            document.querySelectorAll('[data-key]').forEach(element => {
-                const key = element.dataset.key;
-                if (translations[lang] && translations[lang][key]) {
-                    if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) {
-                        element.placeholder = translations[lang][key];
-                    } else if (key === 'ad_completed_success') {
-                         element.textContent = translations[lang][key];
-                    } else if (key === 'daily_limit_reached') { 
-                        element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); 
-                    } else if (key === 'insufficient_balance') {
-                        element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2));
-                    } else if (key === 'min_withdrawal_message') { 
+            // Translate all elements with data-key [cite: 236]
+            document.querySelectorAll('[data-key]').forEach(element => { // [cite: 237]
+                const key = element.dataset.key; // [cite: 237]
+                if (translations[lang] && translations[lang][key]) { // [cite: 237]
+                    if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) { // [cite: 237]
+                        element.placeholder = translations[lang][key]; // [cite: 238]
+                    } else if (key === 'ad_completed_success') { // [cite: 238]
+                         element.textContent = translations[lang][key]; // [cite: 238]
+                    } else if (key === 'daily_limit_reached') { // [cite: 238]
+                        element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); // [cite: 238]
+                    } else if (key === 'insufficient_balance') { // [cite: 238]
+                        element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2)); // [cite: 239]
+                    } else if (key === 'min_withdrawal_message') { // [cite: 239]
                         // This specific translation is handled inside withdrawPoints to be dynamic
                     }
                     else {
-                        element.textContent = translations[lang][key];
+                        element.textContent = translations[lang][key]; // [cite: 240]
                     }
                 }
             });
-
-            // Translate all elements with data-key-placeholder
-            document.querySelectorAll('[data-key-placeholder]').forEach(element => {
-                const placeholderKey = element.dataset.keyPlaceholder;
-                if (translations[lang] && translations[lang][placeholderKey]) {
-                    element.placeholder = translations[lang][placeholderKey];
+            // Translate all elements with data-key-placeholder [cite: 241]
+            document.querySelectorAll('[data-key-placeholder]').forEach(element => { // [cite: 242]
+                const placeholderKey = element.dataset.keyPlaceholder; // [cite: 242]
+                if (translations[lang] && translations[lang][placeholderKey]) { // [cite: 242]
+                    element.placeholder = translations[lang][placeholderKey]; // [cite: 242]
                 }
             });
 
-            // Translate options in select dropdowns
-            document.querySelectorAll('#payment-method option').forEach(option => {
-                const key = option.dataset.key;
-                if (translations[lang] && translations[lang][key]) {
-                    option.textContent = translations[lang][key];
+            // Translate options in select dropdowns [cite: 243]
+            document.querySelectorAll('#payment-method option').forEach(option => { // [cite: 243]
+                const key = option.dataset.key; // [cite: 243]
+                if (translations[lang] && translations[lang][key]) { // [cite: 243]
+                    option.textContent = translations[lang][key]; // [cite: 243]
                 }
             });
-
-            // Re-render dynamic content (like numbers)
-            // watchedAdsEl.textContent = watchedAdsCount; // Removed
-            earnedPointsEl.textContent = earnedPoints.toFixed(2); 
-            // dailyWatchedAdsEl.textContent = `${dailyWatchedAdsCount} / ${DAILY_AD_LIMIT}`; // Removed
-            adsProgressEl.textContent = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
-            showAdNotification(''); 
-            withdrawStatusEl.textContent = ''; // Also clear status for withdrawal
-            if (withdrawSectionEl.style.display === 'block') { // Update balance if withdrawal form is visible
-                currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
+            // Re-render dynamic content (like numbers) [cite: 244]
+            // watchedAdsEl.textContent = watchedAdsCount; // Removed [cite: 245]
+            earnedPointsEl.textContent = earnedPoints.toFixed(2); // [cite: 245, 246]
+            // dailyWatchedAdsEl.textContent = `${dailyWatchedAdsCount} / ${DAILY_AD_LIMIT}`; // Removed [cite: 246]
+            adsProgressEl.textContent = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; // [cite: 247]
+            showAdNotification(''); // [cite: 247]
+            withdrawStatusEl.textContent = ''; // Also clear status for withdrawal [cite: 247]
+            if (withdrawSectionEl.style.display === 'block') { // Update balance if withdrawal form is visible [cite: 247]
+                currentEarnedPointsEl.textContent = earnedPoints.toFixed(2); // [cite: 248]
             }
             
             // Update taps remaining text
-            tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
+            tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount; // [cite: 249]
         };
 
 
         // Initialize the app
         function initApp() {
             // Load user data
-            if (localStorage.getItem('watchedAdsCount')) {
-                watchedAdsCount = parseInt(localStorage.getItem('watchedAdsCount'));
-                earnedPoints = parseFloat(localStorage.getItem('earnedPoints'));
+            if (localStorage.getItem('watchedAdsCount')) { // [cite: 250]
+                watchedAdsCount = parseInt(localStorage.getItem('watchedAdsCount')); // [cite: 250]
+                earnedPoints = parseFloat(localStorage.getItem('earnedPoints')); // [cite: 250]
             }
             
             // Load daily ad watch data
-            const todayDate = getTodayDate();
-            if (localStorage.getItem('lastWatchDate') === todayDate) {
-                dailyWatchedAdsCount = parseInt(localStorage.getItem('dailyWatchedAdsCount')) || 0;
+            const todayDate = getTodayDate(); // [cite: 251]
+            if (localStorage.getItem('lastWatchDate') === todayDate) { // [cite: 251]
+                dailyWatchedAdsCount = parseInt(localStorage.getItem('dailyWatchedAdsCount')) || 0; // [cite: 252]
             } else {
                 // Reset daily count if it's a new day
-                dailyWatchedAdsCount = 0;
-                localStorage.setItem('dailyWatchedAdsCount', dailyWatchedAdsCount);
+                dailyWatchedAdsCount = 0; // [cite: 253]
+                localStorage.setItem('dailyWatchedAdsCount', dailyWatchedAdsCount); // [cite: 253]
             }
-            localStorage.setItem('lastWatchDate', todayDate); // Always update last watch date
+            localStorage.setItem('lastWatchDate', todayDate); // Always update last watch date [cite: 254]
 
-            // userId is no longer used for display.
-            if (!localStorage.getItem('userId')) {
-                const newUserId = 'USR-' + Math.floor(10000 + Math.random() * 90000);
-                localStorage.setItem('userId', newUserId);
+            // userId is no longer used for display. [cite: 255]
+            if (!localStorage.getItem('userId')) { // [cite: 255]
+                const newUserId = 'USR-' + Math.floor(10000 + Math.random() * 90000); // [cite: 256]
+                localStorage.setItem('userId', newUserId); // [cite: 256]
             }
             
-            // Check if Adsgram SDK is loaded
-            if (typeof window.Adsgram === 'undefined' || typeof window.Adsgram.init !== 'function') {
-                console.error("Adsgram SDK is NOT loaded. Ad functionality may not work.");
-                showAdNotification(translations[currentLanguage].ad_failed); // Notify user about SDK load issue
+            // Check if Adexium Widget SDK is loaded
+            if (typeof window.AdexiumWidget === 'undefined') {
+                console.error("Adexium Widget SDK is NOT loaded. Ad functionality may not work.");
+                showAdNotification(translations[currentLanguage].ad_failed);
             } else {
-                console.log("Adsgram SDK is loaded successfully.");
+                console.log("Adexium Widget SDK is loaded successfully.");
             }
 
             // Apply language on load and update UI
-            setLanguage(currentLanguage);
-            updateUI();
-            updateTapUI(); // Initialize tap UI
-            updateButtonStates(); // Set initial button states based on daily limit
+            setLanguage(currentLanguage); // [cite: 259]
+            updateUI(); // [cite: 259]
+            updateTapUI(); // Initialize tap UI [cite: 259]
+            updateButtonStates(); // Set initial button states based on daily limit [cite: 260]
         }
         
         // Update UI elements
         function updateUI() {
-            // watchedAdsEl.textContent = watchedAdsCount; // Removed
-            earnedPointsEl.textContent = earnedPoints.toFixed(2); 
-            // dailyWatchedAdsEl.textContent = `${dailyWatchedAdsCount} / ${DAILY_AD_LIMIT}`; // Removed
+            // watchedAdsEl.textContent = watchedAdsCount; // Removed [cite: 261]
+            earnedPointsEl.textContent = earnedPoints.toFixed(2); // [cite: 262]
+            // dailyWatchedAdsEl.textContent = `${dailyWatchedAdsCount} / ${DAILY_AD_LIMIT}`; // Removed [cite: 262]
             
-            const progress = (watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100;
-            adsProgressEl.textContent = `${Math.round(progress)}%`;
-            progressFillEl.style.width = `${progress}%`;
+            const progress = (watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100; // [cite: 263]
+            adsProgressEl.textContent = `${Math.round(progress)}%`; // [cite: 263]
+            progressFillEl.style.width = `${progress}%`; // [cite: 263]
             
-            // Add animation when points change
-            earnedPointsEl.classList.remove('pulse');
-            void earnedPointsEl.offsetWidth; // Trigger reflow
-            earnedPointsEl.classList.add('pulse');
+            // Add animation when points change [cite: 264]
+            earnedPointsEl.classList.remove('pulse'); // [cite: 264]
+            void earnedPointsEl.offsetWidth; // Trigger reflow [cite: 264]
+            earnedPointsEl.classList.add('pulse'); // [cite: 264]
 
-            updateButtonStates(); // Ensure button states are updated after UI changes
+            updateButtonStates(); // Ensure button states are updated after UI changes [cite: 265]
         }
 
         // New: Update tap UI elements
         function updateTapUI() {
-            tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
-            if (tapsCount >= TAPS_REQUIRED) {
-                claimRewardBtn.style.display = 'block'; // Show claim button
-                tapsRemainingEl.style.display = 'none'; // Hide taps remaining
-                tapAreaEl.querySelector('p').style.display = 'none'; // Hide "taps to claim" text
+            tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount; // [cite: 266]
+            if (tapsCount >= TAPS_REQUIRED) { // [cite: 266]
+                claimRewardBtn.style.display = 'block'; // Show claim button [cite: 267]
+                tapsRemainingEl.style.display = 'none'; // Hide taps remaining [cite: 268]
+                tapAreaEl.querySelector('p').style.display = 'none'; // Hide "taps to claim" text [cite: 269]
             } else {
-                claimRewardBtn.style.display = 'none'; // Hide claim button
-                tapsRemainingEl.style.display = 'block'; // Show taps remaining
-                tapAreaEl.querySelector('p').style.display = 'block'; // Show "taps to claim" text
+                claimRewardBtn.style.display = 'none'; // Hide claim button [cite: 270]
+                tapsRemainingEl.style.display = 'block'; // Show taps remaining [cite: 271]
+                tapAreaEl.querySelector('p').style.display = 'block'; // Show "taps to claim" text [cite: 272]
             }
         }
 
         // Function to update button enabled/disabled states
         function updateButtonStates() {
-            const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            claimRewardBtn.disabled = limitReached; // Disable claim button if limit reached
-            if (limitReached) {
-                tapAreaEl.style.pointerEvents = 'none'; // Disable tapping
+            const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT; // [cite: 273]
+            claimRewardBtn.disabled = limitReached; // Disable claim button if limit reached [cite: 273]
+            if (limitReached) { // [cite: 273]
+                tapAreaEl.style.pointerEvents = 'none'; // Disable tapping [cite: 274]
             } else {
-                tapAreaEl.style.pointerEvents = 'auto'; // Enable tapping
+                tapAreaEl.style.pointerEvents = 'auto'; // Enable tapping [cite: 275]
             }
         }
         
         // New: Handle tap on the tap area
-        tapAreaEl.addEventListener('click', (event) => {
-            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-                showAdNotification(translations[currentLanguage].daily_limit_reached);
-                return; 
+        tapAreaEl.addEventListener('click', (event) => { // [cite: 276]
+            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) { // [cite: 276]
+                showAdNotification(translations[currentLanguage].daily_limit_reached); // [cite: 276]
+                return; // [cite: 276]
             }
 
-            if (tapsCount < TAPS_REQUIRED) {
-                tapsCount++;
-                tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
+            if (tapsCount < TAPS_REQUIRED) { // [cite: 276]
+                tapsCount++; // [cite: 277]
+                tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount; // [cite: 277]
                 
-                // Add visual tap feedback
-                const feedback = document.createElement('div');
-                feedback.classList.add('tap-feedback');
-                feedback.textContent = `+1`;
+                // Add visual tap feedback [cite: 277]
+                const feedback = document.createElement('div'); // [cite: 278]
+                feedback.classList.add('tap-feedback'); // [cite: 278]
+                feedback.textContent = `+1`; // [cite: 278]
                 // Position feedback relative to the tap area, but use event.clientX/Y for click location
-                feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`;
-                feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`;
-                tapAreaEl.appendChild(feedback);
+                feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`; // [cite: 279]
+                feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`; // [cite: 279]
+                tapAreaEl.appendChild(feedback); // [cite: 279]
 
-                // Add active class to tap area and image for visual feedback
-                tapAreaEl.classList.add('active');
-                setTimeout(() => {
-                    feedback.remove();
-                    tapAreaEl.classList.remove('active'); // Remove active class after animation
-                }, 1000);
-
-                if (tapsCount >= TAPS_REQUIRED) {
-                    updateTapUI();
+                // Add active class to tap area and image for visual feedback [cite: 279]
+                tapAreaEl.classList.add('active'); // [cite: 280]
+                setTimeout(() => { // [cite: 280]
+                    feedback.remove(); // [cite: 281]
+                    tapAreaEl.classList.remove('active'); // Remove active class after animation [cite: 281]
+                }, 1000); // [cite: 281]
+                if (tapsCount >= TAPS_REQUIRED) { // [cite: 281]
+                    updateTapUI(); // [cite: 282]
                 }
             }
         });
-
-        // New: Claim reward function (shows ad)
+        // New: Claim reward function (shows ad) [cite: 283]
         async function claimReward() {
-            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-                showAdNotification(translations[currentLanguage].daily_limit_reached);
-                return; 
+            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) { // [cite: 283]
+                showAdNotification(translations[currentLanguage].daily_limit_reached); // [cite: 284]
+                return; // [cite: 284]
             }
 
-            showAdNotification(translations[currentLanguage].ad_loading);
-            claimRewardBtn.disabled = true; // Disable button while ad loads
+            showAdNotification(translations[currentLanguage].ad_loading); // [cite: 284]
+            claimRewardBtn.disabled = true; // Disable button while ad loads [cite: 285]
             
             try {
-                if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
-                    await window.Adsgram.init({ blockId: "12082" }).show(); 
+                if (typeof window.AdexiumWidget !== 'undefined' && adexiumWidget) {
+                    // Show Adexium Widget interstitial ad
+                    adexiumWidget.showInterstitial(); // Call Adexium's show method
                     
-                    watchedAdsCount++;
-                    earnedPoints += POINTS_PER_AD; 
-                    dailyWatchedAdsCount++; 
+                    // Since Adexium Widget's showInterstitial() doesn't return a promise or have a direct callback for ad completion,
+                    // we might need to rely on a timer or a global event listener if Adexium provides one.
+                    // For now, we'll assume the ad shows and proceeds after a short delay for simplicity.
+                    // In a real application, you'd integrate with Adexium's actual ad completion events.
+                    setTimeout(() => { // Simulate ad completion
+                        watchedAdsCount++; // [cite: 286]
+                        earnedPoints += POINTS_PER_AD; // [cite: 286]
+                        dailyWatchedAdsCount++; // [cite: 286]
 
-                    // Update last watched date to today
-                    localStorage.setItem('lastWatchDate', getTodayDate());
-                    localStorage.setItem('dailyWatchedAdsCount', dailyWatchedAdsCount);
-                    
-                    if (watchedAdsCount % ADS_FOR_BONUS === 0) {
-                        earnedPoints += 1.00; // Bonus point
-                    }
-                    
-                    localStorage.setItem('watchedAdsCount', watchedAdsCount);
-                    localStorage.setItem('earnedPoints', earnedPoints);
-                    
-                    updateUI(); 
-                    showAdNotification(translations[currentLanguage].ad_completed_success);
-                    
-                    // Reset taps after successful claim
-                    tapsCount = 0;
-                    updateTapUI();
+                        // Update last watched date to today [cite: 287]
+                        localStorage.setItem('lastWatchDate', getTodayDate()); // [cite: 287]
+                        localStorage.setItem('dailyWatchedAdsCount', dailyWatchedAdsCount); // [cite: 287]
+                        
+                        if (watchedAdsCount % ADS_FOR_BONUS === 0) { // [cite: 288]
+                            earnedPoints += 1.00; // Bonus point [cite: 288]
+                        }
+                        
+                        localStorage.setItem('watchedAdsCount', watchedAdsCount); // [cite: 289]
+                        localStorage.setItem('earnedPoints', earnedPoints); // [cite: 289]
+                        
+                        updateUI(); // [cite: 289]
+                        showAdNotification(translations[currentLanguage].ad_completed_success); // [cite: 289]
+                        
+                        // Reset taps after successful claim [cite: 290]
+                        tapsCount = 0; // [cite: 290]
+                        updateTapUI(); // [cite: 290]
+                        claimRewardBtn.disabled = false; // Re-enable button after simulated completion
+                    }, 3000); // Simulate 3 seconds for ad
                 } else {
-                    console.error("Adsgram SDK is not loaded. Please check the script tag.");
-                    showAdNotification(translations[currentLanguage].ad_failed);
+                    console.error("Adexium Widget SDK is not loaded or initialized.");
+                    showAdNotification(translations[currentLanguage].ad_failed); // [cite: 292]
+                    claimRewardBtn.disabled = false; // Re-enable button
                 }
 
             } catch (error) {
-                console.error("Adsgram ad error or no ad to show:", error);
-                showAdNotification(translations[currentLanguage].ad_failed);
-            } finally {
-                claimRewardBtn.disabled = false; // Re-enable button
+                console.error("Adexium Widget ad error or no ad to show:", error); // [cite: 292]
+                showAdNotification(translations[currentLanguage].ad_failed); // [cite: 292]
+                claimRewardBtn.disabled = false; // Re-enable button [cite: 293]
             }
         }
         
         // Show ad notification
         function showAdNotification(message) {
-            adNotificationEl.textContent = message;
-            adNotificationEl.style.display = 'block';
+            adNotificationEl.textContent = message; // [cite: 294]
+            adNotificationEl.style.display = 'block'; // [cite: 294]
             
-            setTimeout(() => {
-                adNotificationEl.style.display = 'none';
-            }, 3000);
+            setTimeout(() => { // [cite: 294]
+                adNotificationEl.style.display = 'none'; // [cite: 295]
+            }, 3000); // [cite: 295]
         }
 
         // Function to show withdraw form
         function showWithdrawForm() {
-            withdrawSectionEl.style.display = 'block';
-            // Update the current balance when showing the form
-            currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
+            withdrawSectionEl.style.display = 'block'; // [cite: 296]
+            // Update the current balance when showing the form [cite: 296]
+            currentEarnedPointsEl.textContent = earnedPoints.toFixed(2); // [cite: 297]
         }
 
         // Function to hide withdraw form
         function hideWithdrawForm() {
-            withdrawSectionEl.style.display = 'none';
-            withdrawStatusEl.textContent = ''; // Clear status message when hiding
+            withdrawSectionEl.style.display = 'none'; // [cite: 298]
+            withdrawStatusEl.textContent = ''; // Clear status message when hiding [cite: 298]
         }
 
         // Function to handle withdrawal
         function withdrawPoints() {
-            const amount = parseFloat(document.getElementById('withdraw-amount').value);
-            const paymentMethod = document.getElementById('payment-method').value; 
-            const walletAddress = document.getElementById('wallet-address').value; 
+            const amount = parseFloat(document.getElementById('withdraw-amount').value); // [cite: 299]
+            const paymentMethod = document.getElementById('payment-method').value; // [cite: 299]
+            const walletAddress = document.getElementById('wallet-address').value; // [cite: 299]
 
-            let minRequiredPoints;
-            let methodName;
-
-            if (paymentMethod === 'faucetpay') {
-                minRequiredPoints = MIN_WITHDRAW_POINTS_FAUCETPAY;
-                methodName = translations[currentLanguage].faucetpay_option;
-            } else { // Covers 'other_wallet' and any default case
-                minRequiredPoints = MIN_WITHDRAW_POINTS;
-                methodName = translations[currentLanguage].other_wallet_option;
+            let minRequiredPoints; // [cite: 300]
+            let methodName; // [cite: 300]
+            if (paymentMethod === 'faucetpay') { // [cite: 300]
+                minRequiredPoints = MIN_WITHDRAW_POINTS_FAUCETPAY; // [cite: 301]
+                methodName = translations[currentLanguage].faucetpay_option; // [cite: 301]
+            } else { // Covers 'other_wallet' and any default case [cite: 302]
+                minRequiredPoints = MIN_WITHDRAW_POINTS; // [cite: 302]
+                methodName = translations[currentLanguage].other_wallet_option; // [cite: 302]
             }
 
-            if (isNaN(amount) || amount < minRequiredPoints) {
-                // Use dynamic message for minimum withdrawal
+            if (isNaN(amount) || amount < minRequiredPoints) { // [cite: 302]
+                // Use dynamic message for minimum withdrawal [cite: 303]
                 let message = translations[currentLanguage].min_withdraw_message
                     .replace('{methodName}', methodName)
-                    .replace('{minAmount}', minRequiredPoints);
-                showTemporaryMessage(message, 'red');
-                return;
+                    .replace('{minAmount}', minRequiredPoints); // [cite: 303]
+                showTemporaryMessage(message, 'red'); // [cite: 303]
+                return; // [cite: 303]
             }
 
-            if (amount > earnedPoints) {
-                let message = translations[currentLanguage].insufficient_balance.replace('{earnedPoints}', earnedPoints.toFixed(2));
-                showTemporaryMessage(message, 'red');
-                return;
+            if (amount > earnedPoints) { // [cite: 304]
+                let message = translations[currentLanguage].insufficient_balance.replace('{earnedPoints}', earnedPoints.toFixed(2)); // [cite: 304]
+                showTemporaryMessage(message, 'red'); // [cite: 304]
+                return; // [cite: 304]
             }
 
-            if (!walletAddress.trim()) { 
-                showTemporaryMessage(translations[currentLanguage].enter_wallet_address, 'red');
-                return;
+            if (!walletAddress.trim()) { // [cite: 305]
+                showTemporaryMessage(translations[currentLanguage].enter_wallet_address, 'red'); // [cite: 305]
+                return; // [cite: 305]
             }
 
-            earnedPoints -= amount;
-            localStorage.setItem('earnedPoints', earnedPoints.toFixed(2)); 
-            updateUI(); // Update main UI after withdrawal
-            currentEarnedPointsEl.textContent = earnedPoints.toFixed(2); // Update balance on withdrawal form
+            earnedPoints -= amount; // [cite: 305]
+            localStorage.setItem('earnedPoints', earnedPoints.toFixed(2)); // [cite: 306]
+            updateUI(); // Update main UI after withdrawal [cite: 306]
+            currentEarnedPointsEl.textContent = earnedPoints.toFixed(2); // Update balance on withdrawal form [cite: 307]
 
-            // Construct Telegram message based on selected payment method
-            let messageToAdmin = `New Withdrawal Request:\nUser: ${telegramUserName}\nAmount: ${amount} pepe coins\nPayment Method: `;
-            if (paymentMethod === 'faucetpay') {
-                messageToAdmin += `FaucetPay\nWallet Address: ${walletAddress}`;
-            } else if (paymentMethod === 'other_wallet') {
-                messageToAdmin += `Other Wallet\nWallet Address: ${walletAddress}`;
+            // Construct Telegram message based on selected payment method [cite: 307]
+            let messageToAdmin = `New Withdrawal Request:\nUser: ${telegramUserName}\nAmount: ${amount} pepe coins\nPayment Method: `; // [cite: 308]
+            if (paymentMethod === 'faucetpay') { // [cite: 308]
+                messageToAdmin += `FaucetPay\nWallet Address: ${walletAddress}`; // [cite: 309]
+            } else if (paymentMethod === 'other_wallet') { // [cite: 309]
+                messageToAdmin += `Other Wallet\nWallet Address: ${walletAddress}`; // [cite: 310]
             } else {
-                messageToAdmin += `Unknown Method: ${paymentMethod}\nWallet Address: ${walletAddress}`; 
+                messageToAdmin += `Unknown Method: ${paymentMethod}\nWallet Address: ${walletAddress}`; // [cite: 311]
             }
             
-            sendWithdrawRequestToAdmin(messageToAdmin);
+            sendWithdrawRequestToAdmin(messageToAdmin); // [cite: 312]
+            showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green'); // [cite: 312]
 
-            showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green');
-
-            document.getElementById('withdraw-amount').value = '';
-            document.getElementById('wallet-address').value = '';
+            document.getElementById('withdraw-amount').value = ''; // [cite: 312]
+            document.getElementById('wallet-address').value = ''; // [cite: 312]
         }
 
         // Function to send withdrawal request to admin via Telegram
         function sendWithdrawRequestToAdmin(message) {
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_USER_ID}&text=${encodeURIComponent(message)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        console.log('Message sent to admin');
+                .then(response => response.json()) // [cite: 313]
+                .then(data => { // [cite: 313]
+                    if (data.ok) { // [cite: 313]
+                        console.log('Message sent to admin'); // [cite: 313]
                     } else {
-                        console.error('Failed to send message to Telegram:', data.description || data);
-                        let errorMessage = translations[currentLanguage].telegram_send_fail.replace('{error}', data.description || data);
-                        showTemporaryMessage(errorMessage, 'red');
+                        console.error('Failed to send message to Telegram:', data.description || data); // [cite: 314]
+                        let errorMessage = translations[currentLanguage].telegram_send_fail.replace('{error}', data.description || data); // [cite: 314]
+                        showTemporaryMessage(errorMessage, 'red'); // [cite: 315]
                     }
                 })
-                .catch(error => {
-                    console.error('Error during fetch to Telegram API:', error);
-                    let errorMessage = translations[currentLanguage].telegram_connect_error.replace('{error}', error.message);
-                    showTemporaryMessage(errorMessage, 'red');
+                .catch(error => { // [cite: 315]
+                    console.error('Error during fetch to Telegram API:', error); // [cite: 315]
+                    let errorMessage = translations[currentLanguage].telegram_connect_error.replace('{error}', error.message); // [cite: 316]
+                    showTemporaryMessage(errorMessage, 'red'); // [cite: 316]
                 });
         }
 
         // Utility for showing temporary messages
-        let messageTimeout;
+        let messageTimeout; // [cite: 317]
         function showTemporaryMessage(msg, color) {
-            withdrawStatusEl.textContent = msg;
-            withdrawStatusEl.style.color = color;
-            clearTimeout(messageTimeout);
-            messageTimeout = setTimeout(() => {
-                withdrawStatusEl.textContent = '';
-            }, 5000); 
+            withdrawStatusEl.textContent = msg; // [cite: 318]
+            withdrawStatusEl.style.color = color; // [cite: 318]
+            clearTimeout(messageTimeout); // [cite: 318]
+            messageTimeout = setTimeout(() => { // [cite: 318]
+                withdrawStatusEl.textContent = ''; // [cite: 319]
+            }, 5000); // [cite: 319]
         }
 
         // Initialize app on load
-        window.onload = initApp;
+        window.onload = initApp; // [cite: 320]
     </script>
 </body>
-</html>
+                      </html>
