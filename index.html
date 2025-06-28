@@ -878,11 +878,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        // لا نحتاج لـ getAuth أو signInAnonymously هنا، لأن Mini App يوفر Telegram User ID مباشرة
 
-        // <<< معلومات تكوين Firebase الخاصة بك >>>
-        // هذا الكائن يحتوي على بيانات مشروع Firebase الخاص بك.
-        // تم استبدال القيم هنا بالقيم التي قدمتها.
+        // Firebase configuration
         const firebaseConfig = {
           apiKey: "AIzaSyAOf0KsfC9HlOa7z1VdR31DBcYcJAynrnA",
           authDomain: "adrewardapp-e2755.firebaseapp.com",
@@ -891,15 +888,14 @@
           messagingSenderId: "978106558327",
           appId: "1:978106558327:web:b567f8c72beb0113e2a372"
         };
-        // <<< نهاية معلومات التكوين >>>
 
-        // المتغيرات العامة لـ Firebase و Telegram Mini App
+        // Global variables for Firebase and Telegram Mini App
         window.firebaseApp = null;
         window.db = null;
-        window.telegramUserId = null; // NEW: هذا هو معرف المستخدم الذي نحصل عليه من Telegram WebApp
+        window.telegramUserId = null; // This will hold the Telegram User ID
         let isAppReady = false; // Flag to track if Telegram WebApp and Firebase are initialized
 
-        // الثوابت من السكريبت الأصلي الخاص بك
+        // Constants
         const POINTS_PER_AD = 1.00;
         const TAPS_REQUIRED = 10;
         const ADS_FOR_BONUS = 10; 
@@ -910,23 +906,22 @@
         const BOT_TOKEN = "7509054222:AAFhFhVXFCOs4kXtHQBigGU2QeNamHX42LQ"; 
         const REFERRAL_PERCENTAGE = 0.10;
 
-        // متغيرات الحالة، الآن يتم التحكم بها بشكل أساسي بواسطة Firestore
+        // State variables (controlled by Firestore)
         let watchedAdsCount = 0;
         let earnedPoints = 0.00; 
         let dailyWatchedAdsCount = 0; 
         let lastWatchDate = ""; 
         let tapsCount = 0; 
-        let referrerId = null; // معرف المستخدم الذي أحال هذا المستخدم
-        let totalReferrals = 0; // عدد المستخدمين الذين أحالهم *هذا* المستخدم
-        let earnedFromReferrals = 0.00; // النقاط التي كسبها *هذا* المستخدم من إحالاته
+        let referrerId = null; 
+        let totalReferrals = 0; 
+        let earnedFromReferrals = 0.00; 
 
-        // عناصر DOM
+        // DOM elements
         const earnedPointsEl = document.getElementById('earned-points');
         const adsProgressEl = document.getElementById('ads-progress');
         const progressFillEl = document.getElementById('progress-fill');
         const adNotificationEl = document.getElementById('ad-notification');
         
-        // عناصر DOM لقسم السحب
         const withdrawSectionEl = document.getElementById('withdraw-section');
         const withdrawStatusEl = document.getElementById('withdraw-status');
         const currentEarnedPointsEl = document.getElementById('current-earned-points');
@@ -935,15 +930,13 @@
         const tapsRemainingEl = document.getElementById('taps-remaining'); 
         const claimRewardBtn = document.getElementById('claim-reward-btn'); 
 
-        // عناصر DOM لقسم الإحالة
         const referralSectionEl = document.getElementById('referral-section');
         const referralLinkInput = document.getElementById('referral-link');
         const totalReferralsEl = document.getElementById('total-referrals');
         const earnedFromReferralsEl = document.getElementById('earned-from-referrals');
-        const displayUserIdEl = document.getElementById('display-user-id'); // عنصر جديد لعرض معرف المستخدم
+        const displayUserIdEl = document.getElementById('display-user-id'); 
 
-
-        // منطق الترجمة
+        // Translation logic
         const translations = {
             ar: {
                 app_title: "⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵",
@@ -990,6 +983,8 @@
                 link_copied_success: "تم نسخ رابط الإحالة بنجاح!",
                 your_user_id: "معرف المستخدم:",
                 loading_app: "جاري تحميل التطبيق...", 
+                not_mini_app: "لم يتم تشغيل التطبيق كتطبيق تيليجرام مصغر.",
+                error_loading_user: "خطأ في تحميل بيانات المستخدم.",
             },
             en: {
                 app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", 
@@ -1036,6 +1031,8 @@
                 link_copied_success: "Referral link copied successfully!",
                 your_user_id: "User ID:",
                 loading_app: "Loading App...", 
+                not_mini_app: "App not launched as Telegram Mini App.",
+                error_loading_user: "Error loading user data.",
             },
             ru: {
                 app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", 
@@ -1082,28 +1079,29 @@
                 link_copied_success: "Реферальная ссылка успешно скопирована!",
                 your_user_id: "ID пользователя:",
                 loading_app: "Загрузка приложения...", 
+                not_mini_app: "Приложение запущено не как мини-приложение Telegram.",
+                error_loading_user: "Ошибка загрузки пользовательских данных.",
             }
         };
 
         let currentLanguage = localStorage.getItem('appLanguage') || 'ar'; // Default to Arabic
         let currentSection = 'main'; // Tracks current visible section (main, withdraw, referral)
 
-        // دالة للحصول على تاريخ اليوم بتنسيق YYYY-MM-DD
+        // Function to get today's date in YYYY-MM-DD format
         function getTodayDate() {
             const today = new Date();
             const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const month = String(today.getMonth() + 1).padStart(2, '0'); 
             const day = String(today.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
 
-        // دالة لضبط اللغة وتحديث واجهة المستخدم
+        // Function to set language and update UI
         window.setLanguage = function(lang) {
             currentLanguage = lang;
             localStorage.setItem('appLanguage', lang);
-            document.documentElement.lang = lang; // Set HTML lang attribute
+            document.documentElement.lang = lang; 
 
-            // Update active button style
             document.querySelectorAll('.language-selector button').forEach(button => {
                 if (button.dataset.lang === lang) {
                     button.classList.add('active');
@@ -1112,7 +1110,6 @@
                 }
             });
 
-            // Translate all elements with data-key
             document.querySelectorAll('[data-key]').forEach(element => {
                 const key = element.dataset.key;
                 if (translations[lang] && translations[lang][key]) {
@@ -1124,8 +1121,6 @@
                         element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); 
                     } else if (key === 'insufficient_balance') {
                         element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2));
-                    } else if (key === 'min_withdrawal_message') { 
-                        // This specific translation is handled dynamically in withdrawPoints
                     }
                     else {
                         element.textContent = translations[lang][key];
@@ -1133,7 +1128,6 @@
                 }
             });
 
-            // Translate all elements with data-key-placeholder
             document.querySelectorAll('[data-key-placeholder]').forEach(element => {
                 const placeholderKey = element.dataset.keyPlaceholder;
                 if (translations[lang] && translations[lang][placeholderKey]) {
@@ -1141,7 +1135,6 @@
                 }
             });
 
-            // Translate options in the dropdown
             document.querySelectorAll('#payment-method option').forEach(option => {
                 const key = option.dataset.key;
                 if (translations[lang] && translations[lang][key]) {
@@ -1149,88 +1142,103 @@
                 }
             });
 
-            // Re-render dynamic content (like numbers)
+            // Update dynamic content
             earnedPointsEl.textContent = earnedPoints.toFixed(2); 
             adsProgressEl.textContent = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
             showAdNotification(''); 
-            withdrawStatusEl.textContent = ''; // Clear withdrawal status as well
-            if (withdrawSectionEl.style.display === 'block') { // Update balance if withdrawal form is visible
+            withdrawStatusEl.textContent = ''; 
+            if (withdrawSectionEl.style.display === 'block') { 
                 currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
             }
             
-            // Update taps remaining text
             tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
 
-            // Update referral section UI
-            totalReferralsEl.textContent = totalReferrals;
-            earnedFromReferralsEl.textContent = earnedFromReferrals.toFixed(2);
-            referralLinkInput.value = generateReferralLink();
-            
-            // Update user ID display based on Telegram User ID
-            displayUserIdEl.textContent = window.telegramUserId ? window.telegramUserId : translations[currentLanguage].loading_app;
+            updateReferralUI(); // This will also update the referral link
+
+            // --- IMPORTANT: Update Telegram User ID display ---
+            if (window.telegramUserId) {
+                displayUserIdEl.textContent = window.telegramUserId;
+            } else if (isAppReady === false) { // If app is explicitly NOT ready due to an error
+                displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
+            } else { // If app is still loading or not launched as Mini App
+                displayUserIdEl.textContent = translations[currentLanguage].loading_app;
+            }
+            // --- END IMPORTANT ---
         };
 
-        // Initialize Firebase and load user data
+        // Initialize App (Telegram WebApp & Firebase)
         async function initApp() {
+            console.log("initApp: Starting app initialization...");
+            displayUserIdEl.textContent = translations[currentLanguage].loading_app; // Set initial loading state
+
             try {
                 // Initialize Telegram WebApp
                 if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
                     window.Telegram.WebApp.ready();
-                    // Optional: Expand app to full screen
                     window.Telegram.WebApp.expand();
-                    // Set theme for Mini App if available (optional)
+                    // Optional: Set theme for Mini App if available
                     document.body.style.backgroundColor = window.Telegram.WebApp.themeParams.bg_color || '#1a1a2e';
                     document.body.style.color = window.Telegram.WebApp.themeParams.text_color || '#f5f5f5';
+                    console.log("Telegram.WebApp initialized.");
 
                     if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
                         window.telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
-                        console.log("Telegram User ID:", window.telegramUserId);
-                        displayUserIdEl.textContent = window.telegramUserId;
+                        console.log("Telegram User ID obtained:", window.telegramUserId);
+                        displayUserIdEl.textContent = window.telegramUserId; // Update UI immediately after getting ID
                     } else {
                         console.error("Telegram User ID not available. Mini App not launched correctly or user data missing.");
-                        showAdNotification("Error: Not launched as Telegram Mini App or user data missing.");
-                        displayUserIdEl.textContent = "Error"; // Indicate error
-                        return; // Stop initialization if no Telegram User ID
+                        showAdNotification(translations[currentLanguage].error_loading_user + " (Telegram User ID missing)");
+                        displayUserIdEl.textContent = translations[currentLanguage].error_loading_user; 
+                        isAppReady = false; // Mark app as not ready
+                        updateButtonStates();
+                        return; 
                     }
 
                     // Initialize Firebase
                     if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
-                        console.error("Firebase config is missing or incomplete. Please ensure firebaseConfig is set correctly.");
-                        showAdNotification("Error: Firebase configuration missing.");
+                        console.error("Firebase config is missing or incomplete.");
+                        showAdNotification(translations[currentLanguage].error_loading_user + " (Firebase config missing)");
+                        isAppReady = false;
+                        updateButtonStates();
                         return;
                     }
                     
                     const appId = firebaseConfig.projectId; 
                     window.firebaseApp = initializeApp(firebaseConfig);
                     window.db = getFirestore(window.firebaseApp);
+                    console.log("Firebase initialized.");
 
                     // Load user data using Telegram User ID
-                    loadUserDataFromFirestore(appId, window.telegramUserId);
+                    await loadUserDataFromFirestore(appId, window.telegramUserId); // Await this to ensure data is loaded before proceeding
+                    console.log("User data load initiated.");
 
                     // Handle Back Button in Telegram Mini App
                     window.Telegram.WebApp.onEvent('backButtonClicked', handleBackButtonClick);
-                    updateBackButtonVisibility(); // Initial visibility based on current section
+                    updateBackButtonVisibility(); 
 
-                    isAppReady = true; // Set flag to true when app (Telegram + Firebase) is ready
+                    isAppReady = true; // Mark app as ready after all initializations
+                    console.log("App is now fully ready.");
 
                     // Process startapp parameter from Telegram initData
-                    const urlParams = new URLSearchParams(window.Telegram.WebApp.initData); // Parse initData from WebApp
-                    const ref = urlParams.get('start_param'); // Telegram Mini Apps use 'start_param' for deep links
+                    const urlParams = new URLSearchParams(window.Telegram.WebApp.initData); 
+                    const ref = urlParams.get('start_param'); 
+                    console.log("Start parameter (ref):", ref); // Debugging the start_param
                     if (ref && ref.startsWith('ref_')) {
                         const foundReferrerId = ref.substring(4); 
+                        console.log("Found referrer ID from start_param:", foundReferrerId);
                         if (foundReferrerId !== window.telegramUserId) { 
                             referrerId = foundReferrerId;
-                            // Update referrerId in Firestore when user doc is loaded
                             const userRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                             getDoc(userRef).then(docSnap => {
-                                if (docSnap.exists() && !docSnap.data().referrerId) {
+                                if (docSnap.exists() && !docSnap.data().referrerId) { // Only set if not already set
                                     updateDoc(userRef, { referrerId: referrerId }, { merge: true })
                                         .then(() => console.log(`Set referrerId ${referrerId} for user ${window.telegramUserId}`))
                                         .catch(e => console.error("Error setting referrerId:", e, userRef));
+                                } else {
+                                    console.log(`ReferrerId for user ${window.telegramUserId} already set or doc not found (will be set on creation).`);
                                 }
                             }).catch(e => console.error("Error checking user doc for referrerId:", e));
 
-                            // Increment totalReferrals for the referrer (client-side simplified)
                             const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
                             getDoc(referrerRef).then(docSnap => {
                                 if (docSnap.exists()) {
@@ -1245,25 +1253,28 @@
                     }
 
                 } else {
-                    console.error("Telegram WebApp SDK not found. Not running as a Mini App.");
-                    showAdNotification("Error: Not launched as Telegram Mini App.");
-                    displayUserIdEl.textContent = "N/A (Not Mini App)";
+                    console.error("Telegram WebApp SDK not found. App not running as a Mini App.");
+                    showAdNotification(translations[currentLanguage].not_mini_app);
+                    displayUserIdEl.textContent = translations[currentLanguage].not_mini_app;
+                    isAppReady = false;
                 }
 
             } catch (error) {
-                console.error("Error initializing App:", error);
-                showAdNotification("Error initializing app. Please try again.");
-                displayUserIdEl.textContent = "Error";
+                console.error("Error during app initialization:", error);
+                showAdNotification(translations[currentLanguage].error_loading_user);
+                displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
+                isAppReady = false; 
             } finally {
-                updateButtonStates(); // Update button states regardless of init success/fail
-                setLanguage(currentLanguage); // Ensure UI is translated
+                updateButtonStates(); 
+                setLanguage(currentLanguage); 
             }
         }
 
         // Load user data from Firestore and set up real-time listener
         async function loadUserDataFromFirestore(appId, userId) {
+            console.log("loadUserDataFromFirestore: Attempting to load data for user:", userId);
             if (!window.db || !userId || !appId) {
-                console.log("Firestore, User ID, or App ID not ready for data load.");
+                console.log("loadUserDataFromFirestore: Firestore, User ID, or App ID not ready.");
                 return;
             }
 
@@ -1271,13 +1282,14 @@
 
             // Use onSnapshot to get real-time updates
             onSnapshot(userDocRef, (docSnap) => {
+                console.log("onSnapshot: Data received.");
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     earnedPoints = data.earnedPoints || 0.00;
                     watchedAdsCount = data.watchedAdsCount || 0;
                     dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
                     lastWatchDate = data.lastWatchDate || "";
-                    if (!referrerId && data.referrerId) { // Only update referrerId if it's currently null
+                    if (!referrerId && data.referrerId) { 
                         referrerId = data.referrerId; 
                     }
                     totalReferrals = data.totalReferrals || 0;
@@ -1292,7 +1304,7 @@
                     }
                     console.log("User data loaded/updated from Firestore:", data);
                 } else {
-                    console.log("User document not found, creating new one.");
+                    console.log("User document not found, creating new one for user:", userId);
                     earnedPoints = 0.00;
                     watchedAdsCount = 0;
                     dailyWatchedAdsCount = 0;
@@ -1308,7 +1320,7 @@
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
                     })
-                    .then(() => console.log("New user document created."))
+                    .then(() => console.log("New user document created in Firestore."))
                     .catch(e => console.error("Error creating user document:", e));
                 }
                 updateUI(); 
@@ -1316,8 +1328,8 @@
                 updateReferralUI();
                 updateButtonStates(); 
             }, (error) => {
-                console.error("Error listening to user document:", error);
-                showAdNotification("Failed to load user data.");
+                console.error("Error listening to user document in Firestore:", error);
+                showAdNotification(translations[currentLanguage].error_loading_user);
             });
         }
         
@@ -1353,7 +1365,6 @@
         // Function to update button enabled/disabled states
         function updateButtonStates() {
             const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            // Buttons are disabled if app is not ready OR daily limit is reached
             claimRewardBtn.disabled = !isAppReady || limitReached; 
             tapAreaEl.style.pointerEvents = (!isAppReady || limitReached) ? 'none' : 'auto';
 
@@ -1598,7 +1609,6 @@
         function generateReferralLink() {
             const botUsername = "ididkd46_bot"; 
             if (window.telegramUserId) {
-                // Telegram Mini Apps use 'start_param' for deep links in this context
                 return `https://t.me/${botUsername}?startapp=ref_${window.telegramUserId}`;
             }
             return translations[currentLanguage].loading_app; 
@@ -1674,13 +1684,11 @@
             }
         }
 
-
-        // Initialize App on window load
+        // Initialize App (Telegram WebApp & Firebase) on window load
         window.onload = async function() {
-            setLanguage(currentLanguage); 
-            updateButtonStates(); 
-            await initApp();
-            // `loadUserDataFromFirestore` and its `onSnapshot` will handle further UI updates
+            setLanguage(currentLanguage); // Set initial language and placeholder text
+            updateButtonStates(); // Set initial disabled state for buttons
+            await initApp(); // Start app initialization
         };
     </script>
 </body>
