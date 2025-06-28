@@ -894,6 +894,7 @@
         window.db = null;
         window.auth = null;
         window.currentUserId = null; // هذا هو معرف المستخدم المصادق عليه (UID)
+        let isFirebaseReady = false; // NEW: Flag to track Firebase initialization and authentication state
 
         // الثوابت من السكريبت الأصلي الخاص بك
         const POINTS_PER_AD = 1.00;
@@ -985,6 +986,7 @@
                 earned_from_referrals: "الربح من الإحالات:",
                 link_copied_success: "تم نسخ رابط الإحالة بنجاح!",
                 your_user_id: "معرف المستخدم:",
+                loading_user_id: "جاري تحميل معرف المستخدم...", // NEW translation key
             },
             en: {
                 app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", 
@@ -1030,6 +1032,7 @@
                 earned_from_referrals: "Earned from Referrals:",
                 link_copied_success: "Referral link copied successfully!",
                 your_user_id: "User ID:",
+                loading_user_id: "Loading User ID...", // NEW translation key
             },
             ru: {
                 app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", 
@@ -1075,6 +1078,7 @@
                 earned_from_referrals: "Заработано с рефералов:",
                 link_copied_success: "Реферальная ссылка успешно скопирована!",
                 your_user_id: "ID пользователя:",
+                loading_user_id: "Загрузка ID пользователя...", // NEW translation key
             }
         };
 
@@ -1158,7 +1162,9 @@
             totalReferralsEl.textContent = totalReferrals;
             earnedFromReferralsEl.textContent = earnedFromReferrals.toFixed(2);
             referralLinkInput.value = generateReferralLink();
-            displayUserIdEl.textContent = window.currentUserId || translations[currentLanguage].your_user_id + " " + (window.currentUserId || 'Loading...'); // Update displayed User ID
+            
+            // Update user ID display based on authentication status
+            displayUserIdEl.textContent = window.currentUserId ? window.currentUserId : translations[currentLanguage].loading_user_id;
         };
 
         // Initialize Firebase and load user data
@@ -1167,6 +1173,7 @@
                 // Use the firebaseConfig defined above
                 if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
                     console.error("Firebase config is missing or incomplete. Please ensure firebaseConfig is set correctly.");
+                    showAdNotification("Error: Firebase configuration missing.");
                     return;
                 }
                 
@@ -1188,6 +1195,7 @@
                         window.currentUserId = user.uid;
                         console.log("Authenticated User ID:", window.currentUserId);
                         displayUserIdEl.textContent = window.currentUserId; // Display User ID
+                        isFirebaseReady = true; // NEW: Set flag to true
 
                         // Now that we have a user ID, load/set up user data
                         loadUserDataFromFirestore(appId); // Pass appId here
@@ -1203,15 +1211,13 @@
                                 const userRef = doc(window.db, `artifacts/${appId}/users`, window.currentUserId);
                                 
                                 getDoc(userRef).then(docSnap => {
-                                    if (docSnap.exists()) {
-                                        updateDoc(userRef, { referrerId: referrerId })
+                                    // Only set referrerId if it hasn't been set before for this user
+                                    if (!docSnap.exists() || !docSnap.data().referrerId) {
+                                        updateDoc(userRef, { referrerId: referrerId }, { merge: true }) // Use merge to avoid overwriting
                                             .then(() => console.log(`Set referrerId ${referrerId} for user ${window.currentUserId}`))
                                             .catch(e => console.error("Error setting referrerId:", e, userRef));
                                     } else {
-                                        // If the document doesn't exist yet, create it with referrerId
-                                        setDoc(userRef, { referrerId: referrerId }, { merge: true })
-                                            .then(() => console.log(`Created user doc with referrerId ${referrerId} for user ${window.currentUserId}`))
-                                            .catch(e => console.error("Error creating user doc with referrerId:", e, userRef));
+                                        console.log(`ReferrerId already set for user ${window.currentUserId}. Skipping.`);
                                     }
                                 }).catch(e => console.error("Error checking user doc for referrerId:", e));
 
@@ -1219,6 +1225,7 @@
                                 const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
                                 getDoc(referrerRef).then(docSnap => {
                                     if (docSnap.exists()) {
+                                        // A simple increment. For robust systems, use Cloud Functions and transactions.
                                         updateDoc(referrerRef, {
                                             totalReferrals: increment(1)
                                         }).then(() => console.log(`Incremented totalReferrals for ${referrerId}`));
@@ -1230,21 +1237,26 @@
                         }
                     } else {
                         window.currentUserId = null;
-                        displayUserIdEl.textContent = 'Not signed in';
+                        displayUserIdEl.textContent = translations[currentLanguage].loading_user_id; // Still loading or error
+                        isFirebaseReady = false; // Firebase not ready for operations without user
                         console.log("No user signed in.");
                     }
+                    updateButtonStates(); // Update button states immediately after auth change
                 });
 
             } catch (error) {
                 console.error("Error initializing Firebase or signing in:", error);
                 showAdNotification("Error initializing app. Please try again.");
+                displayUserIdEl.textContent = "Error loading user";
+                isFirebaseReady = false; // Firebase not ready
+                updateButtonStates(); // Update button states on error
             }
         }
 
         // Load user data from Firestore and set up real-time listener
         async function loadUserDataFromFirestore(appId) { // Receive appId as parameter
             if (!window.db || !window.currentUserId || !appId) {
-                console.log("Firestore, User ID, or App ID not ready.");
+                console.log("Firestore, User ID, or App ID not ready for data load.");
                 return;
             }
 
@@ -1258,7 +1270,10 @@
                     watchedAdsCount = data.watchedAdsCount || 0;
                     dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
                     lastWatchDate = data.lastWatchDate || "";
-                    referrerId = data.referrerId || null; // Ensure referrerId is loaded
+                    // Only update referrerId from docSnap if it's currently null in our state
+                    if (!referrerId && data.referrerId) {
+                        referrerId = data.referrerId; 
+                    }
                     totalReferrals = data.totalReferrals || 0;
                     earnedFromReferrals = data.earnedFromReferrals || 0.00;
 
@@ -1272,7 +1287,7 @@
                     }
                     console.log("User data loaded/updated from Firestore:", data);
                 } else {
-                    // User document not found, create a new one
+                    // User document not found, create a new one. This path should only hit for brand new users.
                     console.log("User document not found, creating new one.");
                     earnedPoints = 0.00;
                     watchedAdsCount = 0;
@@ -1280,13 +1295,13 @@
                     lastWatchDate = getTodayDate();
                     totalReferrals = 0;
                     earnedFromReferrals = 0.00;
-                    // When creating the document, include referrerId if available
+                    // When creating the document, include referrerId if available (from URL param)
                     setDoc(userDocRef, {
                         earnedPoints: earnedPoints,
                         watchedAdsCount: watchedAdsCount,
                         dailyWatchedAdsCount: dailyWatchedAdsCount,
                         lastWatchDate: lastWatchDate,
-                        referrerId: referrerId, // Will be null if not referred
+                        referrerId: referrerId, // Will be null if not referred via URL param
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
                     })
@@ -1296,7 +1311,7 @@
                 updateUI(); // Update UI after data load/update
                 updateTapUI();
                 updateReferralUI();
-                updateButtonStates();
+                updateButtonStates(); // Recalculate button states after data is loaded
             }, (error) => {
                 console.error("Error listening to user document:", error);
                 showAdNotification("Failed to load user data.");
@@ -1336,16 +1351,22 @@
         // Function to update button enabled/disabled states
         function updateButtonStates() {
             const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            claimRewardBtn.disabled = limitReached; // Disable claim button if limit reached
-            if (limitReached) {
-                tapAreaEl.style.pointerEvents = 'none'; // Disable tapping
-            } else {
-                tapAreaEl.style.pointerEvents = 'auto'; // Enable tapping
-            }
+            // NEW: Buttons are disabled if Firebase is not ready OR daily limit is reached
+            claimRewardBtn.disabled = !isFirebaseReady || limitReached; 
+            tapAreaEl.style.pointerEvents = (!isFirebaseReady || limitReached) ? 'none' : 'auto';
+
+            // Also disable other main action buttons if Firebase not ready
+            document.getElementById('show-withdraw-btn').disabled = !isFirebaseReady;
+            document.getElementById('show-referral-btn').disabled = !isFirebaseReady;
         }
         
         // Handle tap area click
         tapAreaEl.addEventListener('click', async (event) => {
+            // NEW: Check isFirebaseReady before processing tap
+            if (!isFirebaseReady) {
+                showAdNotification(translations[currentLanguage].loading_user_id); // Show loading message
+                return;
+            }
             if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
                 showAdNotification(translations[currentLanguage].daily_limit_reached);
                 return; 
@@ -1379,8 +1400,9 @@
 
         // Function to claim reward (show ad and update Firestore)
         window.claimReward = async function() {
-            if (!window.currentUserId) {
-                showAdNotification("Please wait, user not authenticated yet.");
+            // NEW: Check isFirebaseReady before claiming
+            if (!isFirebaseReady) {
+                showAdNotification(translations[currentLanguage].loading_user_id); // Show loading message
                 return;
             }
             if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
@@ -1390,6 +1412,7 @@
 
             showAdNotification(translations[currentLanguage].ad_loading);
             claimRewardBtn.disabled = true; // Disable button while ad is loading
+            tapAreaEl.style.pointerEvents = 'none'; // Disable tapping during ad loading
             
             try {
                 if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
@@ -1450,7 +1473,8 @@
                 console.error("Adsgram ad error or Firestore update error:", error);
                 showAdNotification(translations[currentLanguage].ad_failed);
             } finally {
-                claimRewardBtn.disabled = false; // Re-enable button
+                // NEW: Re-enable buttons based on current state (including firebase readiness)
+                updateButtonStates(); 
             }
         }
         
@@ -1466,6 +1490,10 @@
 
         // Function to show withdrawal form
         window.showWithdrawForm = function() {
+            if (!isFirebaseReady) { // NEW: Prevent showing if Firebase not ready
+                showAdNotification(translations[currentLanguage].loading_user_id);
+                return;
+            }
             hideAllSections();
             withdrawSectionEl.style.display = 'block';
             currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
@@ -1480,8 +1508,8 @@
 
         // Function to handle withdrawal
         window.withdrawPoints = async function() {
-            if (!window.currentUserId) {
-                showTemporaryMessage("User not authenticated. Please wait.", 'red');
+            if (!isFirebaseReady) { // NEW: Prevent withdrawal if Firebase not ready
+                showTemporaryMessage(translations[currentLanguage].loading_user_id, 'red');
                 return;
             }
 
@@ -1588,10 +1616,14 @@
             if (window.currentUserId) {
                 return `https://t.me/${botUsername}?startapp=ref_${window.currentUserId}`;
             }
-            return "Generating link...";
+            return translations[currentLanguage].loading_user_id; // Show loading if ID not ready
         }
 
         window.showReferralSection = function() {
+            if (!isFirebaseReady) { // NEW: Prevent showing if Firebase not ready
+                showAdNotification(translations[currentLanguage].loading_user_id);
+                return;
+            }
             hideAllSections();
             referralSectionEl.style.display = 'block';
             updateReferralUI();
@@ -1609,6 +1641,10 @@
         }
 
         window.copyReferralLink = function() {
+            if (!isFirebaseReady) { // NEW: Prevent copying if Firebase not ready
+                showTemporaryMessage(translations[currentLanguage].loading_user_id, 'red');
+                return;
+            }
             referralLinkInput.select();
             document.execCommand('copy'); 
             showTemporaryMessage(translations[currentLanguage].link_copied_success, 'green');
@@ -1632,9 +1668,10 @@
 
         // Initialize Firebase then app logic on window load
         window.onload = async function() {
-            await initFirebase();
-            // The onSnapshot listener in loadUserDataFromFirestore will handle initial UI updates.
             setLanguage(currentLanguage); // Set initial language and translate static elements
+            updateButtonStates(); // Set initial disabled state for buttons
+            await initFirebase();
+            // The onSnapshot listener in loadUserDataFromFirestore will handle further UI updates.
         };
     </script>
 </body>
