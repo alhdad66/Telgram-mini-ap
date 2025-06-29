@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-key="app_title">Pepe Coin XO Competition</title>
+    <title data-key="app_title">Premium Ad Reward System</title>
     
     <!-- Adsgram SDK -->
     <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
@@ -322,6 +322,7 @@
             padding: 20px;
             margin: 20px 0;
             text-align: center;
+            display: none; /* Hidden by default, shown by JS */
         }
         
         .ad-label {
@@ -368,20 +369,6 @@
             
             .content {
                 padding: 20px;
-            }
-            .tap-area {
-                width: 180px; /* Adjust size for smaller screens */
-                height: 180px;
-            }
-            .tap-area img {
-                width: 100%; /* Make image fill for smaller screens */
-                height: 100%;
-            }
-            .tap-area h2 {
-                font-size: 36px;
-            }
-            .tap-area p {
-                font-size: 16px;
             }
             .stat-card { /* Adjust for smaller screens */
                 width: 95%;
@@ -526,174 +513,6 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* Hamster Kombat Style Tap Area */
-        .tap-area {
-            background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%);
-            border-radius: 50%; /* Make it circular */
-            margin: 20px auto; /* Center the circular area */
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            position: relative;
-            width: 220px; /* Set fixed width and height for a perfect circle */
-            height: 220px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5); /* Added outer shadow */
-            animation: backgroundPulse 5s infinite alternate;
-            user-select: none; /* Prevent text selection on tap */
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE10+ */
-        }
-
-        /* Image inside the tap area */
-        .tap-area img {
-            width: 100%; /* Make image fill the circle's width */
-            height: 100%; /* Make image fill the circle's height */
-            object-fit: cover; /* Make image cover the area, cropping if necessary */
-            border-radius: 50%; /* Ensure image itself is circular */
-            position: absolute; /* Position image absolutely within the tap-area */
-            top: 0;
-            left: 0;
-            z-index: 5; /* Place image behind text but above background pulse */
-            transition: transform 0.1s ease;
-        }
-
-        .tap-area.active img {
-            transform: scale(0.95); /* Shrink image on tap */
-        }
-
-        @keyframes backgroundPulse {
-            0% { background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%); }
-            100% { background: radial-gradient(circle at center, #3a3a3a 0%, #2a3a3a 100%); }
-        }
-
-        .tap-area h2 {
-            font-size: 48px;
-            font-weight: 800;
-            color: var(--gold);
-            margin-bottom: 5px; /* Adjusted margin */
-            text-shadow: 0 0 10px rgba(255,215,0,0.5);
-            transition: transform 0.1s ease;
-            position: relative;
-            z-index: 10; /* Ensure text is above image */
-        }
-
-        .tap-area p {
-            font-size: 18px;
-            color: #ccc;
-            margin-top: 0; /* Adjusted margin */
-            position: relative;
-            z-index: 10; /* Ensure text is above image */
-        }
-
-        .tap-feedback {
-            position: absolute;
-            font-size: 40px;
-            font-weight: bold;
-            color: var(--gold);
-            opacity: 0;
-            pointer-events: none;
-            animation: fadeOutUp 1s forwards;
-            text-shadow: 0 0 5px rgba(255,215,0,0.8);
-            z-index: 20;
-        }
-
-        @keyframes fadeOutUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
-        }
-
-        .tap-button-container {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .tap-claim-btn {
-            display: none; /* Hidden by default */
-            position: relative;
-            padding: 16px 30px;
-            border: none;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            color: white;
-            background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
-            box-shadow: 
-                0 8px 0 #1e7e34, 
-                0 15px 20px rgba(0, 0, 0, 0.4);
-            transition: all 0.2s ease;
-            transform-style: preserve-3d;
-            perspective: 500px;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .tap-claim-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, #28a745, #218838); 
-            z-index: -1;
-            transition: all 0.3s ease;
-        }
-        
-        .tap-claim-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            /* Shiny effect on hover */
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.2), 
-                transparent);
-            transition: all 0.5s ease;
-            z-index: -1;
-        }
-        
-        .tap-claim-btn:hover {
-            transform: translateY(4px);
-            box-shadow: 
-                0 4px 0 #1e7e34,
-                0 8px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .tap-claim-btn:hover::after {
-            left: 100%;
-        }
-        
-        .tap-claim-btn:active {
-            transform: translateY(8px);
-            box-shadow: 
-                0 0 0 #1e7e34,
-                0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        .tap-claim-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: 0 8px 0 #1e7e34, 
-                        0 15px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .points-per-tap-message {
-            font-size: 16px;
-            color: var(--light);
-            margin-top: 15px; /* Spacing below the circle/claim button */
-            font-weight: 500;
-        }
-
         /* Referral Section Styles */
         .referral-section {
             background: rgba(255, 255, 255, 0.05);
@@ -755,71 +574,6 @@
             color: var(--gold);
         }
 
-        /* Withdrawal History Styles */
-        .withdrawal-history-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: none; /* Hidden by default */
-        }
-
-        .withdrawal-history-section h3 {
-            color: var(--secondary);
-            margin-bottom: 15px;
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .withdrawal-history-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-        }
-
-        .withdrawal-item {
-            background-color: rgba(255, 255, 255, 0.03);
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            font-size: 13px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .withdrawal-item p {
-            margin: 3px 0;
-        }
-
-        .withdrawal-item .status-pending {
-            color: #FFC107; /* Amber */
-            font-weight: bold;
-        }
-
-        .withdrawal-item .status-approved {
-            color: #00BF63; /* Primary Green */
-            font-weight: bold;
-        }
-
-        .withdrawal-item .status-rejected {
-            color: #DC3545; /* Red */
-            font-weight: bold;
-        }
-
-        .withdrawal-item .withdrawal-date {
-            color: #aaa;
-            font-size: 11px;
-            margin-top: 5px;
-        }
-
-        .no-withdrawals-message {
-            text-align: center;
-            color: #ccc;
-            font-style: italic;
-            padding: 20px;
-        }
-
-
         /* Debug Log Styles */
         #debug-log {
             background-color: rgba(0, 0, 0, 0.7);
@@ -838,148 +592,43 @@
             word-wrap: break-word; /* Break long words */
         }
 
-        /* XO Game Specific Styles */
-        .game-section {
-            display: none; /* Hidden by default, shown by JS */
-            text-align: center;
-            padding: 20px;
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .game-section h3 {
-            color: var(--secondary);
-            margin-bottom: 20px;
-            font-size: 20px;
-        }
-        .board {
-            display: grid;
-            grid-template-columns: repeat(3, 80px);
-            grid-template-rows: repeat(3, 80px);
-            gap: 5px;
-            width: 255px; /* 3*80 + 2*5 */
-            height: 255px;
-            margin: 0 auto 20px;
-            background-color: rgba(0, 0, 0, 0.3);
+        /* Pong Game Specific Styles */
+        #gameCanvas {
+            background-color: #000;
+            display: block;
+            margin: 20px auto;
             border-radius: 10px;
-            padding: 5px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
-        .cell {
-            width: 80px;
-            height: 80px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 48px;
-            font-weight: bold;
-            cursor: pointer;
-            color: white;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        .cell.x {
-            color: #E74C3C; /* Reddish for X */
-        }
-        .cell.o {
-            color: #3498DB; /* Blueish for O */
-        }
-        .cell:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        .cell.win {
-            background-color: var(--primary); /* Green for winning cells */
-            color: white;
-        }
-        .game-info {
-            margin-bottom: 20px;
-        }
-        .game-info p {
-            font-size: 18px;
-            margin-bottom: 10px;
-            color: var(--gold);
-        }
-        #earn-1-point-btn, #earn-5-points-btn {
-            margin: 10px;
+            border: 2px solid var(--primary);
+            width: 100%; /* Make canvas responsive */
+            max-width: 400px; /* Max width to keep it reasonable */
+            height: 300px; /* Fixed height for the game area */
         }
 
-        /* Leaderboard Section Styles */
-        .leaderboard-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: none; /* Hidden by default */
-        }
-        .leaderboard-section h3 {
-            color: var(--secondary);
-            margin-bottom: 15px;
-            font-size: 18px;
-            text-align: center;
-        }
-        .leaderboard-section p {
-            font-size: 14px;
-            color: #ccc;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .leaderboard-section .competition-info {
-            font-size: 15px;
-            color: var(--gold);
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
-        .leaderboard-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            padding: 10px;
-        }
-        .leaderboard-item {
+        .game-controls {
             display: flex;
-            justify-content: space-between;
-            padding: 8px 12px;
-            margin-bottom: 5px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            font-size: 14px;
-            align-items: center;
-        }
-        .leaderboard-item:nth-child(odd) {
-            background-color: rgba(255, 255, 255, 0.03);
-        }
-        .leaderboard-item .rank {
-            font-weight: bold;
-            color: var(--gold);
-            min-width: 30px;
-        }
-        .leaderboard-item .username {
-            flex-grow: 1;
-            margin-left: 10px;
-            text-align: left;
-        }
-        .leaderboard-item .points {
-            font-weight: bold;
-            color: var(--primary);
-        }
-        .your-rank, .your-daily-points {
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--light);
+            justify-content: center;
+            gap: 10px;
             margin-top: 15px;
         }
-        .your-rank span, .your-daily-points span {
-            color: var(--gold);
+
+        .game-status {
+            font-size: 18px;
+            color: var(--light);
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .game-reward-options {
+            display: none; /* Hidden by default, shown after win */
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            align-items: center;
+        }
+
+        .game-reward-options button {
+            width: 80%;
+            max-width: 250px;
         }
     </style>
 </head>
@@ -995,37 +644,45 @@
         </div>
 
         <div class="header">
-            <h1 data-key="app_title">مسابقة Pepe Coin XO</h1>
+            <h1 data-key="app_title">⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵</h1>
         </div>
         
         <div class="content">
             <div class="user-info">
+                <p data-key="earn_per_click_message">العب Pong واكسب نقاط Pepe!</p>
                 <p data-key="min_withdrawal_message_static_general">السحب عن طريق FaucetPay من 10 عملات فقط ✅<br>السحب إلى أي محفظة أخرى من 100 عملة فقط ✅</p>
-                <p class="user-id-display" data-key="your_user_id">معرف المستخدم: <span id="display-user-id">جار التحميل...</span></p>
+                 <p class="user-id-display" data-key="your_user_id">معرف المستخدم: <span id="display-user-id">جار التحميل...</span></p>
             </div>
             
-            <!-- Display current Pepe coins (withdrawable) -->
+            <!-- Moved and Enlarged Earned Points Stat Card -->
             <div class="stats"> 
                 <div class="stat-card">
-                    <h3 data-key="earned_pepe_label">عملات Pepe المكتسبة</h3>
+                    <h3 data-key="earned_points_label">عملات Pepe المكتسبة</h3>
                     <div class="value" id="earned-points">0.00</div>
                 </div>
             </div>
             
-            <!-- Main Game Section (replacing ad-container logic) -->
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span data-key="progress_to_bonus">التقدم للمكافأة</span>
+                    <span id="ads-progress">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            
+            <!-- Pong Game Section -->
             <div class="game-section" id="game-section">
-                <h3 data-key="xo_game_title">لعبة XO (Tic-Tac-Toe)</h3>
-                <div id="board" class="board">
-                    <!-- Cells will be generated by JS -->
+                <h3 data-key="play_pong_title" style="text-align: center; color: var(--secondary); margin-bottom: 15px;">العب بونج!</h3>
+                <canvas id="gameCanvas"></canvas>
+                <div class="game-status" id="game-status"></div>
+                <div class="game-controls">
+                    <button class="btn-3d" id="startGameBtn" onclick="startGame()" data-key="start_game_btn">بدء اللعب</button>
                 </div>
-                <div class="game-info">
-                    <p id="game-status" data-key="game_status_turn">دور اللاعب: X</p>
-                    <button id="reset-game-btn" class="btn-3d btn-secondary" data-key="reset_game_btn" onclick="resetGame()">إعادة اللعبة</button>
-                </div>
-                <div id="win-options" style="display:none; text-align: center; margin-top: 20px;">
-                    <p data-key="choose_reward">لقد فزت! اختر مكافأتك:</p>
-                    <button class="btn-3d" id="earn-1-point-btn" data-key="earn_1_point_btn" onclick="earnCompetitionPoints(1)">احصل على 1 نقطة (بدون إعلان)</button>
-                    <button class="btn-3d btn-blue" id="earn-5-points-btn" data-key="earn_5_points_btn" onclick="earnCompetitionPoints(5)">احصل على 5 نقاط (مع إعلان)</button>
+                <div class="game-reward-options" id="game-reward-options">
+                    <button class="btn-3d" onclick="claimGameReward(1)" data-key="claim_1_point_btn">المطالبة بنقطة واحدة (بدون إعلان)</button>
+                    <button class="btn-3d btn-secondary" onclick="claimGameReward(5)" data-key="claim_5_points_ad_btn">المطالبة بـ 5 نقاط (بمشاهدة إعلان)</button>
                 </div>
             </div>
             
@@ -1039,10 +696,6 @@
                 <button class="btn-3d btn-blue" id="show-withdraw-btn" onclick="showWithdrawForm()" data-key="withdraw_points_btn">سحب عملات Pepe</button>
                  <!-- Button to show the referral section -->
                 <button class="btn-3d btn-blue" id="show-referral-btn" onclick="showReferralSection()" data-key="referral_program_btn">برنامج الإحالة</button>
-                 <!-- New: Button to show withdrawal history -->
-                 <button class="btn-3d btn-blue" id="show-withdrawal-history-btn" onclick="showWithdrawalHistorySection()" data-key="withdrawal_history_btn">سجل السحوبات</button>
-                 <!-- New: Button to show leaderboard -->
-                 <button class="btn-3d btn-blue" id="show-leaderboard-btn" onclick="showLeaderboardSection()" data-key="leaderboard_btn">لوحة المتصدرين</button>
             </div>
 
             <!-- Withdraw Section - Now integrated back into the main page -->
@@ -1085,34 +738,6 @@
                     <a href="#" class="back-button" onclick="hideReferralSection(); return false;" data-key="back_to_main_page">العودة إلى الواجهة الرئيسية</a>
                 </div>
             </div>
-
-            <!-- Withdrawal History Section -->
-            <div class="withdrawal-history-section" id="withdrawal-history-section">
-                <h3 data-key="withdrawal_history_title">سجل السحوبات</h3>
-                <div id="withdrawal-history-list" class="withdrawal-history-list">
-                    <!-- Withdrawal items will be loaded here by JavaScript -->
-                    <p class="no-withdrawals-message" data-key="no_withdrawals_yet">لا توجد طلبات سحب حتى الآن.</p>
-                </div>
-                <div class="back-button-container">
-                    <a href="#" class="back-button" onclick="hideWithdrawalHistorySection(); return false;" data-key="back_to_main_page">العودة إلى الواجهة الرئيسية</a>
-                </div>
-            </div>
-
-            <!-- Leaderboard Section -->
-            <div class="leaderboard-section" id="leaderboard-section">
-                <h3 data-key="leaderboard_title">لوحة المتصدرين اليومية</h3>
-                <p class="competition-info" data-key="competition_info">أفضل 100 مستخدم يجمعون نقاط XP اليومية سيحصلون على مكافآت Pepe! يتم تصفير النقاط يومياً.</p>
-                <div class="leaderboard-list" id="leaderboard-list">
-                    <!-- Leaderboard items will be loaded here -->
-                    <p class="no-leaders-message" data-key="no_leaders_yet">لا توجد نقاط منافسة بعد.</p>
-                </div>
-                <p class="your-rank" data-key="your_current_rank">ترتيبك الحالي: <span id="current-rank">N/A</span></p>
-                <p class="your-daily-points" data-key="your_daily_points">نقاطك اليومية: <span id="current-daily-points">0</span> XP</p>
-                <div class="back-button-container">
-                    <a href="#" class="back-button" onclick="hideLeaderboardSection(); return false;" data-key="back_to_main_page">العودة إلى الواجهة الرئيسية</a>
-                </div>
-            </div>
-
         </div>
         
         <div class="footer">
@@ -1130,7 +755,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, orderBy, limit, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -1150,40 +775,30 @@
         let isAppReady = false; 
 
         // Constants
-        const POINTS_PER_AD = 1000.00; // This might become deprecated, keeping for now
-        const TAPS_REQUIRED = 10; // Deprecated, replaced by XO game
-        const ADS_FOR_BONUS = 10; // Deprecated
+        const POINTS_PER_WIN_NO_AD = 1; // Points for winning without an ad
+        const POINTS_PER_WIN_WITH_AD = 5; // Points for winning with an ad
+        const WINNING_SCORE = 5; // Score needed to win the Pong game
+        const ADS_FOR_BONUS = 10; 
         const MIN_WITHDRAW_POINTS = 100;
         const MIN_WITHDRAW_POINTS_FAUCETPAY = 10;
-        const ADMIN_USER_ID = "-1002705355317"; // Telegram chat ID for the admin
+        const DAILY_AD_LIMIT = 100;
+        const ADMIN_USER_ID = "-1002705355317"; 
         const BOT_TOKEN = "7380785513:AAFiREK1NUI9kzlFRJwTGP6fVhyw43iBhmk"; 
         const REFERRAL_PERCENTAGE = 0.10;
 
-        // XO Game Specific Constants
-        const XO_BOARD_SIZE = 3;
-        const PLAYER_X = 'X';
-        const PLAYER_O = 'O';
-        const WINNING_COMBINATIONS = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-            [0, 4, 8], [2, 4, 6]             // Diagonals
-        ];
-
         // State variables (controlled by Firestore)
-        let earnedPoints = 0.00; // Pepe coins, withdrawable
-        let competitionPoints = 0; // Points for daily competition (XP)
-        let lastCompetitionDate = ""; // To track last day competition points were earned
+        let watchedAdsCount = 0;
+        let earnedPoints = 0.00; 
+        let dailyWatchedAdsCount = 0; 
+        let lastWatchDate = ""; 
         let referrerId = null; 
         let totalReferrals = 0; 
         let earnedFromReferrals = 0.00; 
 
-        // XO Game State
-        let board = ['', '', '', '', '', '', '', '', ''];
-        let currentPlayer = PLAYER_X;
-        let gameActive = true;
-
         // DOM elements (re-initialized if needed after innerHTML updates)
         const earnedPointsEl = document.getElementById('earned-points');
+        const adsProgressEl = document.getElementById('ads-progress');
+        const progressFillEl = document.getElementById('progress-fill');
         const adNotificationEl = document.getElementById('ad-notification');
         
         const withdrawSectionEl = document.getElementById('withdraw-section');
@@ -1197,28 +812,297 @@
         let totalReferralsEl = document.getElementById('total-referrals');
         let earnedFromReferralsEl = document.getElementById('earned-from-referrals');
 
-        // New DOM elements for Withdrawal History
-        const withdrawalHistorySectionEl = document.getElementById('withdrawal-history-section');
-        const withdrawalHistoryListEl = document.getElementById('withdrawal-history-list');
-
-        // New DOM elements for XO Game
-        const gameSectionEl = document.getElementById('game-section');
-        const boardEl = document.getElementById('board');
-        const gameStatusEl = document.getElementById('game-status');
-        const resetGameBtn = document.getElementById('reset-game-btn');
-        const winOptionsEl = document.getElementById('win-options');
-        const earn1PointBtn = document.getElementById('earn-1-point-btn');
-        const earn5PointsBtn = document.getElementById('earn-5-points-btn');
-
-        // New DOM elements for Leaderboard
-        const leaderboardSectionEl = document.getElementById('leaderboard-section');
-        const leaderboardListEl = document.getElementById('leaderboard-list');
-        const currentRankEl = document.getElementById('current-rank');
-        const currentDailyPointsEl = document.getElementById('current-daily-points');
-
-
         const displayUserIdEl = document.getElementById('display-user-id'); 
         const logContentEl = document.getElementById('log-content'); // Debug Log DOM element
+
+        // Pong Game Variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameStatusEl = document.getElementById('game-status');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const gameRewardOptionsEl = document.getElementById('game-reward-options');
+
+        let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 7, dx: 3, dy: 3 };
+        let paddle = { x: (canvas.width - 75) / 2, y: canvas.height - 15, width: 75, height: 10 };
+        let brickRowCount = 3;
+        let brickColumnCount = 5;
+        let brickWidth = 75;
+        let brickHeight = 20;
+        let brickPadding = 10;
+        let brickOffsetTop = 30;
+        let brickOffsetLeft = 30;
+        let bricks = [];
+
+        // Player score
+        let playerScore = 0;
+
+        // Game state
+        let gameRunning = false;
+        let gameWon = false;
+
+        // Initialize bricks
+        function initBricks() {
+            bricks = [];
+            for (let c = 0; c < brickColumnCount; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < brickRowCount; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1 };
+                }
+            }
+        }
+
+        // Draw the ball
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#FFD700"; // Gold color for the ball
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Draw the paddle
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
+            ctx.fillStyle = var_primary; // Use primary color for the paddle
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Draw bricks
+        function drawBricks() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    if (bricks[c][r].status == 1) {
+                        let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                        let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        ctx.beginPath();
+                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                        ctx.fillStyle = var_secondary; // Use secondary color for bricks
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+                }
+            }
+        }
+
+        // Collision detection for bricks
+        function collisionDetection() {
+            for (let c = 0; c < brickColumnCount; c++) {
+                for (let r = 0; r < brickRowCount; r++) {
+                    let b = bricks[c][r];
+                    if (b.status == 1) {
+                        if (ball.x > b.x && ball.x < b.x + brickWidth && ball.y > b.y && ball.y < b.y + brickHeight) {
+                            ball.dy = -ball.dy;
+                            b.status = 0; // Brick destroyed
+                            playerScore++;
+                            if (playerScore === brickRowCount * brickColumnCount) {
+                                gameWon = true;
+                                gameRunning = false;
+                                gameStatusEl.textContent = translations[currentLanguage].game_won_message.replace('{score}', playerScore);
+                                showGameRewardOptions();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Update game status display
+        function updateGameStatus() {
+            gameStatusEl.textContent = `${translations[currentLanguage].score_label}: ${playerScore} / ${WINNING_SCORE}`;
+        }
+
+        // Game loop
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+
+            if (!gameRunning && !gameWon) return; // Stop drawing if game is not running and not won
+
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            collisionDetection();
+            updateGameStatus();
+
+            // Ball movement
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Wall collision (left/right)
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.dx = -ball.dx;
+            }
+
+            // Wall collision (top)
+            if (ball.y - ball.radius < 0) {
+                ball.dy = -ball.dy;
+            } 
+            // Paddle collision
+            else if (ball.y + ball.radius > paddle.y && ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                ball.dy = -ball.dy;
+            }
+            // Game over (ball hits bottom)
+            else if (ball.y + ball.radius > canvas.height) {
+                gameRunning = false;
+                gameStatusEl.textContent = translations[currentLanguage].game_over_message.replace('{score}', playerScore);
+                startGameBtn.style.display = 'block'; // Show start button again
+                resetGame();
+                return;
+            }
+
+            // Request next frame if game is running
+            if (gameRunning) {
+                requestAnimationFrame(draw);
+            }
+        }
+
+        // Paddle movement
+        canvas.addEventListener('mousemove', function(e) {
+            if (!gameRunning) return;
+            let relativeX = e.clientX - canvas.getBoundingClientRect().left;
+            if (relativeX > 0 && relativeX < canvas.width) {
+                paddle.x = relativeX - paddle.width / 2;
+            }
+        });
+
+        // Touch events for mobile
+        canvas.addEventListener('touchmove', function(e) {
+            if (!gameRunning) return;
+            e.preventDefault(); // Prevent scrolling
+            let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            if (touchX > 0 && touchX < canvas.width) {
+                paddle.x = touchX - paddle.width / 2;
+            }
+        });
+
+        // Start game function
+        window.startGame = function() {
+            if (!isAppReady || !window.telegramUserId) { 
+                showAdNotification(translations[currentLanguage].loading_app); 
+                logMessage("Start game blocked: App not ready or Telegram User ID missing.");
+                return;
+            }
+            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+                showAdNotification(translations[currentLanguage].daily_limit_reached);
+                logMessage("Start game blocked: Daily limit reached.");
+                return; 
+            }
+
+            logMessage("Starting new game of Pong.");
+            startGameBtn.style.display = 'none';
+            gameRewardOptionsEl.style.display = 'none'; // Hide reward options if visible
+            gameRunning = true;
+            gameWon = false;
+            playerScore = 0;
+            updateGameStatus();
+            initBricks();
+            
+            // Reset ball and paddle position
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.dx = 3;
+            ball.dy = 3;
+            paddle.x = (canvas.width - 75) / 2;
+            
+            draw(); // Start the game loop
+        };
+
+        function resetGame() {
+            gameRunning = false;
+            gameWon = false;
+            playerScore = 0;
+            updateGameStatus();
+            startGameBtn.style.display = 'block';
+            gameRewardOptionsEl.style.display = 'none';
+        }
+
+        function showGameRewardOptions() {
+            startGameBtn.style.display = 'none';
+            gameRewardOptionsEl.style.display = 'flex';
+        }
+
+        window.claimGameReward = async function(points) {
+            if (!isAppReady || !window.telegramUserId) { 
+                showAdNotification(translations[currentLanguage].loading_app); 
+                logMessage("Claim reward blocked: App not ready or Telegram User ID missing.");
+                return;
+            }
+            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+                showAdNotification(translations[currentLanguage].daily_limit_reached);
+                logMessage("Claim reward blocked: Daily limit reached.");
+                return; 
+            }
+
+            let pointsToAward = points;
+            let showAd = (points === POINTS_PER_WIN_WITH_AD);
+
+            if (showAd) {
+                showAdNotification(translations[currentLanguage].ad_loading);
+                logMessage("Attempting to show ad for 5 points...");
+                try {
+                    if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
+                        await window.Adsgram.init({ blockId: "12307" }).show(); 
+                        logMessage("Adsgram Ad shown successfully.");
+                    } else {
+                        logMessage("Adsgram Error: SDK not available for ad display.", true);
+                        showAdNotification(translations[currentLanguage].ad_failed);
+                        return; // Stop execution if ad fails
+                    }
+                } catch (error) {
+                    logMessage("Ad Display Error: Caught error during ad display: " + error.message, true);
+                    showAdNotification(translations[currentLanguage].ad_failed);
+                    return; // Stop execution if ad fails
+                }
+            } else {
+                logMessage("Claiming 1 point without ad.");
+            }
+
+            try {
+                const appId = firebaseConfig.projectId; 
+                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
+                
+                let newDailyWatchedAdsCount = dailyWatchedAdsCount + (showAd ? 1 : 0);
+                let newWatchedAdsCount = watchedAdsCount + (showAd ? 1 : 0);
+
+                if (showAd && newWatchedAdsCount % ADS_FOR_BONUS === 0) {
+                    pointsToAward += 1.00; // Bonus for every 10 ads watched
+                    logMessage("Bonus points added for completing ADS_FOR_BONUS cycle.");
+                }
+
+                logMessage(`Firestore Update: Awarding ${pointsToAward.toFixed(2)} points to user ${window.telegramUserId}.`);
+                await updateDoc(userDocRef, {
+                    earnedPoints: increment(pointsToAward),
+                    watchedAdsCount: increment(showAd ? 1 : 0),
+                    dailyWatchedAdsCount: newDailyWatchedAdsCount,
+                    lastWatchDate: getTodayDate()
+                });
+                logMessage(`Firestore Update: User ${window.telegramUserId} updated successfully. New earnedPoints: ${earnedPoints + pointsToAward}.`);
+
+                if (referrerId && referrerId !== window.telegramUserId && showAd) { 
+                    const referrerEarn = pointsToAward * REFERRAL_PERCENTAGE; 
+                    const referrerDocRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
+                    
+                    logMessage(`Firestore Update: Attempting to increment earnedFromReferrals AND earnedPoints for referrer ${referrerId} by ${referrerEarn.toFixed(2)}.`);
+                    await updateDoc(referrerDocRef, {
+                        earnedFromReferrals: increment(referrerEarn),
+                        earnedPoints: increment(referrerEarn) 
+                    });
+                    logMessage(`Firestore Update: Referrer ${referrerId} earnedFromReferrals AND earnedPoints updated successfully.`);
+                }
+
+                showAdNotification(translations[currentLanguage].game_reward_success.replace('{POINTS}', pointsToAward.toFixed(2)));
+                
+                resetGame(); // Reset game after claiming reward
+            } catch (error) {
+                logMessage("Reward Claim/Firestore Error: Caught error during claimGameReward: " + error.message, true);
+                showAdNotification(translations[currentLanguage].reward_claim_failed);
+            } finally {
+                updateButtonStates(); 
+            }
+        };
 
         // Custom log function to display messages on screen and console
         function logMessage(message, isError = false) {
@@ -1241,9 +1125,14 @@
         // Translation logic
         const translations = {
             ar: {
-                app_title: "مسابقة Pepe Coin XO",
+                app_title: "نظام مكافآت الإعلانات المميز",
+                earn_per_click_message: "العب Pong واكسب نقاط Pepe!", 
                 min_withdrawal_message_static_general: `السحب عن طريق FaucetPay من ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات فقط ✅\nالسحب إلى أي محفظة أخرى من ${MIN_WITHDRAW_POINTS} عملة فقط ✅`, 
-                earned_pepe_label: "عملات Pepe المكتسبة", 
+                earned_points_label: "عملات Pepe المكتسبة", 
+                progress_to_bonus: "التقدم للمكافأة",
+                ad_type_label: "إعلان Adsgram بيني", 
+                visit_channel_title: "قم بزيارة قناتنا على تيليجرام", 
+                visit_channel_button: "زيارة القناة", 
                 footer_text: "مؤمن بواسطة Firebase • جميع المعاملات محمية",
                 withdrawal_request_title: "طلب السحب", 
                 current_balance_label: "رصيدك الحالي:", 
@@ -1254,8 +1143,9 @@
                 wallet_address_placeholder: "أدخل عنوان المحفظة", 
                 withdraw_button: "سحب", 
                 ad_loading: "جاري تحميل الإعلان... يرجى الانتظار",
-                ad_completed_success: `اكتمل الإعلان! تمت إضافة {POINTS} نقطة XP إلى حسابك.`, // Updated for XP
+                ad_completed_success: `اكتمل الإعلان! تمت إضافة {POINTS_PER_AD} عملة pepe إلى حسابك`, 
                 ad_failed: "فشل عرض الإعلان. يرجى المحاولة مرة أخرى.",
+                daily_limit_reached: `لقد وصلت للحد الأقصى من المشاهدات اليومية (${DAILY_AD_LIMIT}). يرجى المحاولة غدًا.`, 
                 min_withdraw_message: `الحد الأدنى للسحب عن طريق {methodName} هو {minAmount} عملة pepe.`, 
                 insufficient_balance: `رصيدك غير كافٍ. لديك {earnedPoints} عملة pepe.`, 
                 enter_wallet_address: "يرجى إدخال عنوان المحفظة.", 
@@ -1277,39 +1167,25 @@
                 not_mini_app: "لم يتم تشغيل التطبيق كتطبيق تيليجرام مصغر.",
                 error_loading_user: "خطأ في تحميل بيانات المستخدم.",
                 telegram_id_missing: "معرف تيليجرام مفقود.", 
-                withdrawal_history_btn: "سجل السحوبات",
-                withdrawal_history_title: "سجل السحوبات",
-                withdrawal_status_pending: "معلق",
-                withdrawal_status_approved: "تمت الموافقة",
-                withdrawal_status_rejected: "مرفوض",
-                no_withdrawals_yet: "لا توجد طلبات سحب حتى الآن.",
-                withdrawal_details: "المبلغ: {amount} | الطريقة: {method} | العنوان: {address} | الحالة: {status}",
-                withdrawal_date: "التاريخ: {date}",
-                
-                // New XO Game Translations
-                xo_game_title: "لعبة XO (Tic-Tac-Toe)",
-                game_status_turn: "دور اللاعب: {player}",
-                game_status_win: "اللاعب {player} فاز!",
-                game_status_draw: "تعادل!",
-                reset_game_btn: "إعادة اللعبة",
-                choose_reward: "لقد فزت! اختر مكافأتك:",
-                earn_1_point_btn: "احصل على 1 نقطة (بدون إعلان)",
-                earn_5_points_btn: "احصل على 5 نقاط (مع إعلان)",
-                game_not_active: "اللعبة غير نشطة، أعد تعيينها لبدء اللعب.",
-
-                // New Leaderboard Translations
-                leaderboard_btn: "لوحة المتصدرين",
-                leaderboard_title: "لوحة المتصدرين اليومية",
-                competition_info: "أفضل 100 مستخدم يجمعون نقاط XP اليومية سيحصلون على مكافآت Pepe! يتم تصفير النقاط يومياً.",
-                your_current_rank: "ترتيبك الحالي:",
-                your_daily_points: "نقاطك اليومية:",
-                no_leaders_yet: "لا توجد نقاط منافسة بعد.",
-                leaderboard_item_format: "#{rank} {username}: {points} XP"
+                play_pong_title: "العب بونج!",
+                start_game_btn: "بدء اللعب",
+                score_label: "النقاط",
+                game_won_message: "لقد فزت! نقاطك: {score}. اختر مكافأتك.",
+                game_over_message: "انتهت اللعبة! نقاطك: {score}.",
+                claim_1_point_btn: "المطالبة بنقطة واحدة (بدون إعلان)",
+                claim_5_points_ad_btn: "المطالبة بـ 5 نقاط (بمشاهدة إعلان)",
+                game_reward_success: "تمت إضافة {POINTS} عملة Pepe إلى رصيدك!",
+                reward_claim_failed: "فشل المطالبة بالمكافأة. يرجى المحاولة مرة أخرى.",
             },
             en: {
-                app_title: "Pepe Coin XO Competition", 
+                app_title: "Premium Ad Reward System", 
+                earn_per_click_message: "Play Pong and earn Pepe points!", 
                 min_withdrawal_message_static_general: `Withdrawal via FaucetPay from ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins only ✅\nWithdrawal to Any Other Wallet from ${MIN_WITHDRAW_POINTS} pepe coins only ✅`, 
-                earned_pepe_label: "Earned Pepe Coins", 
+                earned_points_label: "Earned Pepe Coins", 
+                progress_to_bonus: "Progress to Bonus",
+                ad_type_label: "Adsgram Interstitial Ad", 
+                visit_channel_title: "Visit Our Telegram Channel", 
+                visit_channel_button: "Visit Channel", 
                 footer_text: "Secured by Firebase • All transactions are protected",
                 withdrawal_request_title: "Withdrawal Request", 
                 current_balance_label: "Your Current Balance:", 
@@ -1320,8 +1196,9 @@
                 wallet_address_placeholder: "Enter Wallet Address", 
                 withdraw_button: "Withdraw", 
                 ad_loading: "Loading ad... Please wait",
-                ad_completed_success: `Ad completed! +{POINTS} XP points added to your account.`, // Updated for XP
+                ad_completed_success: `Ad completed! +{POINTS_PER_AD} Pepe Coins added to your account`, 
                 ad_failed: "Failed to show ad. Please try again.",
+                daily_limit_reached: `You have reached the daily ad limit (${DAILY_AD_LIMIT}). Please try again tomorrow.`, 
                 min_withdraw_message: `Minimum withdrawal for {methodName} is {minAmount} pepe coins.`, 
                 insufficient_balance: `Insufficient balance. You have {earnedPoints} Pepe Coins.`, 
                 enter_wallet_address: "Please enter the wallet address.", 
@@ -1343,39 +1220,25 @@
                 not_mini_app: "App not launched as Telegram Mini App.",
                 error_loading_user: "Error loading user data.",
                 telegram_id_missing: "Telegram ID missing.", 
-                withdrawal_history_btn: "Withdrawal History",
-                withdrawal_history_title: "Withdrawal History",
-                withdrawal_status_pending: "Pending",
-                withdrawal_status_approved: "Approved",
-                withdrawal_status_rejected: "Rejected",
-                no_withdrawals_yet: "No withdrawal requests yet.",
-                withdrawal_details: "Amount: {amount} | Method: {method} | Address: {address} | Status: {status}",
-                withdrawal_date: "Date: {date}",
-
-                // New XO Game Translations
-                xo_game_title: "XO Game (Tic-Tac-Toe)",
-                game_status_turn: "Player {player}'s Turn",
-                game_status_win: "Player {player} Wins!",
-                game_status_draw: "Draw!",
-                reset_game_btn: "Reset Game",
-                choose_reward: "You won! Choose your reward:",
-                earn_1_point_btn: "Earn 1 Point (No Ad)",
-                earn_5_points_btn: "Earn 5 Points (With Ad)",
-                game_not_active: "Game not active, reset to play.",
-
-                // New Leaderboard Translations
-                leaderboard_btn: "Leaderboard",
-                leaderboard_title: "Daily Leaderboard",
-                competition_info: "Top 100 users with daily XP will receive Pepe rewards! Points reset daily.",
-                your_current_rank: "Your Current Rank:",
-                your_daily_points: "Your Daily Points:",
-                no_leaders_yet: "No competition points yet.",
-                leaderboard_item_format: "#{rank} {username}: {points} XP"
+                play_pong_title: "Play Pong!",
+                start_game_btn: "Start Game",
+                score_label: "Score",
+                game_won_message: "You Won! Score: {score}. Choose your reward.",
+                game_over_message: "Game Over! Score: {score}.",
+                claim_1_point_btn: "Claim 1 Point (No Ad)",
+                claim_5_points_ad_btn: "Claim 5 Points (Watch Ad)",
+                game_reward_success: "Added {POINTS} Pepe Coins to your balance!",
+                reward_claim_failed: "Failed to claim reward. Please try again.",
             },
             ru: {
-                app_title: "Конкурс Pepe Coin XO", 
+                app_title: "Премиум система вознаграждений за рекламу", 
+                earn_per_click_message: "Играйте в Pong и зарабатывайте монеты Pepe!", 
                 min_withdrawal_message_static_general: `Вывод через FaucetPay от ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe только ✅\nВывод на любой другой кошелек от ${MIN_WITHDRAW_POINTS} монет pepe только ✅`, 
-                earned_pepe_label: "Заработано монет Pepe", 
+                earned_points_label: "Заработанные монеты Pepe", 
+                progress_to_bonus: "Прогресс к бонусу",
+                ad_type_label: "Межстраничная реклама Adsgram", 
+                visit_channel_title: "Посетите наш Telegram-канал", 
+                visit_channel_button: "Посетить канал", 
                 footer_text: "Защищено Firebase • Все транзакции защищены",
                 withdrawal_request_title: "Запрос на вывод", 
                 current_balance_label: "Ваш текущий баланс:", 
@@ -1386,8 +1249,9 @@
                 wallet_address_placeholder: "Введите адрес кошелька", 
                 withdraw_button: "Вывести", 
                 ad_loading: "Загрузка рекламы... Пожалуйста, подождите",
-                ad_completed_success: `Реклама завершена! +{POINTS} XP очков добавлено на ваш счет.`, // Updated for XP
+                ad_completed_success: `Реклама завершена! +{POINTS_PER_AD} монет Pepe добавлено на ваш счет`, 
                 ad_failed: "Не удалось показать рекламу. Пожалуйста, попробуйте еще раз.",
+                daily_limit_reached: `Вы достигли дневного лимита по рекламе (${DAILY_AD_LIMIT}). Пожалуйста, попробуйте завтра.`, 
                 min_withdraw_message: `Минимальная сумма вывода для {methodName} составляет {minAmount} монет pepe.`, 
                 insufficient_balance: `Недостаточный баланс. У вас {earnedPoints} монет pepe.`, 
                 enter_wallet_address: "Пожалуйста, введите адрес кошелька.", 
@@ -1397,7 +1261,7 @@
                 unknown_method: "Неизвестный метод:", 
                 back_to_main_page: "Вернуться на главную страницу", 
                 withdraw_points_btn: "Вывести монеты Pepe", 
-                referral_program_btn: "Реферальная программа",
+                referral_program_btn: "Referral Program",
                 referral_title: "Реферальная программа",
                 referral_description: `Приглашайте друзей и зарабатывайте ${REFERRAL_PERCENTAGE * 100}% от их заработка!`,
                 copy_link_btn: "Копировать ссылку",
@@ -1409,34 +1273,15 @@
                 not_mini_app: "Приложение запущено не как мини-приложение Telegram.",
                 error_loading_user: "Ошибка загрузки пользовательских данных.",
                 telegram_id_missing: "Telegram ID отсутствует.", 
-                withdrawal_history_btn: "История вывода",
-                withdrawal_history_title: "История вывода",
-                withdrawal_status_pending: "В ожидании",
-                withdrawal_status_approved: "Одобрено",
-                withdrawal_status_rejected: "Отклонено",
-                no_withdrawals_yet: "Пока нет запросов на вывод.",
-                withdrawal_details: "Сумма: {amount} | Метод: {method} | Адрес: {address} | Статус: {status}",
-                withdrawal_date: "Дата: {date}",
-
-                // New XO Game Translations
-                xo_game_title: "Игра XO (Крестики-нолики)",
-                game_status_turn: "Ход игрока: {player}",
-                game_status_win: "Игрок {player} победил!",
-                game_status_draw: "Ничья!",
-                reset_game_btn: "Начать заново",
-                choose_reward: "Вы выиграли! Выберите свою награду:",
-                earn_1_point_btn: "Получить 1 очко (без рекламы)",
-                earn_5_points_btn: "Получить 5 очков (с рекламой)",
-                game_not_active: "Игра не активна, перезапустите, чтобы начать играть.",
-
-                // New Leaderboard Translations
-                leaderboard_btn: "Таблица лидеров",
-                leaderboard_title: "Ежедневная таблица лидеров",
-                competition_info: "100 лучших пользователей, набравших ежедневные очки XP, получат награды Pepe! Очки сбрасываются ежедневно.",
-                your_current_rank: "Ваш текущий ранг:",
-                your_daily_points: "Ваши ежедневные очки:",
-                no_leaders_yet: "Пока нет очков соревнований.",
-                leaderboard_item_format: "#{rank} {username}: {points} XP"
+                play_pong_title: "Играть в Pong!",
+                start_game_btn: "Начать игру",
+                score_label: "Счет",
+                game_won_message: "Вы выиграли! Счет: {score}. Выберите свою награду.",
+                game_over_message: "Игра окончена! Счет: {score}.",
+                claim_1_point_btn: "Получить 1 балл (без рекламы)",
+                claim_5_points_ad_btn: "Получить 5 баллов (посмотреть рекламу)",
+                game_reward_success: "Добавлено {POINTS} монет Pepe на ваш баланс!",
+                reward_claim_failed: "Не удалось получить награду. Пожалуйста, попробуйте еще раз.",
             }
         };
 
@@ -1450,27 +1295,6 @@
             const day = String(today.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-        
-        function formatTimestamp(timestamp) {
-            if (!timestamp) return '';
-            let date;
-            if (timestamp.toDate) { // Firestore Timestamp object
-                date = timestamp.toDate();
-            } else if (typeof timestamp === 'number') { // JavaScript timestamp
-                date = new Date(timestamp);
-            } else { // Assume it's an ISO string or similar
-                date = new Date(timestamp);
-            }
-
-            if (isNaN(date.getTime())) {
-                logMessage("Invalid date format for timestamp: " + timestamp, true);
-                return '';
-            }
-
-            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            return date.toLocaleDateString(currentLanguage, options);
-        }
-
 
         window.setLanguage = function(lang) {
             currentLanguage = lang;
@@ -1491,10 +1315,18 @@
                     if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) {
                         element.placeholder = translations[lang][key];
                     } else if (key === 'ad_completed_success') {
-                        // This translation now expects {POINTS} for XP
-                        // It will be handled when calling showAdNotification
-                    } else if (key.startsWith('game_status_')) {
-                        // Handled by updateGameStatus()
+                        // This specific translation key is no longer directly used by ad completion for points
+                        element.textContent = translations[lang][key]; 
+                    } else if (key === 'daily_limit_reached') { 
+                        element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); 
+                    } else if (key === 'insufficient_balance') {
+                        element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2));
+                    } else if (key === 'game_won_message') {
+                        element.textContent = translations[lang][key].replace('{score}', playerScore);
+                    } else if (key === 'game_over_message') {
+                        element.textContent = translations[lang][key].replace('{score}', playerScore);
+                    } else if (key === 'game_reward_success') {
+                         element.textContent = translations[lang][key].replace('{POINTS}', POINTS_PER_WIN_NO_AD); // Placeholder, updated dynamically
                     }
                     else {
                         element.textContent = translations[lang][key];
@@ -1517,13 +1349,16 @@
             });
 
             earnedPointsEl.textContent = earnedPoints.toFixed(2); 
-            // Update daily competition points display
-            currentDailyPointsEl.textContent = `${competitionPoints} XP`;
-
-            // Update game status translation
-            updateGameStatus();
-            updateReferralUI();
-            updateLeaderboardUI(); // Update leaderboard UI for language
+            adsProgressEl.textContent = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
+            progressFillEl.style.width = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
+            showAdNotification(''); 
+            withdrawStatusEl.textContent = ''; 
+            if (withdrawSectionEl.style.display === 'block') { 
+                currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
+            }
+            
+            updateReferralUI(); // Call updateReferralUI here as well
+            updateGameStatus(); // Update game status display with current language
 
             if (window.telegramUserId) {
                 displayUserIdEl.textContent = window.telegramUserId;
@@ -1683,44 +1518,41 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     earnedPoints = data.earnedPoints || 0.00;
-                    referrerId = data.referrerId || null; 
+                    watchedAdsCount = data.watchedAdsCount || 0;
+                    dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
+                    lastWatchDate = data.lastWatchDate || "";
+                    if (!referrerId && data.referrerId) { 
+                        referrerId = data.referrerId; 
+                        logMessage(`Firestore onSnapshot: Referrer ID ${referrerId} loaded from doc for user ${userId}.`);
+                    }
                     totalReferrals = data.totalReferrals || 0;
                     earnedFromReferrals = data.earnedFromReferrals || 0.00;
-                    competitionPoints = data.competitionPoints || 0; // Load new competition points
-                    lastCompetitionDate = data.lastCompetitionDate || ""; // Load last competition date
 
-                    logMessage(`CURRENT ACCOUNT ${userId} DATA: Main Balance (earnedPoints): ${earnedPoints.toFixed(2)}, Daily XP (competitionPoints): ${competitionPoints}, Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
+                    logMessage(`CURRENT ACCOUNT ${userId} DATA: Main Balance (earnedPoints): ${earnedPoints.toFixed(2)}, Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
 
                     const todayDate = getTodayDate();
-                    // Reset daily competition points if it's a new day
-                    if (lastCompetitionDate !== todayDate) {
-                        competitionPoints = 0;
-                        logMessage("Firestore onSnapshot: New day detected, resetting daily competition points.");
-                        // Use a transaction to safely reset if a win happens concurrently
-                        runTransaction(window.db, async (transaction) => {
-                            const sfDoc = await transaction.get(userDocRef);
-                            if (sfDoc.exists) {
-                                transaction.update(userDocRef, { competitionPoints: 0, lastCompetitionDate: todayDate });
-                            }
-                        }).then(() => {
-                            logMessage("Firestore: Daily competition points reset for new day successfully.");
-                        }).catch((error) => {
-                            logMessage("Firestore Error: transaction for resetting daily competition points: " + error.message, true);
-                        });
+                    if (lastWatchDate !== todayDate) {
+                        dailyWatchedAdsCount = 0;
+                        logMessage("Firestore onSnapshot: New day detected, resetting daily count.");
+                        updateDoc(userDocRef, { dailyWatchedAdsCount: 0, lastWatchDate: todayDate })
+                            .then(() => logMessage("Firestore: Daily count reset for new day successfully."))
+                            .catch(e => logMessage("Firestore Error: resetting daily count: " + e.message, true));
                     }
                     logMessage("User data loaded/updated from Firestore via onSnapshot: " + JSON.stringify(data));
                 } else {
                     logMessage("Firestore onSnapshot: User document not found, creating new one for user: " + userId);
                     earnedPoints = 0.00;
-                    competitionPoints = 0;
-                    lastCompetitionDate = getTodayDate();
+                    watchedAdsCount = 0;
+                    dailyWatchedAdsCount = 0;
+                    lastWatchDate = getTodayDate();
                     totalReferrals = 0;
                     earnedFromReferrals = 0.00;
                     
                     setDoc(userDocRef, {
                         earnedPoints: earnedPoints,
-                        competitionPoints: competitionPoints,
-                        lastCompetitionDate: lastCompetitionDate,
+                        watchedAdsCount: watchedAdsCount,
+                        dailyWatchedAdsCount: dailyWatchedAdsCount,
+                        lastWatchDate: lastWatchDate,
                         referrerId: referrerId, 
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
@@ -1743,8 +1575,8 @@
                 }
                 updateUI(); 
                 updateReferralUI();
-                updateLeaderboardUI(); // Update leaderboard UI on user data change
                 updateButtonStates(); 
+                updateGameStatus(); // Ensure game status reflects current state
             }, (error) => {
                 logMessage("Firestore Error: listening to user document in Firestore: " + error.message, true);
                 showAdNotification(translations[currentLanguage].error_loading_user);
@@ -1753,9 +1585,11 @@
         
         function updateUI() {
             earnedPointsEl.textContent = earnedPoints.toFixed(2); 
-            currentDailyPointsEl.textContent = `${competitionPoints} XP`;
-            updateGameStatus(); // Update game status to ensure player turn is translated
-
+            
+            const progress = (watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100;
+            adsProgressEl.textContent = `${Math.round(progress)}%`;
+            progressFillEl.style.width = `${progress}%`;
+            
             earnedPointsEl.classList.remove('pulse');
             void earnedPointsEl.offsetWidth; 
             earnedPointsEl.classList.add('pulse');
@@ -1764,32 +1598,23 @@
         }
 
         function updateButtonStates() {
-            const disableButtons = !isAppReady || !window.telegramUserId;
+            const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
+            const disableButtons = !isAppReady || limitReached || !window.telegramUserId;
 
-            // Enable/disable navigation buttons
+            startGameBtn.disabled = disableButtons;
+            // Disable reward buttons individually, not the whole game-reward-options container
+            document.querySelectorAll('#game-reward-options button').forEach(button => {
+                button.disabled = disableButtons;
+            });
+            
             document.getElementById('show-withdraw-btn').disabled = disableButtons;
             document.getElementById('show-referral-btn').disabled = disableButtons;
-            document.getElementById('show-withdrawal-history-btn').disabled = disableButtons; 
-            document.getElementById('show-leaderboard-btn').disabled = disableButtons; // New leaderboard button
-
-            // Game specific buttons/elements
-            if (currentSection === 'main') {
-                gameSectionEl.style.pointerEvents = gameActive ? 'auto' : 'none';
-                resetGameBtn.disabled = !isAppReady; // Always allow reset if app is ready
-            }
-
-            earn1PointBtn.disabled = disableButtons;
-            earn5PointsBtn.disabled = disableButtons;
         }
         
-        function showAdNotification(message, pointsAwarded = null) {
-            let finalMessage = message;
-            if (pointsAwarded !== null && message.includes('{POINTS}')) {
-                finalMessage = message.replace('{POINTS}', pointsAwarded);
-            }
-            adNotificationEl.textContent = finalMessage;
+        function showAdNotification(message) {
+            adNotificationEl.textContent = message;
             adNotificationEl.style.display = 'block';
-            logMessage(`Ad Notification: ${finalMessage}`);
+            logMessage(`Ad Notification: ${message}`);
             
             setTimeout(() => {
                 adNotificationEl.style.display = 'none';
@@ -1831,19 +1656,19 @@
             const walletAddress = document.getElementById('wallet-address').value; 
 
             let minRequiredPoints;
-            let methodNameDisplay; // For display purposes
+            let methodName;
 
             if (paymentMethod === 'faucetpay') {
                 minRequiredPoints = MIN_WITHDRAW_POINTS_FAUCETPAY;
-                methodNameDisplay = translations[currentLanguage].faucetpay_option;
+                methodName = translations[currentLanguage].faucetpay_option;
             } else { 
                 minRequiredPoints = MIN_WITHDRAW_POINTS;
-                methodNameDisplay = translations[currentLanguage].other_wallet_option;
+                methodName = translations[currentLanguage].other_wallet_option;
             }
 
             if (isNaN(amount) || amount < minRequiredPoints) {
                 let message = translations[currentLanguage].min_withdraw_message
-                    .replace('{methodName}', methodNameDisplay)
+                    .replace('{methodName}', methodName)
                     .replace('{minAmount}', minRequiredPoints);
                 showTemporaryMessage(message, 'red');
                 logMessage(`Withdrawal failed: Amount ${amount} is less than min ${minRequiredPoints} or not a number.`, true);
@@ -1867,43 +1692,29 @@
                 const appId = firebaseConfig.projectId; 
                 const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                 
-                // Use a transaction for safe point deduction
-                await runTransaction(window.db, async (transaction) => {
-                    const sfDoc = await transaction.get(userDocRef);
-                    if (!sfDoc.exists) {
-                        throw "User document does not exist!";
-                    }
-                    const currentEarnedPoints = sfDoc.data().earnedPoints || 0;
-                    if (currentEarnedPoints < amount) {
-                        throw translations[currentLanguage].insufficient_balance.replace('{earnedPoints}', currentEarnedPoints.toFixed(2));
-                    }
-                    transaction.update(userDocRef, { earnedPoints: increment(-amount) });
+                logMessage(`Firestore Update: Attempting to deduct ${amount} points from user ${window.telegramUserId}.`);
+                await updateDoc(userDocRef, {
+                    earnedPoints: increment(-amount)
                 });
                 logMessage(`Firestore Update: Points deducted successfully for user ${window.telegramUserId}.`);
-
-                // Create a new withdrawal request document in Firestore
-                const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
-                const newWithdrawalDocRef = await addDoc(withdrawalsCollectionRef, {
-                    userId: window.telegramUserId,
-                    username: window.telegramUsername || 'N/A', // Store username for admin convenience
-                    amount: amount,
-                    paymentMethod: paymentMethod, // Store raw value
-                    walletAddress: walletAddress,
-                    status: 'pending', // Initial status
-                    timestamp: new Date() 
-                });
-                const withdrawalId = newWithdrawalDocRef.id;
-                logMessage(`Firestore: New withdrawal request created with ID: ${withdrawalId}`);
-
 
                 let messageToAdmin = `New Withdrawal Request:\nUser ID: ${window.telegramUserId}`;
                 if (window.telegramUsername) {
                     messageToAdmin += `\nUsername: @${window.telegramUsername}`;
                 }
-                messageToAdmin += `\nAmount: ${amount} pepe coins\nPayment Method: ${methodNameDisplay}\nWallet Address: ${walletAddress}`;
+                messageToAdmin += `\nAmount: ${amount} pepe coins\nPayment Method: `;
+
+                if (paymentMethod === 'faucetpay') {
+                    messageToAdmin += `FaucetPay\nWallet Address: ${walletAddress}`;
+                } else if (paymentMethod === 'other_wallet') {
+                    messageToAdmin += `Other Wallet\nWallet Address: ${walletAddress}`; 
+                } else {
+                    messageToAdmin += `Unknown Method: ${paymentMethod}\nWallet Address: ${walletAddress}`; 
+                }
                 
+                // Pass amount and userId to sendWithdrawRequestToAdmin
                 logMessage("Telegram Bot API: Sending withdrawal request to admin with approval button.");
-                sendWithdrawRequestToAdmin(messageToAdmin, withdrawalId);
+                sendWithdrawRequestToAdmin(messageToAdmin, window.telegramUserId, amount);
 
                 showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green');
                 logMessage("Withdrawal request sent successfully.");
@@ -1913,14 +1724,14 @@
 
             } catch (error) {
                 logMessage("Withdrawal Error: Failed to update Firestore or send Telegram message: " + error.message, true);
-                showTemporaryMessage(error.message || "Withdrawal failed. Please try again.", 'red');
+                showTemporaryMessage("Withdrawal failed. Please try again.", 'red');
             }
         }
 
-        // Modified sendWithdrawRequestToAdmin to include inline keyboard with withdrawalId
-        function sendWithdrawRequestToAdmin(message, withdrawalId) {
-            // Callback data format: approve_withdraw_<withdrawal_doc_id>
-            const callbackData = `approve_withdraw_${withdrawalId}`;
+        // Modified sendWithdrawRequestToAdmin to include inline keyboard
+        function sendWithdrawRequestToAdmin(message, userId, amount) {
+            // Callback data format: approve_withdraw_<user_id>_<amount>
+            const callbackData = `approve_withdraw_${userId}_${amount}`;
             
             const inlineKeyboard = {
                 inline_keyboard: [
@@ -1988,6 +1799,7 @@
             logMessage("Referral section hidden.");
         }
 
+        // Updated updateReferralUI function
         function updateReferralUI() {
             referralLinkInput.value = generateReferralLink();
 
@@ -2015,406 +1827,22 @@
             logMessage("Referral link copied.");
         }
 
-        // New functions for Withdrawal History section
-        window.showWithdrawalHistorySection = function() {
-            if (!isAppReady || !window.telegramUserId) {
-                showAdNotification(translations[currentLanguage].loading_app);
-                logMessage("Show withdrawal history blocked: App not ready or Telegram User ID missing.");
-                return;
-            }
-            hideAllSections();
-            withdrawalHistorySectionEl.style.display = 'block';
-            currentSection = 'withdrawal_history';
-            updateBackButtonVisibility();
-            loadWithdrawalHistory(); // Load history when section is shown
-            logMessage("Withdrawal history section displayed.");
-        };
-
-        window.hideWithdrawalHistorySection = function() {
-            withdrawalHistorySectionEl.style.display = 'none';
-            showMainContent();
-            currentSection = 'main';
-            updateBackButtonVisibility();
-            logMessage("Withdrawal history section hidden.");
-        };
-
-        let unsubscribeFromWithdrawals = null; // To store the unsubscribe function
-
-        function loadWithdrawalHistory() {
-            if (unsubscribeFromWithdrawals) {
-                unsubscribeFromWithdrawals(); // Unsubscribe from previous listener if any
-                logMessage("Unsubscribed from previous withdrawal history listener.");
-            }
-
-            if (!window.db || !window.telegramUserId) {
-                logMessage("Cannot load withdrawal history: Firestore or User ID not available.", true);
-                return;
-            }
-
-            const appId = firebaseConfig.projectId;
-            const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
-            const q = query(withdrawalsCollectionRef, where("userId", "==", window.telegramUserId)); // Filter by current user ID
-
-            logMessage(`Setting up Firestore listener for withdrawal history for user: ${window.telegramUserId}`);
-            unsubscribeFromWithdrawals = onSnapshot(q, (snapshot) => {
-                logMessage("Firestore onSnapshot: Withdrawal history data received.");
-                withdrawalHistoryListEl.innerHTML = ''; // Clear previous entries
-                const withdrawals = [];
-                snapshot.forEach(doc => {
-                    withdrawals.push({ id: doc.id, ...doc.data() });
-                });
-
-                if (withdrawals.length === 0) {
-                    withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" data-key="no_withdrawals_yet">${translations[currentLanguage].no_withdrawals_yet}</p>`;
-                    logMessage("No withdrawal requests found for this user.");
-                    return;
-                }
-
-                // Sort withdrawals by timestamp descending (newest first)
-                withdrawals.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-
-                withdrawals.forEach(item => {
-                    const withdrawalItemDiv = document.createElement('div');
-                    withdrawalItemDiv.classList.add('withdrawal-item');
-
-                    let statusClass = '';
-                    let statusText = '';
-
-                    switch (item.status) {
-                        case 'pending':
-                            statusClass = 'status-pending';
-                            statusText = translations[currentLanguage].withdrawal_status_pending;
-                            break;
-                        case 'approved':
-                            statusClass = 'status-approved';
-                            statusText = translations[currentLanguage].withdrawal_status_approved;
-                            break;
-                        case 'rejected': // For future implementation
-                            statusClass = 'status-rejected';
-                            statusText = translations[currentLanguage].withdrawal_status_rejected;
-                            break;
-                        default:
-                            statusClass = '';
-                            statusText = item.status;
-                    }
-                    
-                    const paymentMethodDisplay = translations[currentLanguage][`${item.paymentMethod}_option`] || item.paymentMethod;
-
-                    const detailsHtml = `
-                        <p><strong>${translations[currentLanguage].withdrawal_details
-                            .replace('{amount}', item.amount.toFixed(2))
-                            .replace('{method}', paymentMethodDisplay)
-                            .replace('{address}', item.walletAddress)
-                            .replace('{status}', `<span class="${statusClass}">${statusText}</span>`)}
-                        </p>
-                        <p class="withdrawal-date">${translations[currentLanguage].withdrawal_date.replace('{date}', formatTimestamp(item.timestamp))}</p>
-                    `;
-                    withdrawalItemDiv.innerHTML = detailsHtml;
-                    withdrawalHistoryListEl.appendChild(withdrawalItemDiv);
-                });
-                logMessage(`Displayed ${withdrawals.length} withdrawal requests.`);
-            }, (error) => {
-                logMessage("Firestore Error: fetching withdrawal history: " + error.message, true);
-                withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" style="color:red;">Error loading history: ${error.message}</p>`;
-            });
-        }
-
-        // --- XO Game Logic ---
-        function initGame() {
-            board = ['', '', '', '', '', '', '', '', ''];
-            currentPlayer = PLAYER_X;
-            gameActive = true;
-            renderBoard();
-            updateGameStatus();
-            winOptionsEl.style.display = 'none'; // Hide reward options
-            resetGameBtn.style.display = 'block'; // Show reset button
-        }
-
-        function renderBoard() {
-            boardEl.innerHTML = '';
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-                cell.dataset.index = i;
-                cell.textContent = board[i];
-                if (board[i] === PLAYER_X) {
-                    cell.classList.add('x');
-                } else if (board[i] === PLAYER_O) {
-                    cell.classList.add('o');
-                }
-                cell.addEventListener('click', handleCellClick);
-                boardEl.appendChild(cell);
-            }
-        }
-
-        function handleCellClick(event) {
-            const clickedCell = event.target;
-            const clickedCellIndex = parseInt(clickedCell.dataset.index);
-
-            if (board[clickedCellIndex] !== '' || !gameActive) {
-                logMessage(`Cell ${clickedCellIndex} click ignored. Already taken or game inactive.`);
-                return;
-            }
-
-            board[clickedCellIndex] = currentPlayer;
-            clickedCell.textContent = currentPlayer;
-            clickedCell.classList.add(currentPlayer.toLowerCase()); // Add 'x' or 'o' class
-
-            if (checkWin()) {
-                gameActive = false;
-                highlightWinningCells();
-                gameStatusEl.textContent = translations[currentLanguage].game_status_win.replace('{player}', currentPlayer);
-                winOptionsEl.style.display = 'block'; // Show reward options on win
-                resetGameBtn.style.display = 'none'; // Hide reset button until reward is claimed or game is manually reset
-                logMessage(`Player ${currentPlayer} won! Reward options displayed.`);
-                return;
-            }
-
-            if (checkDraw()) {
-                gameActive = false;
-                gameStatusEl.textContent = translations[currentLanguage].game_status_draw;
-                winOptionsEl.style.display = 'none'; // No reward options on draw (user request implies win only)
-                resetGameBtn.style.display = 'block'; // Show reset button on draw
-                logMessage("Game is a draw. No reward.");
-                return;
-            }
-
-            currentPlayer = currentPlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
-            updateGameStatus();
-            logMessage(`Current player: ${currentPlayer}`);
-        }
-
-        function checkWin() {
-            for (let i = 0; i < WINNING_COMBINATIONS.length; i++) {
-                const [a, b, c] = WINNING_COMBINATIONS[i];
-                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        function highlightWinningCells() {
-            for (let i = 0; i < WINNING_COMBINATIONS.length; i++) {
-                const [a, b, c] = WINNING_COMBINATIONS[i];
-                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-                    document.querySelector(`.cell[data-index="${a}"]`).classList.add('win');
-                    document.querySelector(`.cell[data-index="${b}"]`).classList.add('win');
-                    document.querySelector(`.cell[data-index="${c}"]`).classList.add('win');
-                    break;
-                }
-            }
-        }
-
-        function checkDraw() {
-            return board.every(cell => cell !== '');
-        }
-
-        function updateGameStatus() {
-            if (gameActive) {
-                gameStatusEl.textContent = translations[currentLanguage].game_status_turn.replace('{player}', currentPlayer);
-            } else if (!gameActive && !winOptionsEl.style.display === 'block') { // If game not active and no win options (i.e. draw)
-                // Status is already set to win/draw
-            }
-        }
-
-        window.resetGame = function() {
-            logMessage("Game reset initiated.");
-            initGame(); // Re-initialize game state and UI
-        };
-
-        window.earnCompetitionPoints = async function(points) {
-            if (!isAppReady || !window.telegramUserId) {
-                showAdNotification(translations[currentLanguage].loading_app, points);
-                logMessage("Earn points blocked: App not ready or Telegram User ID missing.");
-                return;
-            }
-            if (!gameActive && winOptionsEl.style.display === 'none') { // Only allow if game was just won and options are visible
-                 showAdNotification(translations[currentLanguage].game_not_active, points);
-                 logMessage("Earn points blocked: Game is not in a 'won' state.");
-                 return;
-            }
-
-            let actualPoints = points;
-
-            if (points === 5) {
-                showAdNotification(translations[currentLanguage].ad_loading, points);
-                try {
-                    if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
-                        logMessage("Adsgram Init: SDK available. Attempting to initialize and show ad with blockId: 12307");
-                        await window.Adsgram.init({ blockId: "12307" }).show();
-                        logMessage("Adsgram Show: Adsgram.show() call completed successfully.");
-                    } else {
-                        throw new Error("Adsgram SDK not available.");
-                    }
-                } catch (error) {
-                    logMessage("Ad Display Error: Failed to show ad: " + error.message, true);
-                    showAdNotification(translations[currentLanguage].ad_failed, points);
-                    return; // Don't award points if ad fails
-                }
-            }
-
-            try {
-                const appId = firebaseConfig.projectId;
-                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
-
-                await runTransaction(window.db, async (transaction) => {
-                    const sfDoc = await transaction.get(userDocRef);
-                    if (!sfDoc.exists) {
-                        throw "User document does not exist!";
-                    }
-
-                    const currentCompetitionPoints = sfDoc.data().competitionPoints || 0;
-                    const lastDate = sfDoc.data().lastCompetitionDate || "";
-                    const today = getTodayDate();
-
-                    let newCompetitionPoints = currentCompetitionPoints;
-
-                    // If it's a new day, reset daily points before adding
-                    if (lastDate !== today) {
-                        newCompetitionPoints = actualPoints;
-                        logMessage("Daily competition points reset for new day during earn operation.");
-                    } else {
-                        newCompetitionPoints += actualPoints;
-                    }
-
-                    transaction.update(userDocRef, {
-                        competitionPoints: newCompetitionPoints,
-                        lastCompetitionDate: today,
-                        // Optionally add some tiny Pepe coins for playing, or keep it only competition points
-                        // earnedPoints: increment(actualPoints / 100) // Example: 0.01 Pepe per XP
-                    });
-                });
-                logMessage(`Firestore Update: User ${window.telegramUserId} earned ${actualPoints} XP. New daily XP: ${competitionPoints + actualPoints}.`);
-                showAdNotification(translations[currentLanguage].ad_completed_success, actualPoints); // Use ad_completed_success for both, just pass points
-                
-                winOptionsEl.style.display = 'none'; // Hide reward options after claiming
-                resetGameBtn.style.display = 'block'; // Show reset button
-                initGame(); // Reset game board after claiming reward
-            } catch (error) {
-                logMessage("Earn Points Error: Failed to update Firestore: " + error.message, true);
-                showAdNotification(error.message || "Failed to add points. Please try again.", points);
-            }
-        };
-
-
-        // --- UI Section Management ---
         function hideAllSections() {
             withdrawSectionEl.style.display = 'none';
             referralSectionEl.style.display = 'none';
-            withdrawalHistorySectionEl.style.display = 'none'; 
-            gameSectionEl.style.display = 'none'; // Hide game section
-            leaderboardSectionEl.style.display = 'none'; // Hide leaderboard section
-
+            document.querySelector('.game-section').style.display = 'none'; // Hide game section
             document.querySelector('.website-section').style.display = 'none';
             document.querySelector('.buttons').style.display = 'none';
+            document.querySelector('.ad-container').style.display = 'none'; // Ensure old ad container is hidden
             logMessage("All auxiliary sections hidden.");
         }
 
         function showMainContent() {
-            // Main content is now the game section and general buttons
-            gameSectionEl.style.display = 'block'; // Show game section
+            document.querySelector('.game-section').style.display = 'block'; // Show game section
             document.querySelector('.website-section').style.display = 'block';
             document.querySelector('.buttons').style.display = 'flex';
-            logMessage("Main content (Game) displayed.");
+            logMessage("Main content displayed.");
         }
-
-        // New functions for Leaderboard section
-        window.showLeaderboardSection = function() {
-            if (!isAppReady || !window.telegramUserId) {
-                showAdNotification(translations[currentLanguage].loading_app);
-                logMessage("Show leaderboard blocked: App not ready or Telegram User ID missing.");
-                return;
-            }
-            hideAllSections();
-            leaderboardSectionEl.style.display = 'block';
-            currentSection = 'leaderboard';
-            updateBackButtonVisibility();
-            loadLeaderboard(); // Load leaderboard data when section is shown
-            logMessage("Leaderboard section displayed.");
-        };
-
-        window.hideLeaderboardSection = function() {
-            leaderboardSectionEl.style.display = 'none';
-            showMainContent();
-            currentSection = 'main';
-            updateBackButtonVisibility();
-            logMessage("Leaderboard section hidden.");
-        };
-
-        let unsubscribeFromLeaderboard = null;
-
-        async function loadLeaderboard() {
-            if (unsubscribeFromLeaderboard) {
-                unsubscribeFromLeaderboard();
-                logMessage("Unsubscribed from previous leaderboard listener.");
-            }
-
-            if (!window.db || !window.telegramUserId) {
-                logMessage("Cannot load leaderboard: Firestore or User ID not available.", true);
-                return;
-            }
-
-            const appId = firebaseConfig.projectId;
-            const usersCollectionRef = collection(window.db, `artifacts/${appId}/users`);
-            const q = query(
-                usersCollectionRef,
-                orderBy("competitionPoints", "desc"), // Sort by competition points descending
-                limit(100) // Get top 100
-            );
-
-            logMessage("Setting up Firestore listener for leaderboard (top 100 users by competitionPoints).");
-            unsubscribeFromLeaderboard = onSnapshot(q, async (snapshot) => {
-                logMessage("Firestore onSnapshot: Leaderboard data received.");
-                leaderboardListEl.innerHTML = ''; // Clear previous entries
-                const leaderboardUsers = [];
-                let userRank = 'N/A';
-
-                // First pass: collect data and find current user's rank
-                snapshot.forEach((doc, index) => {
-                    const data = doc.data();
-                    // Check if 'username' and 'competitionPoints' exist to avoid errors in display
-                    if (data.username && typeof data.competitionPoints === 'number') {
-                        leaderboardUsers.push({
-                            id: doc.id,
-                            username: data.username,
-                            competitionPoints: data.competitionPoints,
-                            rank: index + 1
-                        });
-                        if (doc.id === window.telegramUserId) {
-                            userRank = index + 1;
-                        }
-                    }
-                });
-
-                // Update current user's rank display
-                currentRankEl.textContent = userRank;
-                currentDailyPointsEl.textContent = `${competitionPoints} XP`;
-
-                if (leaderboardUsers.length === 0) {
-                    leaderboardListEl.innerHTML = `<p class="no-leaders-message" data-key="no_leaders_yet">${translations[currentLanguage].no_leaders_yet}</p>`;
-                    logMessage("No users found for leaderboard.");
-                    return;
-                }
-
-                // Second pass: render leaderboard
-                leaderboardUsers.forEach(user => {
-                    const leaderboardItemDiv = document.createElement('div');
-                    leaderboardItemDiv.classList.add('leaderboard-item');
-                    leaderboardItemDiv.innerHTML = `
-                        <span class="rank">${user.rank}</span>
-                        <span class="username">${user.username}</span>
-                        <span class="points">${user.competitionPoints} XP</span>
-                    `;
-                    leaderboardListEl.appendChild(leaderboardItemDiv);
-                });
-                logMessage(`Displayed ${leaderboardUsers.length} leaderboard entries.`);
-            }, (error) => {
-                logMessage("Firestore Error: fetching leaderboard: " + error.message, true);
-                leaderboardListEl.innerHTML = `<p class="no-leaders-message" style="color:red;">Error loading leaderboard: ${error.message}</p>`;
-            });
-        }
-
 
         function updateBackButtonVisibility() {
             if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
@@ -2434,20 +1862,21 @@
                 hideWithdrawForm();
             } else if (currentSection === 'referral') {
                 hideReferralSection();
-            } else if (currentSection === 'withdrawal_history') {
-                hideWithdrawalHistorySection();
-            } else if (currentSection === 'leaderboard') {
-                hideLeaderboardSection();
+            } else if (currentSection === 'game') {
+                // If we implement other game states, this can be expanded
+                showMainContent();
+                currentSection = 'main';
+                updateBackButtonVisibility();
             }
         }
 
         window.onload = async function() {
             logMessage("Window loaded. Starting app initialization sequence.");
-            // Initial render of the game board
-            initGame();
             setLanguage(currentLanguage); 
             updateButtonStates(); 
             await initApp(); 
+            initBricks(); // Initialize bricks once on load
+            updateGameStatus(); // Initial game status
         };
     </script>
 </body>
