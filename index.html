@@ -1378,7 +1378,8 @@
                     totalReferrals = data.totalReferrals || 0;
                     earnedFromReferrals = data.earnedFromReferrals || 0.00;
 
-                    logMessage(`REFERRAL STATS READ: User ${userId} - totalReferrals: ${totalReferrals}, earnedFromReferrals: ${earnedFromReferrals.toFixed(2)}`);
+                    // NEW LOGGING FOR MAIN BALANCE AND REFERRAL STATS ON ANY ACCOUNT
+                    logMessage(`CURRENT ACCOUNT ${userId} DATA: Main Balance (earnedPoints): ${earnedPoints.toFixed(2)}, Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
 
                     const todayDate = getTodayDate();
                     if (lastWatchDate !== todayDate) {
@@ -1557,11 +1558,12 @@
                         const referrerEarn = POINTS_PER_AD * REFERRAL_PERCENTAGE; 
                         const referrerDocRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
                         
-                        logMessage(`Firestore Update: Attempting to increment earnedFromReferrals for referrer ${referrerId} by ${referrerEarn.toFixed(2)}.`);
+                        logMessage(`Firestore Update: Attempting to increment earnedFromReferrals AND earnedPoints for referrer ${referrerId} by ${referrerEarn.toFixed(2)}.`);
                         await updateDoc(referrerDocRef, {
-                            earnedFromReferrals: increment(referrerEarn)
+                            earnedFromReferrals: increment(referrerEarn),
+                            earnedPoints: increment(referrerEarn) // ***** هذا هو السطر الذي تمت إضافته *****
                         });
-                        logMessage(`Firestore Update: Referrer ${referrerId} earnedFromReferrals updated successfully.`);
+                        logMessage(`Firestore Update: Referrer ${referrerId} earnedFromReferrals AND earnedPoints updated successfully.`);
 
                     }
 
