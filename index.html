@@ -963,9 +963,9 @@
         const earnedFromReferralsEl = document.getElementById('earned-from-referrals');
         const displayUserIdEl = document.getElementById('display-user-id'); 
 
-        const logContentEl = document.getElementById('log-content'); // NEW: Debug Log DOM element
+        const logContentEl = document.getElementById('log-content'); // Debug Log DOM element
 
-        // NEW: Custom log function to display messages on screen
+        // Custom log function to display messages on screen and console
         function logMessage(message, isError = false) {
             const timestamp = new Date().toLocaleTimeString();
             const logEntry = document.createElement('div');
@@ -976,7 +976,6 @@
             logContentEl.appendChild(logEntry);
             logContentEl.scrollTop = logContentEl.scrollHeight; // Auto-scroll to bottom
 
-            // Also log to browser console for deeper debugging if available
             if (isError) {
                 console.error(message);
             } else {
@@ -1283,52 +1282,57 @@
                         isAppReady = true; 
                         logMessage("App is now fully ready (isAppReady = true).");
 
-                        // Process startapp parameter from Telegram initData - REFERRAL LOGIC DEBUG
+                        // Process startapp parameter from Telegram initData - REFERRAL LOGIC FIX
                         const urlParams = new URLSearchParams(window.Telegram.WebApp.initData); 
                         const ref = urlParams.get('start_param'); 
-                        logMessage("REFERRAL DEBUG: start_param from WebApp.initData: " + (ref || 'Not found')); 
+                        logMessage("REFERRAL LOGIC: start_param from WebApp.initData: " + (ref || 'Not found')); 
 
                         if (ref && ref.startsWith('ref_')) {
                             const foundReferrerId = ref.substring(4); 
-                            logMessage("REFERRAL DEBUG: Extracted referrerId from start_param: " + foundReferrerId);
-                            logMessage("REFERRAL DEBUG: Current user ID (telegramUserId): " + window.telegramUserId);
+                            logMessage("REFERRAL LOGIC: Extracted referrerId from start_param: " + foundReferrerId);
+                            logMessage("REFERRAL LOGIC: Current user ID (telegramUserId): " + window.telegramUserId);
                             
                             if (foundReferrerId !== window.telegramUserId) { 
-                                logMessage("REFERRAL DEBUG: Referrer ID is different from current user ID. Proceeding to check/set referrer.");
-                                referrerId = foundReferrerId;
-                                const userRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
+                                logMessage("REFERRAL LOGIC: Referrer ID is different from current user ID. Proceeding to check/set referrer and increment counts.");
+                                referrerId = foundReferrerId; // Store it globally for Firestore listener
                                 
-                                logMessage("REFERRAL DEBUG: Checking user document for existing referrerId for user: " + window.telegramUserId);
-                                const docSnap = await getDoc(userRef); 
-                                logMessage("REFERRAL DEBUG: User doc exists for current user: " + docSnap.exists());
-                                logMessage("REFERRAL DEBUG: Existing referrerId on current user's doc: " + (docSnap.exists() ? docSnap.data().referrerId : 'N/A (doc doesn\'t exist or referrerId not set)'));
+                                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
+                                
+                                // Get the user's document to check if referrerId is already set
+                                const userDocSnap = await getDoc(userDocRef);
 
-                                if (docSnap.exists() && !docSnap.data().referrerId) { 
-                                    logMessage(`REFERRAL DEBUG: User ${window.telegramUserId} has no existing referrer. Attempting to set referrerId: ${referrerId}`);
-                                    await updateDoc(userRef, { referrerId: referrerId }, { merge: true });
-                                    logMessage(`REFERRAL DEBUG: Successfully set referrerId ${referrerId} for user ${window.telegramUserId}.`);
+                                if (userDocSnap.exists()) {
+                                    if (!userDocSnap.data().referrerId) {
+                                        // User exists but has no referrerId yet, so set it and increment referrer's totalReferrals
+                                        logMessage(`REFERRAL LOGIC: User ${window.telegramUserId} exists but has no referrer. Setting referrerId: ${referrerId}`);
+                                        await updateDoc(userDocRef, { referrerId: referrerId }, { merge: true });
+                                        logMessage(`REFERRAL LOGIC: Successfully set referrerId ${referrerId} for user ${window.telegramUserId}.`);
 
-                                    // Now update the referrer's totalReferrals
-                                    const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
-                                    logMessage("REFERRAL DEBUG: Attempting to increment totalReferrals for referrer: " + referrerId);
-                                    
-                                    const referrerDocSnap = await getDoc(referrerRef);
-                                    if (referrerDocSnap.exists()) {
-                                        await updateDoc(referrerRef, { totalReferrals: increment(1) });
-                                        logMessage(`REFERRAL DEBUG: Successfully incremented totalReferrals for ${referrerId}.`);
+                                        const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
+                                        logMessage("REFERRAL LOGIC: Attempting to increment totalReferrals for referrer: " + referrerId);
+                                        const referrerDocSnap = await getDoc(referrerRef);
+                                        if (referrerDocSnap.exists()) {
+                                            await updateDoc(referrerRef, { totalReferrals: increment(1) });
+                                            logMessage(`REFERRAL LOGIC: Successfully incremented totalReferrals for ${referrerId}.`);
+                                        } else {
+                                            logMessage(`REFERRAL LOGIC WARNING: Referrer document for ${referrerId} does not exist. Cannot increment totalReferrals. (Maybe referrer needs to open app first?).`, true);
+                                        }
                                     } else {
-                                        logMessage(`REFERRAL DEBUG: Referrer document for ${referrerId} does not exist. Cannot increment totalReferrals. (Perhaps referrer needs to open app first?)`, true);
+                                        logMessage(`REFERRAL LOGIC: User ${window.telegramUserId} already has referrerId: ${userDocSnap.data().referrerId}. Skipping new referrer assignment and totalReferrals increment.`);
                                     }
-                                } else if (!docSnap.exists()) {
-                                    logMessage(`REFERRAL DEBUG: User document for ${window.telegramUserId} doesn't exist yet. Will set referrerId when doc is first created in loadUserDataFromFirestore.`);
                                 } else {
-                                    logMessage(`REFERRAL DEBUG: User ${window.telegramUserId} already has referrerId: ${docSnap.data().referrerId}. Skipping update.`);
+                                    // User document doesn't exist yet, it will be created in loadUserDataFromFirestore.
+                                    // The referrerId will be passed to loadUserDataFromFirestore via global `referrerId` variable.
+                                    // The totalReferrals increment for the referrer will happen AFTER the user's doc is created.
+                                    logMessage(`REFERRAL LOGIC: User document for ${window.telegramUserId} doesn't exist yet. ReferrerId ${referrerId} will be set upon doc creation.`);
+                                    // We'll need a mechanism to increment referrer's totalReferrals ONLY once after the first-time user doc creation
+                                    // This is handled in loadUserDataFromFirestore now, by setting referrerId and then checking for it.
                                 }
                             } else {
-                                logMessage("REFERRAL DEBUG: Current user ID is the same as referrer ID. Self-referral attempt detected and ignored for stat increment.");
+                                logMessage("REFERRAL LOGIC: Current user ID is the same as referrer ID. Self-referral attempt detected and ignored for stat increment.");
                             }
                         } else {
-                            logMessage("REFERRAL DEBUG: No valid 'ref_' start_param found.");
+                            logMessage("REFERRAL LOGIC: No valid 'ref_' start_param found in initData.");
                         }
 
                     } else {
@@ -1367,6 +1371,7 @@
                     watchedAdsCount = data.watchedAdsCount || 0;
                     dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
                     lastWatchDate = data.lastWatchDate || "";
+                    // Only update global referrerId if it's not set, and it exists in the doc
                     if (!referrerId && data.referrerId) { 
                         referrerId = data.referrerId; 
                         logMessage(`Firestore onSnapshot: Referrer ID ${referrerId} loaded from doc for user ${userId}.`);
@@ -1391,16 +1396,32 @@
                     lastWatchDate = getTodayDate();
                     totalReferrals = 0;
                     earnedFromReferrals = 0.00;
+                    
+                    // Create new user document, setting referrerId if it was found in initApp
                     setDoc(userDocRef, {
                         earnedPoints: earnedPoints,
                         watchedAdsCount: watchedAdsCount,
                         dailyWatchedAdsCount: dailyWatchedAdsCount,
                         lastWatchDate: lastWatchDate,
-                        referrerId: referrerId, 
+                        referrerId: referrerId, // This is where the referrerId is initially set for new users
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
                     })
-                    .then(() => logMessage("Firestore: New user document created successfully."))
+                    .then(async () => {
+                        logMessage("Firestore: New user document created successfully. Now checking to increment referrer's count.");
+                        // NEW LOGIC: If a referrerId was set for this NEW user, increment the referrer's totalReferrals
+                        if (referrerId) {
+                            const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
+                            logMessage(`Firestore: Attempting to increment totalReferrals for newly referred user's referrer (${referrerId}).`);
+                            const referrerDocSnap = await getDoc(referrerRef);
+                            if (referrerDocSnap.exists()) {
+                                await updateDoc(referrerRef, { totalReferrals: increment(1) });
+                                logMessage(`Firestore: Successfully incremented totalReferrals for ${referrerId}.`);
+                            } else {
+                                logMessage(`Firestore Warning: Referrer document for ${referrerId} does not exist. Cannot increment totalReferrals.`, true);
+                            }
+                        }
+                    })
                     .catch(e => logMessage("Firestore Error: creating user document: " + e.message, true));
                 }
                 updateUI(); 
