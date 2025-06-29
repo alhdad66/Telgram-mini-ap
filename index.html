@@ -651,6 +651,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
+            /* Shiny effect on hover */
             background: linear-gradient(90deg, 
                 transparent, 
                 rgba(255, 255, 255, 0.2), 
@@ -892,11 +893,11 @@
         window.firebaseApp = null;
         window.db = null;
         window.telegramUserId = null; // This will hold the Telegram User ID
+        window.telegramUsername = null; // NEW: To hold the Telegram Username
         let isAppReady = false; // Flag to track if Telegram WebApp and Firebase are initialized
 
         // Constants
-        // تم تغيير قيمة POINTS_PER_AD إلى 1000 بناءً على طلب المستخدم
-        const POINTS_PER_AD = 1000.00;
+        const POINTS_PER_AD = 1000.00; // تم تحديث هذه القيمة إلى 1000
         const TAPS_REQUIRED = 10;
         const ADS_FOR_BONUS = 10; 
         const MIN_WITHDRAW_POINTS = 100;
@@ -941,7 +942,7 @@
             ar: {
                 app_title: "⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵",
                 earn_per_click_message: "اربح 5 عملات pepe لكل نقرة🔥", 
-                points_per_tap_message: "اربح 1 Pepe لكل نقرة", // هذه القيمة ثابتة حاليا، يمكن تحديثها يدويا إذا أردت
+                points_per_tap_message: "اربح 1 Pepe لكل نقرة", 
                 min_withdrawal_message_static_general: `السحب عن طريق FaucetPay من ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات فقط ✅\nالسحب إلى أي محفظة أخرى من ${MIN_WITHDRAW_POINTS} عملة فقط ✅`, 
                 watched_ads_label: "الإعلانات المشاهدة", 
                 earned_points_label: "عملات Pepe المكتسبة", 
@@ -1200,7 +1201,11 @@
 
                         if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id) {
                             window.telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
+                            // NEW: Get Telegram Username if available
+                            window.telegramUsername = window.Telegram.WebApp.initDataUnsafe.user.username || ''; 
                             console.log("SUCCESS: Telegram User ID obtained and set to window.telegramUserId:", window.telegramUserId);
+                            console.log("SUCCESS: Telegram Username obtained and set to window.telegramUsername:", window.telegramUsername || 'N/A');
+
                             displayUserIdEl.textContent = window.telegramUserId; 
                         } else {
                             console.error("FAILURE: Telegram User ID NOT available from initDataUnsafe.user.id. Mini App might not be launched correctly or user data missing.");
@@ -1570,8 +1575,13 @@
                     earnedPoints: increment(-amount)
                 });
 
-                // تم تعديل رسالة السحب لتضمين معرف المستخدم
-                let messageToAdmin = `New Withdrawal Request:\nUser ID: ${window.telegramUserId}\nAmount: ${amount} pepe coins\nPayment Method: `;
+                // تم تعديل رسالة السحب لتضمين معرف المستخدم واسم المستخدم
+                let messageToAdmin = `New Withdrawal Request:\nUser ID: ${window.telegramUserId}`;
+                if (window.telegramUsername) {
+                    messageToAdmin += `\nUsername: @${window.telegramUsername}`;
+                }
+                messageToAdmin += `\nAmount: ${amount} pepe coins\nPayment Method: `;
+
                 if (paymentMethod === 'faucetpay') {
                     messageToAdmin += `FaucetPay\nWallet Address: ${walletAddress}`;
                 } else if (paymentMethod === 'other_wallet') {
