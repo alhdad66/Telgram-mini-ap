@@ -1298,12 +1298,10 @@
                                 
                                 const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                                 
-                                // Get the user's document to check if referrerId is already set
                                 const userDocSnap = await getDoc(userDocRef);
 
                                 if (userDocSnap.exists()) {
                                     if (!userDocSnap.data().referrerId) {
-                                        // User exists but has no referrerId yet, so set it and increment referrer's totalReferrals
                                         logMessage(`REFERRAL LOGIC: User ${window.telegramUserId} exists but has no referrer. Setting referrerId: ${referrerId}`);
                                         await updateDoc(userDocRef, { referrerId: referrerId }, { merge: true });
                                         logMessage(`REFERRAL LOGIC: Successfully set referrerId ${referrerId} for user ${window.telegramUserId}.`);
@@ -1321,12 +1319,7 @@
                                         logMessage(`REFERRAL LOGIC: User ${window.telegramUserId} already has referrerId: ${userDocSnap.data().referrerId}. Skipping new referrer assignment and totalReferrals increment.`);
                                     }
                                 } else {
-                                    // User document doesn't exist yet, it will be created in loadUserDataFromFirestore.
-                                    // The referrerId will be passed to loadUserDataFromFirestore via global `referrerId` variable.
-                                    // The totalReferrals increment for the referrer will happen AFTER the user's doc is created.
                                     logMessage(`REFERRAL LOGIC: User document for ${window.telegramUserId} doesn't exist yet. ReferrerId ${referrerId} will be set upon doc creation.`);
-                                    // We'll need a mechanism to increment referrer's totalReferrals ONLY once after the first-time user doc creation
-                                    // This is handled in loadUserDataFromFirestore now, by setting referrerId and then checking for it.
                                 }
                             } else {
                                 logMessage("REFERRAL LOGIC: Current user ID is the same as referrer ID. Self-referral attempt detected and ignored for stat increment.");
@@ -1371,13 +1364,15 @@
                     watchedAdsCount = data.watchedAdsCount || 0;
                     dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
                     lastWatchDate = data.lastWatchDate || "";
-                    // Only update global referrerId if it's not set, and it exists in the doc
                     if (!referrerId && data.referrerId) { 
                         referrerId = data.referrerId; 
                         logMessage(`Firestore onSnapshot: Referrer ID ${referrerId} loaded from doc for user ${userId}.`);
                     }
                     totalReferrals = data.totalReferrals || 0;
                     earnedFromReferrals = data.earnedFromReferrals || 0.00;
+
+                    // NEW LOGGING FOR REFERRAL STATS ON MAIN ACCOUNT
+                    logMessage(`REFERRAL STATS READ: User ${userId} - totalReferrals: ${totalReferrals}, earnedFromReferrals: ${earnedFromReferrals.toFixed(2)}`);
 
                     const todayDate = getTodayDate();
                     if (lastWatchDate !== todayDate) {
@@ -1397,19 +1392,17 @@
                     totalReferrals = 0;
                     earnedFromReferrals = 0.00;
                     
-                    // Create new user document, setting referrerId if it was found in initApp
                     setDoc(userDocRef, {
                         earnedPoints: earnedPoints,
                         watchedAdsCount: watchedAdsCount,
                         dailyWatchedAdsCount: dailyWatchedAdsCount,
                         lastWatchDate: lastWatchDate,
-                        referrerId: referrerId, // This is where the referrerId is initially set for new users
+                        referrerId: referrerId, 
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
                     })
                     .then(async () => {
                         logMessage("Firestore: New user document created successfully. Now checking to increment referrer's count.");
-                        // NEW LOGIC: If a referrerId was set for this NEW user, increment the referrer's totalReferrals
                         if (referrerId) {
                             const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
                             logMessage(`Firestore: Attempting to increment totalReferrals for newly referred user's referrer (${referrerId}).`);
