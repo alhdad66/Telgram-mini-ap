@@ -322,7 +322,6 @@
             padding: 20px;
             margin: 20px 0;
             text-align: center;
-            display: none; /* Hidden by default, shown by JS */
         }
         
         .ad-label {
@@ -379,6 +378,18 @@
             }
             .stat-card .value {
                 font-size: 30px;
+            }
+
+            .xo-game-board {
+                grid-template-columns: repeat(3, 70px);
+                grid-template-rows: repeat(3, 70px);
+                gap: 8px;
+            }
+
+            .xo-cell {
+                width: 70px;
+                height: 70px;
+                font-size: 40px;
             }
         }
         
@@ -513,6 +524,92 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        .tap-button-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .tap-claim-btn {
+            display: none; /* Hidden by default */
+            position: relative;
+            padding: 16px 30px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
+            box-shadow: 
+                0 8px 0 #1e7e34, 
+                0 15px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
+            transform-style: preserve-3d;
+            perspective: 500px;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .tap-claim-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #28a745, #218838); 
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+        
+        .tap-claim-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            /* Shiny effect on hover */
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.2), 
+                transparent);
+            transition: all 0.5s ease;
+            z-index: -1;
+        }
+        
+        .tap-claim-btn:hover {
+            transform: translateY(4px);
+            box-shadow: 
+                0 4px 0 #1e7e34,
+                0 8px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tap-claim-btn:hover::after {
+            left: 100%;
+        }
+        
+        .tap-claim-btn:active {
+            transform: translateY(8px);
+            box-shadow: 
+                0 0 0 #1e7e34,
+                0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .tap-claim-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 8px 0 #1e7e34, 
+                        0 15px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .points-per-tap-message {
+            font-size: 16px;
+            color: var(--light);
+            margin-top: 15px; /* Spacing below the circle/claim button */
+            font-weight: 500;
+        }
+
         /* Referral Section Styles */
         .referral-section {
             background: rgba(255, 255, 255, 0.05);
@@ -592,43 +689,145 @@
             word-wrap: break-word; /* Break long words */
         }
 
-        /* Pong Game Specific Styles */
-        #gameCanvas {
-            background-color: #000;
-            display: block;
-            margin: 20px auto;
-            border-radius: 10px;
-            border: 2px solid var(--primary);
-            width: 100%; /* Make canvas responsive */
-            max-width: 400px; /* Max width to keep it reasonable */
-            height: 300px; /* Fixed height for the game area */
-        }
-
-        .game-controls {
+        /* XO Game Specific Styles */
+        .xo-game-wrapper {
             display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            width: 100%; /* Ensure it takes full width of ad-container */
+        }
+        
+        .xo-game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(3, 80px);
             gap: 10px;
+            background-color: var(--darker);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            max-width: 270px; /* 3*80 + 2*10 = 260px */
             margin-top: 15px;
         }
 
-        .game-status {
-            font-size: 18px;
-            color: var(--light);
-            margin-top: 10px;
-            text-align: center;
-        }
-        
-        .game-reward-options {
-            display: none; /* Hidden by default, shown after win */
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
+        .xo-cell {
+            width: 80px;
+            height: 80px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            display: flex;
             align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            color: var(--light);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            user-select: none; /* Prevent text selection */
         }
 
-        .game-reward-options button {
-            width: 80%;
-            max-width: 250px;
+        .xo-cell:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .xo-cell.x {
+            color: var(--primary); /* Green for X */
+        }
+
+        .xo-cell.o {
+            color: var(--gold); /* Gold for O */
+        }
+
+        .xo-cell.winning-cell {
+            background-color: rgba(0, 191, 99, 0.3); /* Lighter green for winning cells */
+            animation: winAnimation 0.5s infinite alternate;
+        }
+
+        @keyframes winAnimation {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .xo-game-status {
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--light);
+            text-align: center;
+            min-height: 24px; /* Ensure space even when empty */
+        }
+
+        .xo-game-start-button,
+        .xo-game-reset-button {
+            margin-top: 20px;
+            padding: 14px 25px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            color: white;
+            text-align: center;
+            transition: all 0.2s ease;
+            transform-style: preserve-3d;
+            perspective: 500px;
+            box-shadow: 
+                0 8px 0 var(--primary-dark), 
+                0 15px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            z-index: 1;
+            background: linear-gradient(45deg, var(--primary), var(--secondary)); /* Green gradient */
+            border: none;
+        }
+
+        .xo-game-start-button::before,
+        .xo-game-reset-button::before,
+        .tap-claim-btn::before { /* Apply the same gradient for all primary game buttons */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+
+        .xo-game-start-button:hover,
+        .xo-game-reset-button:hover,
+        .tap-claim-btn:hover { /* Hover effects */
+            transform: translateY(4px);
+            box-shadow: 
+                0 4px 0 var(--primary-dark),
+                0 8px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .xo-game-start-button:active,
+        .xo-game-reset-button:active,
+        .tap-claim-btn:active { /* Active/click effects */
+            transform: translateY(8px);
+            box-shadow: 
+                0 0 0 var(--primary-dark),
+                0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .xo-game-start-button:disabled,
+        .xo-game-reset-button:disabled,
+        .tap-claim-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 8px 0 var(--primary-dark), 
+                        0 15px 20px rgba(0, 0, 0, 0.4);
         }
     </style>
 </head>
@@ -649,7 +848,7 @@
         
         <div class="content">
             <div class="user-info">
-                <p data-key="earn_per_click_message">العب Pong واكسب نقاط Pepe!</p>
+                <p data-key="earn_per_click_message">العب XO واربح عملات Pepe🔥</p>
                 <p data-key="min_withdrawal_message_static_general">السحب عن طريق FaucetPay من 10 عملات فقط ✅<br>السحب إلى أي محفظة أخرى من 100 عملة فقط ✅</p>
                  <p class="user-id-display" data-key="your_user_id">معرف المستخدم: <span id="display-user-id">جار التحميل...</span></p>
             </div>
@@ -672,18 +871,30 @@
                 </div>
             </div>
             
-            <!-- Pong Game Section -->
-            <div class="game-section" id="game-section">
-                <h3 data-key="play_pong_title" style="text-align: center; color: var(--secondary); margin-bottom: 15px;">العب بونج!</h3>
-                <canvas id="gameCanvas"></canvas>
-                <div class="game-status" id="game-status"></div>
-                <div class="game-controls">
-                    <button class="btn-3d" id="startGameBtn" onclick="startGame()" data-key="start_game_btn">بدء اللعب</button>
+            <!-- The new prominent XO Game Section -->
+            <div class="xo-game-wrapper" id="xo-game-wrapper">
+                <div class="xo-game-status" id="xo-game-status"></div>
+                <div class="xo-game-board" id="xo-game-board">
+                    <div class="xo-cell" data-cell-index="0"></div>
+                    <div class="xo-cell" data-cell-index="1"></div>
+                    <div class="xo-cell" data-cell-index="2"></div>
+                    <div class="xo-cell" data-cell-index="3"></div>
+                    <div class="xo-cell" data-cell-index="4"></div>
+                    <div class="xo-cell" data-cell-index="5"></div>
+                    <div class="xo-cell" data-cell-index="6"></div>
+                    <div class="xo-cell" data-cell-index="7"></div>
+                    <div class="xo-cell" data-cell-index="8"></div>
                 </div>
-                <div class="game-reward-options" id="game-reward-options">
-                    <button class="btn-3d" onclick="claimGameReward(1)" data-key="claim_1_point_btn">المطالبة بنقطة واحدة (بدون إعلان)</button>
-                    <button class="btn-3d btn-secondary" onclick="claimGameReward(5)" data-key="claim_5_points_ad_btn">المطالبة بـ 5 نقاط (بمشاهدة إعلان)</button>
-                </div>
+                <!-- Buttons for game control, "Start Game" under the board -->
+                <button class="xo-game-start-button" id="xo-start-btn" data-key="xo_start_button">ابدأ اللعبة</button>
+                <button class="xo-game-reset-button" id="xo-reset-btn" style="display: none;" data-key="xo_reset_button">إعادة تعيين اللعبة</button>
+                <button class="btn-3d tap-claim-btn" id="claim-reward-btn" style="display: none;" onclick="claimReward()" data-key="claim_reward_btn">المطالبة بالمكافأة</button>
+            </div>
+
+            <!-- Repurposed ad-container for general messages related to earnings -->
+            <div class="ad-container">
+                <div class="ad-label" data-key="ad_type_label">العب XO للفوز</div>
+                <p class="points-per-tap-message" data-key="points_per_tap_message">اربح 1 Pepe لكل فوز</p>
             </div>
             
             <div class="website-section">
@@ -775,22 +986,20 @@
         let isAppReady = false; 
 
         // Constants
-        const POINTS_PER_WIN_NO_AD = 1; // Points for winning without an ad
-        const POINTS_PER_WIN_WITH_AD = 5; // Points for winning with an ad
-        const WINNING_SCORE = 5; // Score needed to win the Pong game
+        const POINTS_PER_WIN = 1000.00; // Points earned per XO win
         const ADS_FOR_BONUS = 10; 
         const MIN_WITHDRAW_POINTS = 100;
         const MIN_WITHDRAW_POINTS_FAUCETPAY = 10;
-        const DAILY_AD_LIMIT = 100;
+        const DAILY_GAME_LIMIT = 100; // This will now represent daily game wins limit
         const ADMIN_USER_ID = "-1002705355317"; 
         const BOT_TOKEN = "7380785513:AAFiREK1NUI9kzlFRJwTGP6fVhyw43iBhmk"; 
         const REFERRAL_PERCENTAGE = 0.10;
 
         // State variables (controlled by Firestore)
-        let watchedAdsCount = 0;
+        let totalGamesPlayed = 0; // Renamed from watchedAdsCount
         let earnedPoints = 0.00; 
-        let dailyWatchedAdsCount = 0; 
-        let lastWatchDate = ""; 
+        let dailyGameWins = 0; // Renamed from dailyWatchedAdsCount
+        let lastGameDate = ""; // Renamed from lastWatchDate
         let referrerId = null; 
         let totalReferrals = 0; 
         let earnedFromReferrals = 0.00; 
@@ -807,302 +1016,38 @@
 
         const referralSectionEl = document.getElementById('referral-section');
         const referralLinkInput = document.getElementById('referral-link');
+        // Get parent P elements for referral stats for more robust UI update
         const totalReferralsParentEl = document.querySelector('p[data-key="total_referrals"]');
         const earnedFromReferralsParentEl = document.querySelector('p[data-key="earned_from_referrals"]');
+        // Initial references to span elements (will be updated after innerHTML rewrites)
         let totalReferralsEl = document.getElementById('total-referrals');
         let earnedFromReferralsEl = document.getElementById('earned-from-referrals');
 
         const displayUserIdEl = document.getElementById('display-user-id'); 
+
         const logContentEl = document.getElementById('log-content'); // Debug Log DOM element
 
-        // Pong Game Variables
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const gameStatusEl = document.getElementById('game-status');
-        const startGameBtn = document.getElementById('startGameBtn');
-        const gameRewardOptionsEl = document.getElementById('game-reward-options');
+        // XO Game DOM elements
+        const xoGameWrapper = document.getElementById('xo-game-wrapper'); // New wrapper
+        const xoGameBoard = document.getElementById('xo-game-board');
+        const xoCells = document.querySelectorAll('.xo-cell');
+        const xoGameStatus = document.getElementById('xo-game-status');
+        const xoResetBtn = document.getElementById('xo-reset-btn');
+        const xoStartBtn = document.getElementById('xo-start-btn');
+        const claimRewardBtn = document.getElementById('claim-reward-btn');
 
-        let ball = { x: canvas.width / 2, y: canvas.height / 2, radius: 7, dx: 3, dy: 3 };
-        let paddle = { x: (canvas.width - 75) / 2, y: canvas.height - 15, width: 75, height: 10 };
-        let brickRowCount = 3;
-        let brickColumnCount = 5;
-        let brickWidth = 75;
-        let brickHeight = 20;
-        let brickPadding = 10;
-        let brickOffsetTop = 30;
-        let brickOffsetLeft = 30;
-        let bricks = [];
+        // XO Game state
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let gameActive = false; // True when a game is in progress (cells clickable)
+        let winningCombination = [];
 
-        // Player score
-        let playerScore = 0;
+        const WINNING_CONDITIONS = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6]            // Diagonals
+        ];
 
-        // Game state
-        let gameRunning = false;
-        let gameWon = false;
-
-        // Initialize bricks
-        function initBricks() {
-            bricks = [];
-            for (let c = 0; c < brickColumnCount; c++) {
-                bricks[c] = [];
-                for (let r = 0; r < brickRowCount; r++) {
-                    bricks[c][r] = { x: 0, y: 0, status: 1 };
-                }
-            }
-        }
-
-        // Draw the ball
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "#FFD700"; // Gold color for the ball
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        // Draw the paddle
-        function drawPaddle() {
-            ctx.beginPath();
-            ctx.rect(paddle.x, paddle.y, paddle.width, paddle.height);
-            ctx.fillStyle = var_primary; // Use primary color for the paddle
-            ctx.fill();
-            ctx.closePath();
-        }
-
-        // Draw bricks
-        function drawBricks() {
-            for (let c = 0; c < brickColumnCount; c++) {
-                for (let r = 0; r < brickRowCount; r++) {
-                    if (bricks[c][r].status == 1) {
-                        let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
-                        let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
-                        bricks[c][r].x = brickX;
-                        bricks[c][r].y = brickY;
-                        ctx.beginPath();
-                        ctx.rect(brickX, brickY, brickWidth, brickHeight);
-                        ctx.fillStyle = var_secondary; // Use secondary color for bricks
-                        ctx.fill();
-                        ctx.closePath();
-                    }
-                }
-            }
-        }
-
-        // Collision detection for bricks
-        function collisionDetection() {
-            for (let c = 0; c < brickColumnCount; c++) {
-                for (let r = 0; r < brickRowCount; r++) {
-                    let b = bricks[c][r];
-                    if (b.status == 1) {
-                        if (ball.x > b.x && ball.x < b.x + brickWidth && ball.y > b.y && ball.y < b.y + brickHeight) {
-                            ball.dy = -ball.dy;
-                            b.status = 0; // Brick destroyed
-                            playerScore++;
-                            if (playerScore === brickRowCount * brickColumnCount) {
-                                gameWon = true;
-                                gameRunning = false;
-                                gameStatusEl.textContent = translations[currentLanguage].game_won_message.replace('{score}', playerScore);
-                                showGameRewardOptions();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Update game status display
-        function updateGameStatus() {
-            gameStatusEl.textContent = `${translations[currentLanguage].score_label}: ${playerScore} / ${WINNING_SCORE}`;
-        }
-
-        // Game loop
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-
-            if (!gameRunning && !gameWon) return; // Stop drawing if game is not running and not won
-
-            drawBricks();
-            drawBall();
-            drawPaddle();
-            collisionDetection();
-            updateGameStatus();
-
-            // Ball movement
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-
-            // Wall collision (left/right)
-            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
-                ball.dx = -ball.dx;
-            }
-
-            // Wall collision (top)
-            if (ball.y - ball.radius < 0) {
-                ball.dy = -ball.dy;
-            } 
-            // Paddle collision
-            else if (ball.y + ball.radius > paddle.y && ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
-                ball.dy = -ball.dy;
-            }
-            // Game over (ball hits bottom)
-            else if (ball.y + ball.radius > canvas.height) {
-                gameRunning = false;
-                gameStatusEl.textContent = translations[currentLanguage].game_over_message.replace('{score}', playerScore);
-                startGameBtn.style.display = 'block'; // Show start button again
-                resetGame();
-                return;
-            }
-
-            // Request next frame if game is running
-            if (gameRunning) {
-                requestAnimationFrame(draw);
-            }
-        }
-
-        // Paddle movement
-        canvas.addEventListener('mousemove', function(e) {
-            if (!gameRunning) return;
-            let relativeX = e.clientX - canvas.getBoundingClientRect().left;
-            if (relativeX > 0 && relativeX < canvas.width) {
-                paddle.x = relativeX - paddle.width / 2;
-            }
-        });
-
-        // Touch events for mobile
-        canvas.addEventListener('touchmove', function(e) {
-            if (!gameRunning) return;
-            e.preventDefault(); // Prevent scrolling
-            let touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
-            if (touchX > 0 && touchX < canvas.width) {
-                paddle.x = touchX - paddle.width / 2;
-            }
-        });
-
-        // Start game function
-        window.startGame = function() {
-            if (!isAppReady || !window.telegramUserId) { 
-                showAdNotification(translations[currentLanguage].loading_app); 
-                logMessage("Start game blocked: App not ready or Telegram User ID missing.");
-                return;
-            }
-            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-                showAdNotification(translations[currentLanguage].daily_limit_reached);
-                logMessage("Start game blocked: Daily limit reached.");
-                return; 
-            }
-
-            logMessage("Starting new game of Pong.");
-            startGameBtn.style.display = 'none';
-            gameRewardOptionsEl.style.display = 'none'; // Hide reward options if visible
-            gameRunning = true;
-            gameWon = false;
-            playerScore = 0;
-            updateGameStatus();
-            initBricks();
-            
-            // Reset ball and paddle position
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            ball.dx = 3;
-            ball.dy = 3;
-            paddle.x = (canvas.width - 75) / 2;
-            
-            draw(); // Start the game loop
-        };
-
-        function resetGame() {
-            gameRunning = false;
-            gameWon = false;
-            playerScore = 0;
-            updateGameStatus();
-            startGameBtn.style.display = 'block';
-            gameRewardOptionsEl.style.display = 'none';
-        }
-
-        function showGameRewardOptions() {
-            startGameBtn.style.display = 'none';
-            gameRewardOptionsEl.style.display = 'flex';
-        }
-
-        window.claimGameReward = async function(points) {
-            if (!isAppReady || !window.telegramUserId) { 
-                showAdNotification(translations[currentLanguage].loading_app); 
-                logMessage("Claim reward blocked: App not ready or Telegram User ID missing.");
-                return;
-            }
-            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-                showAdNotification(translations[currentLanguage].daily_limit_reached);
-                logMessage("Claim reward blocked: Daily limit reached.");
-                return; 
-            }
-
-            let pointsToAward = points;
-            let showAd = (points === POINTS_PER_WIN_WITH_AD);
-
-            if (showAd) {
-                showAdNotification(translations[currentLanguage].ad_loading);
-                logMessage("Attempting to show ad for 5 points...");
-                try {
-                    if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
-                        await window.Adsgram.init({ blockId: "12307" }).show(); 
-                        logMessage("Adsgram Ad shown successfully.");
-                    } else {
-                        logMessage("Adsgram Error: SDK not available for ad display.", true);
-                        showAdNotification(translations[currentLanguage].ad_failed);
-                        return; // Stop execution if ad fails
-                    }
-                } catch (error) {
-                    logMessage("Ad Display Error: Caught error during ad display: " + error.message, true);
-                    showAdNotification(translations[currentLanguage].ad_failed);
-                    return; // Stop execution if ad fails
-                }
-            } else {
-                logMessage("Claiming 1 point without ad.");
-            }
-
-            try {
-                const appId = firebaseConfig.projectId; 
-                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
-                
-                let newDailyWatchedAdsCount = dailyWatchedAdsCount + (showAd ? 1 : 0);
-                let newWatchedAdsCount = watchedAdsCount + (showAd ? 1 : 0);
-
-                if (showAd && newWatchedAdsCount % ADS_FOR_BONUS === 0) {
-                    pointsToAward += 1.00; // Bonus for every 10 ads watched
-                    logMessage("Bonus points added for completing ADS_FOR_BONUS cycle.");
-                }
-
-                logMessage(`Firestore Update: Awarding ${pointsToAward.toFixed(2)} points to user ${window.telegramUserId}.`);
-                await updateDoc(userDocRef, {
-                    earnedPoints: increment(pointsToAward),
-                    watchedAdsCount: increment(showAd ? 1 : 0),
-                    dailyWatchedAdsCount: newDailyWatchedAdsCount,
-                    lastWatchDate: getTodayDate()
-                });
-                logMessage(`Firestore Update: User ${window.telegramUserId} updated successfully. New earnedPoints: ${earnedPoints + pointsToAward}.`);
-
-                if (referrerId && referrerId !== window.telegramUserId && showAd) { 
-                    const referrerEarn = pointsToAward * REFERRAL_PERCENTAGE; 
-                    const referrerDocRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
-                    
-                    logMessage(`Firestore Update: Attempting to increment earnedFromReferrals AND earnedPoints for referrer ${referrerId} by ${referrerEarn.toFixed(2)}.`);
-                    await updateDoc(referrerDocRef, {
-                        earnedFromReferrals: increment(referrerEarn),
-                        earnedPoints: increment(referrerEarn) 
-                    });
-                    logMessage(`Firestore Update: Referrer ${referrerId} earnedFromReferrals AND earnedPoints updated successfully.`);
-                }
-
-                showAdNotification(translations[currentLanguage].game_reward_success.replace('{POINTS}', pointsToAward.toFixed(2)));
-                
-                resetGame(); // Reset game after claiming reward
-            } catch (error) {
-                logMessage("Reward Claim/Firestore Error: Caught error during claimGameReward: " + error.message, true);
-                showAdNotification(translations[currentLanguage].reward_claim_failed);
-            } finally {
-                updateButtonStates(); 
-            }
-        };
 
         // Custom log function to display messages on screen and console
         function logMessage(message, isError = false) {
@@ -1125,12 +1070,16 @@
         // Translation logic
         const translations = {
             ar: {
-                app_title: "نظام مكافآت الإعلانات المميز",
-                earn_per_click_message: "العب Pong واكسب نقاط Pepe!", 
+                app_title: "⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵",
+                earn_per_click_message: "العب XO واربح عملات Pepe🔥", 
+                points_per_tap_message: "اربح 1 Pepe لكل فوز", 
                 min_withdrawal_message_static_general: `السحب عن طريق FaucetPay من ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات فقط ✅\nالسحب إلى أي محفظة أخرى من ${MIN_WITHDRAW_POINTS} عملة فقط ✅`, 
+                watched_ads_label: "الإعلانات المشاهدة", 
                 earned_points_label: "عملات Pepe المكتسبة", 
+                daily_limit_label: "الألعاب اليومية", 
                 progress_to_bonus: "التقدم للمكافأة",
-                ad_type_label: "إعلان Adsgram بيني", 
+                ad_type_label: "العب XO للفوز", 
+                claim_reward_btn: "المطالبة بالمكافأة", 
                 visit_channel_title: "قم بزيارة قناتنا على تيليجرام", 
                 visit_channel_button: "زيارة القناة", 
                 footer_text: "مؤمن بواسطة Firebase • جميع المعاملات محمية",
@@ -1143,9 +1092,9 @@
                 wallet_address_placeholder: "أدخل عنوان المحفظة", 
                 withdraw_button: "سحب", 
                 ad_loading: "جاري تحميل الإعلان... يرجى الانتظار",
-                ad_completed_success: `اكتمل الإعلان! تمت إضافة {POINTS_PER_AD} عملة pepe إلى حسابك`, 
+                ad_completed_success: `اكتمل الإعلان! تمت إضافة {POINTS_PER_WIN} عملة pepe إلى حسابك`, 
                 ad_failed: "فشل عرض الإعلان. يرجى المحاولة مرة أخرى.",
-                daily_limit_reached: `لقد وصلت للحد الأقصى من المشاهدات اليومية (${DAILY_AD_LIMIT}). يرجى المحاولة غدًا.`, 
+                daily_limit_reached: `لقد وصلت للحد الأقصى من الألعاب اليومية (${DAILY_GAME_LIMIT}). يرجى المحاولة غدًا.`, 
                 min_withdraw_message: `الحد الأدنى للسحب عن طريق {methodName} هو {minAmount} عملة pepe.`, 
                 insufficient_balance: `رصيدك غير كافٍ. لديك {earnedPoints} عملة pepe.`, 
                 enter_wallet_address: "يرجى إدخال عنوان المحفظة.", 
@@ -1167,23 +1116,24 @@
                 not_mini_app: "لم يتم تشغيل التطبيق كتطبيق تيليجرام مصغر.",
                 error_loading_user: "خطأ في تحميل بيانات المستخدم.",
                 telegram_id_missing: "معرف تيليجرام مفقود.", 
-                play_pong_title: "العب بونج!",
-                start_game_btn: "بدء اللعب",
-                score_label: "النقاط",
-                game_won_message: "لقد فزت! نقاطك: {score}. اختر مكافأتك.",
-                game_over_message: "انتهت اللعبة! نقاطك: {score}.",
-                claim_1_point_btn: "المطالبة بنقطة واحدة (بدون إعلان)",
-                claim_5_points_ad_btn: "المطالبة بـ 5 نقاط (بمشاهدة إعلان)",
-                game_reward_success: "تمت إضافة {POINTS} عملة Pepe إلى رصيدك!",
-                reward_claim_failed: "فشل المطالبة بالمكافأة. يرجى المحاولة مرة أخرى.",
+                // XO Game specific translations
+                xo_player_turn: "دور اللاعب: {player}",
+                xo_win_message: "اللاعب {player} فاز!",
+                xo_draw_message: "تعادل!",
+                xo_reset_button: "إعادة تعيين اللعبة", // This button acts as "Start New Game" now
+                xo_start_button: "ابدأ اللعبة"
             },
             en: {
-                app_title: "Premium Ad Reward System", 
-                earn_per_click_message: "Play Pong and earn Pepe points!", 
+                app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", 
+                earn_per_click_message: "Play XO and earn Pepe coins🔥", 
+                points_per_tap_message: "Earn 1 Pepe per win",
                 min_withdrawal_message_static_general: `Withdrawal via FaucetPay from ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins only ✅\nWithdrawal to Any Other Wallet from ${MIN_WITHDRAW_POINTS} pepe coins only ✅`, 
+                watched_ads_label: "Watched Ads", 
                 earned_points_label: "Earned Pepe Coins", 
+                daily_limit_label: "Daily Games", 
                 progress_to_bonus: "Progress to Bonus",
-                ad_type_label: "Adsgram Interstitial Ad", 
+                ad_type_label: "Play XO to earn", 
+                claim_reward_btn: "Claim Reward",
                 visit_channel_title: "Visit Our Telegram Channel", 
                 visit_channel_button: "Visit Channel", 
                 footer_text: "Secured by Firebase • All transactions are protected",
@@ -1196,9 +1146,9 @@
                 wallet_address_placeholder: "Enter Wallet Address", 
                 withdraw_button: "Withdraw", 
                 ad_loading: "Loading ad... Please wait",
-                ad_completed_success: `Ad completed! +{POINTS_PER_AD} Pepe Coins added to your account`, 
+                ad_completed_success: `Ad completed! +{POINTS_PER_WIN} Pepe Coins added to your account`, 
                 ad_failed: "Failed to show ad. Please try again.",
-                daily_limit_reached: `You have reached the daily ad limit (${DAILY_AD_LIMIT}). Please try again tomorrow.`, 
+                daily_limit_reached: `You have reached the daily game limit (${DAILY_GAME_LIMIT}). Please try again tomorrow.`, 
                 min_withdraw_message: `Minimum withdrawal for {methodName} is {minAmount} pepe coins.`, 
                 insufficient_balance: `Insufficient balance. You have {earnedPoints} Pepe Coins.`, 
                 enter_wallet_address: "Please enter the wallet address.", 
@@ -1220,23 +1170,24 @@
                 not_mini_app: "App not launched as Telegram Mini App.",
                 error_loading_user: "Error loading user data.",
                 telegram_id_missing: "Telegram ID missing.", 
-                play_pong_title: "Play Pong!",
-                start_game_btn: "Start Game",
-                score_label: "Score",
-                game_won_message: "You Won! Score: {score}. Choose your reward.",
-                game_over_message: "Game Over! Score: {score}.",
-                claim_1_point_btn: "Claim 1 Point (No Ad)",
-                claim_5_points_ad_btn: "Claim 5 Points (Watch Ad)",
-                game_reward_success: "Added {POINTS} Pepe Coins to your balance!",
-                reward_claim_failed: "Failed to claim reward. Please try again.",
+                // XO Game specific translations
+                xo_player_turn: "Player's Turn: {player}",
+                xo_win_message: "Player {player} Wins!",
+                xo_draw_message: "It's a Draw!",
+                xo_reset_button: "Reset Game",
+                xo_start_button: "Start Game"
             },
             ru: {
-                app_title: "Премиум система вознаграждений за рекламу", 
-                earn_per_click_message: "Играйте в Pong и зарабатывайте монеты Pepe!", 
+                app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", 
+                earn_per_click_message: "Играйте в XO и зарабатывайте монеты Pepe🔥", 
+                points_per_tap_message: "Заработайте 1 Pepe за победу",
                 min_withdrawal_message_static_general: `Вывод через FaucetPay от ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe только ✅\nВывод на любой другой кошелек от ${MIN_WITHDRAW_POINTS} монет pepe только ✅`, 
+                watched_ads_label: "Просмотрено объявлений", 
                 earned_points_label: "Заработанные монеты Pepe", 
+                daily_limit_label: "Ежедневные игры", 
                 progress_to_bonus: "Прогресс к бонусу",
-                ad_type_label: "Межстраничная реклама Adsgram", 
+                ad_type_label: "Играйте в XO, чтобы заработать", 
+                claim_reward_btn: "Получить награду",
                 visit_channel_title: "Посетите наш Telegram-канал", 
                 visit_channel_button: "Посетить канал", 
                 footer_text: "Защищено Firebase • Все транзакции защищены",
@@ -1249,9 +1200,9 @@
                 wallet_address_placeholder: "Введите адрес кошелька", 
                 withdraw_button: "Вывести", 
                 ad_loading: "Загрузка рекламы... Пожалуйста, подождите",
-                ad_completed_success: `Реклама завершена! +{POINTS_PER_AD} монет Pepe добавлено на ваш счет`, 
+                ad_completed_success: `Реклама завершена! +{POINTS_PER_WIN} монет Pepe добавлено на ваш счет`, 
                 ad_failed: "Не удалось показать рекламу. Пожалуйста, попробуйте еще раз.",
-                daily_limit_reached: `Вы достигли дневного лимита по рекламе (${DAILY_AD_LIMIT}). Пожалуйста, попробуйте завтра.`, 
+                daily_limit_reached: `Вы достигли дневного лимита по играм (${DAILY_GAME_LIMIT}). Пожалуйста, попробуйте завтра.`, 
                 min_withdraw_message: `Минимальная сумма вывода для {methodName} составляет {minAmount} монет pepe.`, 
                 insufficient_balance: `Недостаточный баланс. У вас {earnedPoints} монет pepe.`, 
                 enter_wallet_address: "Пожалуйста, введите адрес кошелька.", 
@@ -1273,15 +1224,12 @@
                 not_mini_app: "Приложение запущено не как мини-приложение Telegram.",
                 error_loading_user: "Ошибка загрузки пользовательских данных.",
                 telegram_id_missing: "Telegram ID отсутствует.", 
-                play_pong_title: "Играть в Pong!",
-                start_game_btn: "Начать игру",
-                score_label: "Счет",
-                game_won_message: "Вы выиграли! Счет: {score}. Выберите свою награду.",
-                game_over_message: "Игра окончена! Счет: {score}.",
-                claim_1_point_btn: "Получить 1 балл (без рекламы)",
-                claim_5_points_ad_btn: "Получить 5 баллов (посмотреть рекламу)",
-                game_reward_success: "Добавлено {POINTS} монет Pepe на ваш баланс!",
-                reward_claim_failed: "Не удалось получить награду. Пожалуйста, попробуйте еще раз.",
+                // XO Game specific translations
+                xo_player_turn: "Ход игрока: {player}",
+                xo_win_message: "Игрок {player} победил!",
+                xo_draw_message: "Ничья!",
+                xo_reset_button: "Сбросить игру",
+                xo_start_button: "Начать игру"
             }
         };
 
@@ -1315,18 +1263,14 @@
                     if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) {
                         element.placeholder = translations[lang][key];
                     } else if (key === 'ad_completed_success') {
-                        // This specific translation key is no longer directly used by ad completion for points
-                        element.textContent = translations[lang][key]; 
+                        element.textContent = translations[lang][key].replace('{POINTS_PER_WIN}', POINTS_PER_WIN.toFixed(2));
                     } else if (key === 'daily_limit_reached') { 
-                        element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); 
+                        element.textContent = translations[lang][key].replace(`(${DAILY_GAME_LIMIT})`, `(${DAILY_GAME_LIMIT})`); 
                     } else if (key === 'insufficient_balance') {
                         element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2));
-                    } else if (key === 'game_won_message') {
-                        element.textContent = translations[lang][key].replace('{score}', playerScore);
-                    } else if (key === 'game_over_message') {
-                        element.textContent = translations[lang][key].replace('{score}', playerScore);
-                    } else if (key === 'game_reward_success') {
-                         element.textContent = translations[lang][key].replace('{POINTS}', POINTS_PER_WIN_NO_AD); // Placeholder, updated dynamically
+                    } else if (key === 'xo_player_turn' || key === 'xo_win_message' || key === 'xo_draw_message' || key === 'xo_start_button') {
+                        // These are handled by updateButtonStates based on game state
+                        // No direct update here, status will be set by updateButtonStates
                     }
                     else {
                         element.textContent = translations[lang][key];
@@ -1349,8 +1293,8 @@
             });
 
             earnedPointsEl.textContent = earnedPoints.toFixed(2); 
-            adsProgressEl.textContent = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
-            progressFillEl.style.width = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
+            adsProgressEl.textContent = `${Math.round((dailyGameWins % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
+            progressFillEl.style.width = `${Math.round((dailyGameWins % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
             showAdNotification(''); 
             withdrawStatusEl.textContent = ''; 
             if (withdrawSectionEl.style.display === 'block') { 
@@ -1358,7 +1302,6 @@
             }
             
             updateReferralUI(); // Call updateReferralUI here as well
-            updateGameStatus(); // Update game status display with current language
 
             if (window.telegramUserId) {
                 displayUserIdEl.textContent = window.telegramUserId;
@@ -1367,6 +1310,7 @@
             } else { 
                  displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
             }
+            updateButtonStates(); // Ensure game status text is updated correctly after language change
         };
 
         async function initApp() {
@@ -1499,7 +1443,8 @@
                     isAppReady = false; 
                 } finally {
                     updateButtonStates(); 
-                    setLanguage(currentLanguage); 
+                    setLanguage(currentLanguage); // Ensure language is set after appReady state and initial UI is correct
+                    initializeXOGame(); // Initialize XO game event listeners and initial state
                 }
             }, 100); 
         }
@@ -1518,9 +1463,9 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     earnedPoints = data.earnedPoints || 0.00;
-                    watchedAdsCount = data.watchedAdsCount || 0;
-                    dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
-                    lastWatchDate = data.lastWatchDate || "";
+                    totalGamesPlayed = data.totalGamesPlayed || 0; 
+                    dailyGameWins = data.dailyGameWins || 0; // Corrected to dailyGameWins
+                    lastGameDate = data.lastGameDate || ""; // Corrected to lastGameDate
                     if (!referrerId && data.referrerId) { 
                         referrerId = data.referrerId; 
                         logMessage(`Firestore onSnapshot: Referrer ID ${referrerId} loaded from doc for user ${userId}.`);
@@ -1531,28 +1476,28 @@
                     logMessage(`CURRENT ACCOUNT ${userId} DATA: Main Balance (earnedPoints): ${earnedPoints.toFixed(2)}, Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
 
                     const todayDate = getTodayDate();
-                    if (lastWatchDate !== todayDate) {
-                        dailyWatchedAdsCount = 0;
-                        logMessage("Firestore onSnapshot: New day detected, resetting daily count.");
-                        updateDoc(userDocRef, { dailyWatchedAdsCount: 0, lastWatchDate: todayDate })
-                            .then(() => logMessage("Firestore: Daily count reset for new day successfully."))
-                            .catch(e => logMessage("Firestore Error: resetting daily count: " + e.message, true));
+                    if (lastGameDate !== todayDate) { // Check against lastGameDate
+                        dailyGameWins = 0; // Reset dailyGameWins
+                        logMessage("Firestore onSnapshot: New day detected, resetting daily game wins count.");
+                        updateDoc(userDocRef, { dailyGameWins: 0, lastGameDate: todayDate }) // Update dailyGameWins and lastGameDate
+                            .then(() => logMessage("Firestore: Daily game wins count reset for new day successfully."))
+                            .catch(e => logMessage("Firestore Error: resetting daily game wins count: " + e.message, true));
                     }
                     logMessage("User data loaded/updated from Firestore via onSnapshot: " + JSON.stringify(data));
                 } else {
                     logMessage("Firestore onSnapshot: User document not found, creating new one for user: " + userId);
                     earnedPoints = 0.00;
-                    watchedAdsCount = 0;
-                    dailyWatchedAdsCount = 0;
-                    lastWatchDate = getTodayDate();
+                    totalGamesPlayed = 0;
+                    dailyGameWins = 0;
+                    lastGameDate = getTodayDate();
                     totalReferrals = 0;
                     earnedFromReferrals = 0.00;
                     
                     setDoc(userDocRef, {
                         earnedPoints: earnedPoints,
-                        watchedAdsCount: watchedAdsCount,
-                        dailyWatchedAdsCount: dailyWatchedAdsCount,
-                        lastWatchDate: lastWatchDate,
+                        totalGamesPlayed: totalGamesPlayed,
+                        dailyGameWins: dailyGameWins,
+                        lastGameDate: lastGameDate,
                         referrerId: referrerId, 
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
@@ -1576,7 +1521,6 @@
                 updateUI(); 
                 updateReferralUI();
                 updateButtonStates(); 
-                updateGameStatus(); // Ensure game status reflects current state
             }, (error) => {
                 logMessage("Firestore Error: listening to user document in Firestore: " + error.message, true);
                 showAdNotification(translations[currentLanguage].error_loading_user);
@@ -1586,7 +1530,8 @@
         function updateUI() {
             earnedPointsEl.textContent = earnedPoints.toFixed(2); 
             
-            const progress = (watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100;
+            // Progress based on daily game wins
+            const progress = (dailyGameWins % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100;
             adsProgressEl.textContent = `${Math.round(progress)}%`;
             progressFillEl.style.width = `${progress}%`;
             
@@ -1596,19 +1541,230 @@
 
             updateButtonStates(); 
         }
+        
+        // XO Game Logic
+
+        function initializeXOGame() {
+            xoCells.forEach(cell => {
+                cell.addEventListener('click', handleCellClick);
+            });
+            xoStartBtn.addEventListener('click', startNewGame);
+            xoResetBtn.addEventListener('click', startNewGame); // Reset button will also start a new game
+
+            // Set initial UI state
+            startNewGame(true); // Call with true for initial setup (gameActive will be false)
+            logMessage("XO Game event listeners initialized.");
+        }
+
+        // Function to set up a brand new game state
+        function startNewGame(initialSetup = false) {
+            board = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            gameActive = !initialSetup; // If it's initial setup, game is not active yet
+            winningCombination = [];
+
+            xoCells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o', 'winning-cell');
+            });
+
+            updateButtonStates(); // Update UI based on new gameActive state
+            logMessage(`New game initiated. Game active: ${gameActive}`);
+        }
+
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            const clickedCellIndex = parseInt(clickedCell.dataset.cellIndex);
+
+            if (board[clickedCellIndex] !== '' || !gameActive) {
+                logMessage(`Cell ${clickedCellIndex} click blocked: already occupied or game not active.`);
+                return;
+            }
+
+            board[clickedCellIndex] = currentPlayer;
+            clickedCell.textContent = currentPlayer;
+            clickedCell.classList.add(currentPlayer.toLowerCase());
+            logMessage(`Player ${currentPlayer} clicked cell ${clickedCellIndex}. Board: [${board}]`);
+
+            checkResult();
+        }
+
+        function checkResult() {
+            let roundWon = false;
+            for (let i = 0; i < WINNING_CONDITIONS.length; i++) {
+                const winCondition = WINNING_CONDITIONS[i];
+                let a = board[winCondition[0]];
+                let b = board[winCondition[1]];
+                let c = board[winCondition[2]];
+
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                if (a === b && b === c) {
+                    roundWon = true;
+                    winningCombination = winCondition; // Store the winning combination
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                gameActive = false; // Game is no longer active
+                highlightWinningCells();
+                logMessage(`Player ${currentPlayer} won! Winning cells: ${winningCombination}.`);
+                updateButtonStates(); // Show claim/reset buttons
+                return;
+            }
+
+            let roundDraw = !board.includes('');
+            if (roundDraw) {
+                gameActive = false; // Game is no longer active
+                logMessage("It's a draw!");
+                updateButtonStates(); // Show reset button
+                return;
+            }
+
+            changePlayer();
+        }
+
+        function changePlayer() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateButtonStates(); // Update status message
+            logMessage(`Changed player to ${currentPlayer}.`);
+        }
+
+        function highlightWinningCells() {
+            winningCombination.forEach(index => {
+                xoCells[index].classList.add('winning-cell');
+            });
+        }
 
         function updateButtonStates() {
-            const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            const disableButtons = !isAppReady || limitReached || !window.telegramUserId;
+            const limitReached = dailyGameWins >= DAILY_GAME_LIMIT;
+            const appNotReady = !isAppReady || !window.telegramUserId;
+            const gameEnded = !gameActive && (winningCombination.length > 0 || !board.includes('')); // Win or Draw
 
-            startGameBtn.disabled = disableButtons;
-            // Disable reward buttons individually, not the whole game-reward-options container
-            document.querySelectorAll('#game-reward-options button').forEach(button => {
-                button.disabled = disableButtons;
+            // Disable all game controls if app not ready or limit reached
+            const disableAllGameControls = appNotReady || limitReached;
+
+            xoCells.forEach(cell => {
+                cell.style.pointerEvents = gameActive && !disableAllGameControls ? 'auto' : 'none';
             });
+
+            claimRewardBtn.style.display = 'none';
+            xoStartBtn.style.display = 'none';
+            xoResetBtn.style.display = 'none';
+
+            if (disableAllGameControls) {
+                xoGameStatus.textContent = translations[currentLanguage].daily_limit_reached; // Or loading message
+                // All game buttons remain hidden/disabled via default states
+            } else if (gameActive) {
+                xoGameStatus.textContent = translations[currentLanguage].xo_player_turn.replace('{player}', currentPlayer);
+                xoResetBtn.style.display = 'block'; // Allow reset during active game
+                xoResetBtn.disabled = false;
+            } else if (gameEnded) {
+                // Game has ended (win or draw)
+                if (winningCombination.length > 0) {
+                    xoGameStatus.textContent = translations[currentLanguage].xo_win_message.replace('{player}', currentPlayer);
+                    claimRewardBtn.style.display = 'block';
+                    claimRewardBtn.disabled = false; // Can claim reward
+                } else { // Draw
+                    xoGameStatus.textContent = translations[currentLanguage].xo_draw_message;
+                }
+                xoResetBtn.style.display = 'block'; // Allow starting new game or resetting
+                xoResetBtn.disabled = false; // Enable reset button
+            } else { // Initial state, or after a game finished and reset, ready to start new
+                xoGameStatus.textContent = translations[currentLanguage].xo_start_button;
+                xoStartBtn.style.display = 'block';
+                xoStartBtn.disabled = false;
+            }
+
+            // Disable main navigation buttons if app not ready
+            document.getElementById('show-withdraw-btn').disabled = appNotReady;
+            document.getElementById('show-referral-btn').disabled = appNotReady;
+        }
+
+
+        window.claimReward = async function() {
+            if (!isAppReady || !window.telegramUserId) { 
+                showAdNotification(translations[currentLanguage].loading_app); 
+                logMessage("Claim reward blocked: App not ready or Telegram User ID missing.");
+                return;
+            }
+            if (dailyGameWins >= DAILY_GAME_LIMIT) {
+                showAdNotification(translations[currentLanguage].daily_limit_reached);
+                logMessage("Claim reward blocked: Daily limit reached.");
+                return; 
+            }
+            if (winningCombination.length === 0 || gameActive) { // Must have won and game must be inactive
+                showAdNotification("You must win the XO game to claim the reward.");
+                logMessage("Claim reward blocked: No win detected or game still active.");
+                return;
+            }
+
+            showAdNotification(translations[currentLanguage].ad_loading);
+            claimRewardBtn.disabled = true; 
+            xoCells.forEach(cell => cell.style.pointerEvents = 'none'); // Disable game interaction
+            logMessage("Attempting to claim reward. Ad loading...");
             
-            document.getElementById('show-withdraw-btn').disabled = disableButtons;
-            document.getElementById('show-referral-btn').disabled = disableButtons;
+            try {
+                if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
+                    logMessage("Adsgram Init: SDK available. Attempting to initialize and show ad with blockId: 12307");
+                    logMessage("Adsgram Init: Calling Adsgram.init({ blockId: '12307' }).show()...");
+                    await window.Adsgram.init({ blockId: "12307" }).show(); 
+                    logMessage("Adsgram Show: Adsgram.show() call completed.");
+
+                    const appId = firebaseConfig.projectId; 
+                    const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
+                    
+                    let pointsToAdd = POINTS_PER_WIN;
+                    let newDailyGameWins = dailyGameWins + 1; // Increment daily wins
+                    let newTotalGamesPlayed = totalGamesPlayed + 1; // Increment total games played
+
+                    if (newTotalGamesPlayed % ADS_FOR_BONUS === 0) { // Bonus based on total games played
+                        pointsToAdd += 1.00; 
+                        logMessage("Bonus points added for completing ADS_FOR_BONUS cycle.");
+                    }
+
+                    logMessage(`Firestore Update: Updating user ${window.telegramUserId} with points: ${pointsToAdd.toFixed(2)}, totalGamesPlayed: ${newTotalGamesPlayed}, dailyGameWins: ${newDailyGameWins}`);
+                    await updateDoc(userDocRef, {
+                        earnedPoints: increment(pointsToAdd),
+                        totalGamesPlayed: newTotalGamesPlayed, // Update total games played
+                        dailyGameWins: newDailyGameWins, // Update daily wins
+                        lastGameDate: getTodayDate() // Update last game date
+                    });
+                    logMessage(`Firestore Update: User ${window.telegramUserId} updated successfully. New earnedPoints: ${earnedPoints + pointsToAdd}.`);
+
+                    if (referrerId && referrerId !== window.telegramUserId) { 
+                        const referrerEarn = POINTS_PER_WIN * REFERRAL_PERCENTAGE; 
+                        const referrerDocRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
+                        
+                        logMessage(`Firestore Update: Attempting to increment earnedFromReferrals AND earnedPoints for referrer ${referrerId} by ${referrerEarn.toFixed(2)}.`);
+                        await updateDoc(referrerDocRef, {
+                            earnedFromReferrals: increment(referrerEarn),
+                            earnedPoints: increment(referrerEarn) 
+                        });
+                        logMessage(`Firestore Update: Referrer ${referrerId} earnedFromReferrals AND earnedPoints updated successfully.`);
+
+                    }
+
+                    showAdNotification(translations[currentLanguage].ad_completed_success.replace('{POINTS_PER_WIN}', pointsToAdd.toFixed(2)));
+                    
+                    startNewGame(true); // Go back to the initial state
+                } else {
+                    logMessage("Adsgram Error: SDK not available or functions missing. Check script tag and network.", true);
+                    showAdNotification(translations[currentLanguage].ad_failed);
+                }
+
+            } catch (error) {
+                logMessage("Ad Display/Firestore Error: Caught error during claimReward: " + error.message, true);
+                let errorMessage = translations[currentLanguage].ad_failed;
+                if (error && error.message) {
+                    errorMessage += `: ${error.message}`;
+                }
+                showAdNotification(errorMessage);
+            } finally {
+                updateButtonStates(); 
+            }
         }
         
         function showAdNotification(message) {
@@ -1830,17 +1986,20 @@
         function hideAllSections() {
             withdrawSectionEl.style.display = 'none';
             referralSectionEl.style.display = 'none';
-            document.querySelector('.game-section').style.display = 'none'; // Hide game section
+            // The ad-container, website-section, and buttons are part of the "main content" now,
+            // so we hide them when navigating away from main.
+            document.querySelector('.ad-container').style.display = 'none';
             document.querySelector('.website-section').style.display = 'none';
             document.querySelector('.buttons').style.display = 'none';
-            document.querySelector('.ad-container').style.display = 'none'; // Ensure old ad container is hidden
+            document.getElementById('xo-game-wrapper').style.display = 'none'; // Also hide game wrapper
             logMessage("All auxiliary sections hidden.");
         }
 
         function showMainContent() {
-            document.querySelector('.game-section').style.display = 'block'; // Show game section
+            document.querySelector('.ad-container').style.display = 'block';
             document.querySelector('.website-section').style.display = 'block';
             document.querySelector('.buttons').style.display = 'flex';
+            document.getElementById('xo-game-wrapper').style.display = 'flex'; // Show game wrapper
             logMessage("Main content displayed.");
         }
 
@@ -1862,11 +2021,6 @@
                 hideWithdrawForm();
             } else if (currentSection === 'referral') {
                 hideReferralSection();
-            } else if (currentSection === 'game') {
-                // If we implement other game states, this can be expanded
-                showMainContent();
-                currentSection = 'main';
-                updateBackButtonVisibility();
             }
         }
 
@@ -1875,8 +2029,6 @@
             setLanguage(currentLanguage); 
             updateButtonStates(); 
             await initApp(); 
-            initBricks(); // Initialize bricks once on load
-            updateGameStatus(); // Initial game status
         };
     </script>
 </body>
