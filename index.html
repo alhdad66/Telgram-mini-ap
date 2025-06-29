@@ -651,6 +651,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
+            /* Shiny effect on hover */
             background: linear-gradient(90deg, 
                 transparent, 
                 rgba(255, 255, 255, 0.2), 
@@ -673,7 +674,7 @@
         .tap-claim-btn:active {
             transform: translateY(8px);
             box-shadow: 
-                0 0 0 #1e7e34,
+                0 0 0 var(--primary-dark),
                 0 2px 5px rgba(0, 0, 0, 0.3);
         }
         .tap-claim-btn:disabled {
@@ -946,7 +947,7 @@
                 earned_points_label: "عملات Pepe المكتسبة", 
                 daily_limit_label: "المشاهدات اليومية", 
                 progress_to_bonus: "التقدم للمكافأة",
-                ad_type_label: "إعلان Adsgram بيني", // Reverted
+                ad_type_label: "إعلان Adsgram بيني", 
                 taps_to_claim: "نقرة للمطالبة بالمكافأة", 
                 claim_reward_btn: "المطالبة بالمكافأة", 
                 visit_channel_title: "قم بزيارة قناتنا على تيليجرام", 
@@ -995,7 +996,7 @@
                 earned_points_label: "Earned Pepe Coins", 
                 daily_limit_label: "Daily Views", 
                 progress_to_bonus: "Progress to Bonus",
-                ad_type_label: "Adsgram Interstitial Ad", // Reverted
+                ad_type_label: "Adsgram Interstitial Ad", 
                 taps_to_claim: "taps to claim reward",
                 claim_reward_btn: "Claim Reward",
                 visit_channel_title: "Visit Our Telegram Channel", 
@@ -1029,7 +1030,7 @@
                 total_referrals: "Total Referrals:",
                 earned_from_referrals: "Earned from Referrals:",
                 link_copied_success: "Referral link copied successfully!",
-                Uour_user_id: "User ID:",
+                your_user_id: "User ID:",
                 loading_app: "Loading App...", 
                 not_mini_app: "App not launched as Telegram Mini App.",
                 error_loading_user: "Error loading user data.",
@@ -1044,7 +1045,7 @@
                 earned_points_label: "Заработанные монеты Pepe", 
                 daily_limit_label: "Ежедневные просмотры", 
                 progress_to_bonus: "Прогресс к бонусу",
-                ad_type_label: "Межстраничная реклама Adsgram", // Reverted
+                ad_type_label: "Межстраничная реклама Adsgram", 
                 taps_to_claim: "нажатий для получения награды",
                 claim_reward_btn: "Получить награду",
                 visit_channel_title: "Посетите наш Telegram-канал", 
@@ -1071,7 +1072,7 @@
                 unknown_method: "Неизвестный метод:", 
                 back_to_main_page: "Вернуться на главную страницу", 
                 withdraw_points_btn: "Вывести монеты Pepe", 
-                referral_program_btn: "برنامج الإحالة",
+                referral_program_btn: "Referral Program",
                 referral_title: "Реферальная программа",
                 referral_description: `Приглашайте друзей и зарабатывайте ${REFERRAL_PERCENTAGE * 100}% от их заработка!`,
                 copy_link_btn: "Копировать ссылку",
@@ -1158,10 +1159,10 @@
             // Update Telegram User ID display based on state
             if (window.telegramUserId) {
                 displayUserIdEl.textContent = window.telegramUserId;
-            } else if (!isAppReady && (typeof window.Telegram === 'undefined' || !window.Telegram.WebApp || !window.Telegram.WebApp.initDataUnsafe || !window.Telegram.WebApp.initDataUnsafe.user)) {
-                displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
-            } else { 
+            } else if (!isAppReady) {
                 displayUserIdEl.textContent = translations[currentLanguage].loading_app;
+            } else { // This means isAppReady is true, but telegramUserId is null/undefined
+                 displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
             }
         };
 
@@ -1172,7 +1173,7 @@
             // Give Telegram WebApp a moment to initialize its objects
             setTimeout(async () => {
                 try {
-                    console.log("Checking Telegram.WebApp objects after delay.");
+                    console.log("Checking Telegram.WebApp objects after delay...");
                     console.log("window.Telegram exists:", typeof window.Telegram !== 'undefined');
                     console.log("window.Telegram.WebApp exists:", typeof window.Telegram.WebApp !== 'undefined');
                     
@@ -1193,19 +1194,19 @@
                         } catch (parseError) {
                             console.error("Error parsing window.Telegram.WebApp.initData:", parseError);
                         }
+                        
                         console.log("window.Telegram.WebApp.initDataUnsafe:", window.Telegram.WebApp.initDataUnsafe);
-                        console.log("window.Telegram.WebApp.initDataUnsafe.user:", window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.user : 'not available');
+                        console.log("window.Telegram.WebApp.initDataUnsafe.user:", window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.user : 'undefined/null user object');
 
-                        if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+                        if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id) {
                             window.telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
-                            console.log("Telegram User ID obtained and set to window.telegramUserId:", window.telegramUserId);
+                            console.log("SUCCESS: Telegram User ID obtained and set to window.telegramUserId:", window.telegramUserId);
                             displayUserIdEl.textContent = window.telegramUserId; 
                         } else {
-                            console.error("Telegram User ID not available from initDataUnsafe.user.");
-                            showAdNotification(translations[currentLanguage].telegram_id_missing);
+                            console.error("FAILURE: Telegram User ID NOT available from initDataUnsafe.user.id. Mini App might not be launched correctly or user data missing.");
                             displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing; 
                             isAppReady = false; 
-                            updateButtonStates();
+                            updateButtonStates(); // Keep buttons disabled if ID is missing
                             return; 
                         }
 
@@ -1268,14 +1269,14 @@
                         }
 
                     } else {
-                        console.error("Telegram WebApp SDK not found or not ready. App not running as a Mini App.");
+                        console.error("FAILURE: Telegram WebApp SDK not found or not ready. App not running as a Mini App.");
                         showAdNotification(translations[currentLanguage].not_mini_app);
                         displayUserIdEl.textContent = translations[currentLanguage].not_mini_app;
                         isAppReady = false;
                     }
 
                 } catch (error) {
-                    console.error("Error during app initialization (caught by setTimeout):", error);
+                    console.error("FATAL ERROR during app initialization (caught by setTimeout):", error);
                     showAdNotification(translations[currentLanguage].error_loading_user);
                     displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
                     isAppReady = false; 
@@ -1289,7 +1290,7 @@
         async function loadUserDataFromFirestore(appId, userId) {
             console.log("loadUserDataFromFirestore: Attempting to load data for user:", userId);
             if (!window.db || !userId || !appId) {
-                console.log("loadUserDataFromFirestore: Firestore, User ID, or App ID not ready.");
+                console.log("loadUserDataFromFirestore: Firestore, User ID, or App ID not ready (or Telegram ID missing). Skipping data load.");
                 return;
             }
 
@@ -1375,16 +1376,19 @@
         }
 
         function updateButtonStates() {
+            // Buttons are disabled if app is not ready OR if daily limit is reached OR if telegramUserId is missing
             const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            claimRewardBtn.disabled = !isAppReady || limitReached; 
-            tapAreaEl.style.pointerEvents = (!isAppReady || limitReached) ? 'none' : 'auto';
+            const disableButtons = !isAppReady || limitReached || !window.telegramUserId;
 
-            document.getElementById('show-withdraw-btn').disabled = !isAppReady;
-            document.getElementById('show-referral-btn').disabled = !isAppReady;
+            claimRewardBtn.disabled = disableButtons; 
+            tapAreaEl.style.pointerEvents = disableButtons ? 'none' : 'auto';
+
+            document.getElementById('show-withdraw-btn').disabled = disableButtons;
+            document.getElementById('show-referral-btn').disabled = disableButtons;
         }
         
         tapAreaEl.addEventListener('click', async (event) => {
-            if (!isAppReady) {
+            if (!isAppReady || !window.telegramUserId) { // Check for telegramUserId here too
                 showAdNotification(translations[currentLanguage].loading_app); 
                 return;
             }
@@ -1417,7 +1421,7 @@
         });
 
         window.claimReward = async function() {
-            if (!isAppReady) {
+            if (!isAppReady || !window.telegramUserId) { // Check for telegramUserId here too
                 showAdNotification(translations[currentLanguage].loading_app); 
                 return;
             }
@@ -1433,10 +1437,11 @@
             try {
                 // Using Adsgram SDK
                 if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
-                    console.log("Attempting to show Adsgram ad with blockId: 12307");
-                    // Changed blockId here
+                    console.log("Adsgram SDK is available. Attempting to initialize and show ad with blockId: 12307");
+                    console.log("Calling Adsgram.init({ blockId: '12307' }).show()...");
                     await window.Adsgram.init({ blockId: "12307" }).show(); 
-                    
+                    console.log("Adsgram.show() call completed (this means the function returned, not necessarily that the ad was successfully displayed to the user).");
+
                     const appId = firebaseConfig.projectId; 
                     const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                     
@@ -1471,13 +1476,17 @@
                     tapsCount = 0;
                     updateTapUI();
                 } else {
-                    console.error("Adsgram SDK is not loaded. Please check the script tag.");
+                    console.error("Adsgram SDK is NOT available or init/show functions are missing. Please check the script tag and network.");
                     showAdNotification(translations[currentLanguage].ad_failed);
                 }
 
             } catch (error) {
-                console.error("Adsgram ad error or Firestore update error:", error);
-                showAdNotification(translations[currentLanguage].ad_failed);
+                console.error("Error during Adsgram ad display or Firestore update (caught in try-catch block):", error);
+                let errorMessage = translations[currentLanguage].ad_failed;
+                if (error && error.message) {
+                    errorMessage += `: ${error.message}`;
+                }
+                showAdNotification(errorMessage);
             } finally {
                 updateButtonStates(); 
             }
@@ -1493,7 +1502,7 @@
         }
 
         window.showWithdrawForm = function() {
-            if (!isAppReady) { 
+            if (!isAppReady || !window.telegramUserId) { 
                 showAdNotification(translations[currentLanguage].loading_app);
                 return;
             }
@@ -1513,7 +1522,7 @@
         }
 
         window.withdrawPoints = async function() {
-            if (!isAppReady) { 
+            if (!isAppReady || !window.telegramUserId) { 
                 showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
                 return;
             }
@@ -1620,7 +1629,7 @@
         }
 
         window.showReferralSection = function() {
-            if (!isAppReady) { 
+            if (!isAppReady || !window.telegramUserId) { 
                 showAdNotification(translations[currentLanguage].loading_app);
                 return;
             }
@@ -1645,7 +1654,7 @@
         }
 
         window.copyReferralLink = function() {
-            if (!isAppReady) { 
+            if (!isAppReady || !window.telegramUserId) { 
                 showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
                 return;
             }
