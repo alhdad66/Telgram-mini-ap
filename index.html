@@ -879,6 +879,7 @@
                     <button onclick="copyReferralLink()" data-key="copy_link_btn">نسخ الرابط</button>
                 </div>
                 <div class="referral-stats">
+                    <!-- These p elements will be targeted by querySelector to update innerHTML -->
                     <p data-key="total_referrals">الإحالات الكلية: <span id="total-referrals">0</span></p>
                     <p data-key="earned_from_referrals">الربح من الإحالات: <span id="earned-from-referrals">0.00</span> Pepe</p>
                 </div>
@@ -894,7 +895,7 @@
         </div>
     </div>
 
-    <!-- NEW: Debug Log Display -->
+    <!-- Debug Log Display -->
     <div id="debug-log">
         <h3>سجل التصحيح (Debug Log)</h3>
         <pre id="log-content"></pre>
@@ -943,7 +944,7 @@
         let totalReferrals = 0; 
         let earnedFromReferrals = 0.00; 
 
-        // DOM elements
+        // DOM elements (re-initialized if needed after innerHTML updates)
         const earnedPointsEl = document.getElementById('earned-points');
         const adsProgressEl = document.getElementById('ads-progress');
         const progressFillEl = document.getElementById('progress-fill');
@@ -959,8 +960,14 @@
 
         const referralSectionEl = document.getElementById('referral-section');
         const referralLinkInput = document.getElementById('referral-link');
-        const totalReferralsEl = document.getElementById('total-referrals');
-        const earnedFromReferralsEl = document.getElementById('earned-from-referrals');
+        // Get parent P elements for referral stats for more robust UI update
+        const totalReferralsParentEl = document.querySelector('p[data-key="total_referrals"]');
+        const earnedFromReferralsParentEl = document.querySelector('p[data-key="earned_from_referrals"]');
+        // Initial references to span elements (will be updated after innerHTML rewrites)
+        let totalReferralsEl = document.getElementById('total-referrals');
+        let earnedFromReferralsEl = document.getElementById('earned-from-referrals');
+
+
         const displayUserIdEl = document.getElementById('display-user-id'); 
 
         const logContentEl = document.getElementById('log-content'); // Debug Log DOM element
@@ -1201,7 +1208,7 @@
             
             tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
 
-            updateReferralUI(); 
+            updateReferralUI(); // Call updateReferralUI here as well
 
             if (window.telegramUserId) {
                 displayUserIdEl.textContent = window.telegramUserId;
@@ -1371,7 +1378,6 @@
                     totalReferrals = data.totalReferrals || 0;
                     earnedFromReferrals = data.earnedFromReferrals || 0.00;
 
-                    // NEW LOGGING FOR REFERRAL STATS ON MAIN ACCOUNT
                     logMessage(`REFERRAL STATS READ: User ${userId} - totalReferrals: ${totalReferrals}, earnedFromReferrals: ${earnedFromReferrals.toFixed(2)}`);
 
                     const todayDate = getTodayDate();
@@ -1742,7 +1748,7 @@
             }
             hideAllSections();
             referralSectionEl.style.display = 'block';
-            updateReferralUI();
+            updateReferralUI(); // Ensure UI is updated when section is shown
             currentSection = 'referral';
             updateBackButtonVisibility();
             logMessage("Referral section displayed.");
@@ -1756,10 +1762,19 @@
             logMessage("Referral section hidden.");
         }
 
+        // Updated updateReferralUI function
         function updateReferralUI() {
             referralLinkInput.value = generateReferralLink();
-            totalReferralsEl.textContent = totalReferrals;
-            earnedFromReferralsEl.textContent = earnedFromReferrals.toFixed(2);
+
+            // Reconstruct the inner HTML of the parent p elements to force re-render
+            totalReferralsParentEl.innerHTML = `${translations[currentLanguage].total_referrals} <span id="total-referrals">${totalReferrals}</span>`;
+            earnedFromReferralsParentEl.innerHTML = `${translations[currentLanguage].earned_from_referrals} <span id="earned-from-referrals">${earnedFromReferrals.toFixed(2)}</span> Pepe`;
+
+            // Re-get references to the span elements after their parent's innerHTML was rewritten
+            // This is crucial because rewriting innerHTML destroys and recreates the spans
+            totalReferralsEl = document.getElementById('total-referrals');
+            earnedFromReferralsEl = document.getElementById('earned-from-referrals');
+
             logMessage(`Referral UI updated. Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
         }
 
