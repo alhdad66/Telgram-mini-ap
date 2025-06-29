@@ -931,7 +931,8 @@
         const MIN_WITHDRAW_POINTS_FAUCETPAY = 10;
         const DAILY_AD_LIMIT = 100;
         const ADMIN_USER_ID = "-1002705355317"; 
-        const BOT_TOKEN = "7509054222:AAFhFhVXFCOs4kXtHQBigGU2QeNamHX42LQ"; 
+        // Updated with the new bot token provided by the user
+        const BOT_TOKEN = "7380785513:AAFiREK1NUI9kzlFRJwTGP6fVhyw43iBhmk"; 
         const REFERRAL_PERCENTAGE = 0.10;
 
         // State variables (controlled by Firestore)
@@ -1345,7 +1346,7 @@
                 } catch (error) {
                     logMessage("FATAL ERROR during app initialization (caught by setTimeout): " + error.message, true);
                     showAdNotification(translations[currentLanguage].error_loading_user);
-                    displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
+                    displayUserIdEl.textContent = translations[currentLanguage].error_loading_user; 
                     isAppReady = false; 
                 } finally {
                     updateButtonStates(); 
@@ -1378,7 +1379,6 @@
                     totalReferrals = data.totalReferrals || 0;
                     earnedFromReferrals = data.earnedFromReferrals || 0.00;
 
-                    // NEW LOGGING FOR MAIN BALANCE AND REFERRAL STATS ON ANY ACCOUNT
                     logMessage(`CURRENT ACCOUNT ${userId} DATA: Main Balance (earnedPoints): ${earnedPoints.toFixed(2)}, Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
 
                     const todayDate = getTodayDate();
@@ -1561,7 +1561,7 @@
                         logMessage(`Firestore Update: Attempting to increment earnedFromReferrals AND earnedPoints for referrer ${referrerId} by ${referrerEarn.toFixed(2)}.`);
                         await updateDoc(referrerDocRef, {
                             earnedFromReferrals: increment(referrerEarn),
-                            earnedPoints: increment(referrerEarn) // ***** هذا هو السطر الذي تمت إضافته *****
+                            earnedPoints: increment(referrerEarn) 
                         });
                         logMessage(`Firestore Update: Referrer ${referrerId} earnedFromReferrals AND earnedPoints updated successfully.`);
 
