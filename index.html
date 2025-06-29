@@ -5,18 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-key="app_title">Premium Ad Reward System</title>
     
-    <!-- RichAds SDK - NEW -->
-    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-    <script>
-        // تهيئة RichAds - يجب أن يتم هذا قبل استدعاء show()
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
-            pubId: "977967",
-            appId: "2783",
-        });
-        console.log("RichAds TelegramAdsController initialized.");
-    </script>
-    
+    <!-- Adsgram SDK -->
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -805,7 +796,7 @@
             </div>
             
             <div class="ad-container">
-                <div class="ad-label" data-key="ad_type_label">إعلان RichAds</div>
+                <div class="ad-label" data-key="ad_type_label">إعلان Adsgram بيني</div> 
                 
                 <!-- New Tap Area -->
                 <div class="tap-area" id="tap-area">
@@ -955,7 +946,7 @@
                 earned_points_label: "عملات Pepe المكتسبة", 
                 daily_limit_label: "المشاهدات اليومية", 
                 progress_to_bonus: "التقدم للمكافأة",
-                ad_type_label: "إعلان RichAds", // Changed to RichAds
+                ad_type_label: "إعلان Adsgram بيني", // Reverted
                 taps_to_claim: "نقرة للمطالبة بالمكافأة", 
                 claim_reward_btn: "المطالبة بالمكافأة", 
                 visit_channel_title: "قم بزيارة قناتنا على تيليجرام", 
@@ -1004,7 +995,7 @@
                 earned_points_label: "Earned Pepe Coins", 
                 daily_limit_label: "Daily Views", 
                 progress_to_bonus: "Progress to Bonus",
-                ad_type_label: "RichAds Ad", // Changed to RichAds
+                ad_type_label: "Adsgram Interstitial Ad", // Reverted
                 taps_to_claim: "taps to claim reward",
                 claim_reward_btn: "Claim Reward",
                 visit_channel_title: "Visit Our Telegram Channel", 
@@ -1038,7 +1029,7 @@
                 total_referrals: "Total Referrals:",
                 earned_from_referrals: "Earned from Referrals:",
                 link_copied_success: "Referral link copied successfully!",
-                your_user_id: "User ID:",
+                Uour_user_id: "User ID:",
                 loading_app: "Loading App...", 
                 not_mini_app: "App not launched as Telegram Mini App.",
                 error_loading_user: "Error loading user data.",
@@ -1053,7 +1044,7 @@
                 earned_points_label: "Заработанные монеты Pepe", 
                 daily_limit_label: "Ежедневные просмотры", 
                 progress_to_bonus: "Прогресс к бонусу",
-                ad_type_label: "RichAds Ad", // Changed to RichAds
+                ad_type_label: "Межстраничная реклама Adsgram", // Reverted
                 taps_to_claim: "нажатий для получения награды",
                 claim_reward_btn: "Получить награду",
                 visit_channel_title: "Посетите наш Telegram-канал", 
@@ -1080,7 +1071,7 @@
                 unknown_method: "Неизвестный метод:", 
                 back_to_main_page: "Вернуться на главную страницу", 
                 withdraw_points_btn: "Вывести монеты Pepe", 
-                referral_program_btn: "Referral Program",
+                referral_program_btn: "برنامج الإحالة",
                 referral_title: "Реферальная программа",
                 referral_description: `Приглашайте друзей и зарабатывайте ${REFERRAL_PERCENTAGE * 100}% от их заработка!`,
                 copy_link_btn: "Копировать ссылку",
@@ -1193,7 +1184,6 @@
                         console.log("Telegram.WebApp initialized and expanded.");
 
                         console.log("window.Telegram.WebApp.initData (full string):", window.Telegram.WebApp.initData);
-                        // Parse initData to make it easier to read
                         try {
                             const parsedInitData = new URLSearchParams(window.Telegram.WebApp.initData);
                             console.log("Parsed initData parameters:");
@@ -1441,13 +1431,12 @@
             tapAreaEl.style.pointerEvents = 'none'; 
             
             try {
-                // Check if RichAds TelegramAdsController is initialized
-                if (typeof window.TelegramAdsController !== 'undefined' && typeof window.TelegramAdsController.show === 'function') {
-                    console.log("Attempting to show RichAds ad.");
-                    window.TelegramAdsController.show(); // Show RichAds ad
+                // Using Adsgram SDK
+                if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
+                    console.log("Attempting to show Adsgram ad with blockId: 12307");
+                    // Changed blockId here
+                    await window.Adsgram.init({ blockId: "12307" }).show(); 
                     
-                    // Since RichAds doesn't have a direct 'ad completed' callback for this type,
-                    // we'll grant points immediately after attempting to show the ad.
                     const appId = firebaseConfig.projectId; 
                     const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                     
@@ -1482,12 +1471,12 @@
                     tapsCount = 0;
                     updateTapUI();
                 } else {
-                    console.error("RichAds TelegramAdsController is not loaded or not initialized.");
+                    console.error("Adsgram SDK is not loaded. Please check the script tag.");
                     showAdNotification(translations[currentLanguage].ad_failed);
                 }
 
             } catch (error) {
-                console.error("Error during ad display or Firestore update:", error);
+                console.error("Adsgram ad error or Firestore update error:", error);
                 showAdNotification(translations[currentLanguage].ad_failed);
             } finally {
                 updateButtonStates(); 
