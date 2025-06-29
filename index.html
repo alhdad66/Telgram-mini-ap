@@ -44,6 +44,7 @@
             align-items: center;
             position: relative;
             overflow-x: hidden;
+            flex-direction: column; /* Allow content and debug log to stack */
         }
         
         body::before {
@@ -68,6 +69,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             position: relative;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px; /* Space for the debug log */
         }
         
         .header {
@@ -752,6 +754,24 @@
             font-weight: bold;
             color: var(--gold);
         }
+
+        /* Debug Log Styles */
+        #debug-log {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #00FF00; /* Green text for logs */
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            max-width: 500px; /* Match container width */
+            margin-top: 10px; /* Space from main container */
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            white-space: pre-wrap; /* Preserve line breaks */
+            word-wrap: break-word; /* Break long words */
+        }
     </style>
 </head>
 <body>
@@ -874,6 +894,12 @@
         </div>
     </div>
 
+    <!-- NEW: Debug Log Display -->
+    <div id="debug-log">
+        <h3>سجل التصحيح (Debug Log)</h3>
+        <pre id="log-content"></pre>
+    </div>
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -892,12 +918,12 @@
         // Global variables for Firebase and Telegram Mini App
         window.firebaseApp = null;
         window.db = null;
-        window.telegramUserId = null; // This will hold the Telegram User ID
-        window.telegramUsername = null; // NEW: To hold the Telegram Username
-        let isAppReady = false; // Flag to track if Telegram WebApp and Firebase are initialized
+        window.telegramUserId = null; 
+        window.telegramUsername = null; 
+        let isAppReady = false; 
 
         // Constants
-        const POINTS_PER_AD = 1000.00; // تم تحديث هذه القيمة إلى 1000
+        const POINTS_PER_AD = 1000.00; 
         const TAPS_REQUIRED = 10;
         const ADS_FOR_BONUS = 10; 
         const MIN_WITHDRAW_POINTS = 100;
@@ -936,6 +962,27 @@
         const totalReferralsEl = document.getElementById('total-referrals');
         const earnedFromReferralsEl = document.getElementById('earned-from-referrals');
         const displayUserIdEl = document.getElementById('display-user-id'); 
+
+        const logContentEl = document.getElementById('log-content'); // NEW: Debug Log DOM element
+
+        // NEW: Custom log function to display messages on screen
+        function logMessage(message, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            if (isError) {
+                logEntry.style.color = 'red';
+            }
+            logContentEl.appendChild(logEntry);
+            logContentEl.scrollTop = logContentEl.scrollHeight; // Auto-scroll to bottom
+
+            // Also log to browser console for deeper debugging if available
+            if (isError) {
+                console.error(message);
+            } else {
+                console.log(message);
+            }
+        }
 
         // Translation logic
         const translations = {
@@ -1157,67 +1204,63 @@
 
             updateReferralUI(); 
 
-            // Update Telegram User ID display based on state
             if (window.telegramUserId) {
                 displayUserIdEl.textContent = window.telegramUserId;
             } else if (!isAppReady) {
                 displayUserIdEl.textContent = translations[currentLanguage].loading_app;
-            } else { // This means isAppReady is true, but telegramUserId is null/undefined
+            } else { 
                  displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
             }
         };
 
         async function initApp() {
-            console.log("initApp: Starting app initialization.");
+            logMessage("initApp: Starting app initialization.");
             displayUserIdEl.textContent = translations[currentLanguage].loading_app; 
 
-            // Give Telegram WebApp a moment to initialize its objects
             setTimeout(async () => {
                 try {
-                    console.log("Checking Telegram.WebApp objects after delay...");
-                    console.log("window.Telegram exists:", typeof window.Telegram !== 'undefined');
-                    console.log("window.Telegram.WebApp exists:", typeof window.Telegram.WebApp !== 'undefined');
+                    logMessage("Telegram.WebApp object check: window.Telegram exists: " + (typeof window.Telegram !== 'undefined'));
+                    logMessage("Telegram.WebApp object check: window.Telegram.WebApp exists: " + (typeof window.Telegram.WebApp !== 'undefined'));
                     
                     if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
                         window.Telegram.WebApp.ready();
                         window.Telegram.WebApp.expand();
                         document.body.style.backgroundColor = window.Telegram.WebApp.themeParams.bg_color || '#1a1a2e';
                         document.body.style.color = window.Telegram.WebApp.themeParams.text_color || '#f5f5f5';
-                        console.log("Telegram.WebApp initialized and expanded.");
+                        logMessage("Telegram.WebApp initialized and expanded.");
 
-                        console.log("window.Telegram.WebApp.initData (full string):", window.Telegram.WebApp.initData);
+                        logMessage("Full Telegram.WebApp.initData: " + window.Telegram.WebApp.initData);
                         try {
                             const parsedInitData = new URLSearchParams(window.Telegram.WebApp.initData);
-                            console.log("Parsed initData parameters:");
+                            logMessage("Parsed initData parameters:");
                             for (const [key, value] of parsedInitData.entries()) {
-                                console.log(`  ${key}: ${value}`);
+                                logMessage(`  Param: ${key}, Value: ${value}`);
                             }
                         } catch (parseError) {
-                            console.error("Error parsing window.Telegram.WebApp.initData:", parseError);
+                            logMessage("Error parsing Telegram.WebApp.initData: " + parseError.message, true);
                         }
                         
-                        console.log("window.Telegram.WebApp.initDataUnsafe:", window.Telegram.WebApp.initDataUnsafe);
-                        console.log("window.Telegram.WebApp.initDataUnsafe.user:", window.Telegram.WebApp.initDataUnsafe ? window.Telegram.WebApp.initDataUnsafe.user : 'undefined/null user object');
+                        logMessage("Telegram.WebApp.initDataUnsafe: " + JSON.stringify(window.Telegram.WebApp.initDataUnsafe));
+                        logMessage("Telegram.WebApp.initDataUnsafe.user: " + (window.Telegram.WebApp.initDataUnsafe ? JSON.stringify(window.Telegram.WebApp.initDataUnsafe.user) : 'undefined/null user object'));
 
                         if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id) {
                             window.telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
-                            // NEW: Get Telegram Username if available
                             window.telegramUsername = window.Telegram.WebApp.initDataUnsafe.user.username || ''; 
-                            console.log("SUCCESS: Telegram User ID obtained and set to window.telegramUserId:", window.telegramUserId);
-                            console.log("SUCCESS: Telegram Username obtained and set to window.telegramUsername:", window.telegramUsername || 'N/A');
+                            logMessage("SUCCESS: Telegram User ID obtained: " + window.telegramUserId);
+                            logMessage("SUCCESS: Telegram Username obtained: " + (window.telegramUsername || 'N/A (No username set)'));
 
                             displayUserIdEl.textContent = window.telegramUserId; 
                         } else {
-                            console.error("FAILURE: Telegram User ID NOT available from initDataUnsafe.user.id. Mini App might not be launched correctly or user data missing.");
+                            logMessage("FAILURE: Telegram User ID NOT available. initDataUnsafe.user.id is missing.", true);
                             displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing; 
                             isAppReady = false; 
-                            updateButtonStates(); // Keep buttons disabled if ID is missing
+                            updateButtonStates(); 
                             return; 
                         }
 
                         // Initialize Firebase
                         if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
-                            console.error("Firebase config is missing or incomplete.");
+                            logMessage("Firebase config is missing or incomplete.", true);
                             showAdNotification(translations[currentLanguage].error_loading_user + " (Firebase config missing)");
                             isAppReady = false;
                             updateButtonStates();
@@ -1227,61 +1270,76 @@
                         const appId = firebaseConfig.projectId; 
                         window.firebaseApp = initializeApp(firebaseConfig);
                         window.db = getFirestore(window.firebaseApp);
-                        console.log("Firebase initialized.");
+                        logMessage("Firebase initialized.");
 
                         // Load user data using Telegram User ID
                         await loadUserDataFromFirestore(appId, window.telegramUserId); 
-                        console.log("User data load initiated and Firestore listener set up.");
+                        logMessage("User data load initiated and Firestore listener set up.");
 
                         // Handle Back Button in Telegram Mini App
                         window.Telegram.WebApp.onEvent('backButtonClicked', handleBackButtonClick);
                         updateBackButtonVisibility(); 
 
                         isAppReady = true; 
-                        console.log("App is now fully ready (isAppReady = true).");
+                        logMessage("App is now fully ready (isAppReady = true).");
 
-                        // Process startapp parameter from Telegram initData
+                        // Process startapp parameter from Telegram initData - REFERRAL LOGIC DEBUG
                         const urlParams = new URLSearchParams(window.Telegram.WebApp.initData); 
                         const ref = urlParams.get('start_param'); 
-                        console.log("Start parameter (ref) from WebApp.initData:", ref); 
+                        logMessage("REFERRAL DEBUG: start_param from WebApp.initData: " + (ref || 'Not found')); 
+
                         if (ref && ref.startsWith('ref_')) {
                             const foundReferrerId = ref.substring(4); 
-                            console.log("Found referrer ID from start_param:", foundReferrerId);
+                            logMessage("REFERRAL DEBUG: Extracted referrerId from start_param: " + foundReferrerId);
+                            logMessage("REFERRAL DEBUG: Current user ID (telegramUserId): " + window.telegramUserId);
+                            
                             if (foundReferrerId !== window.telegramUserId) { 
+                                logMessage("REFERRAL DEBUG: Referrer ID is different from current user ID. Proceeding to check/set referrer.");
                                 referrerId = foundReferrerId;
                                 const userRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
-                                getDoc(userRef).then(docSnap => {
-                                    if (docSnap.exists() && !docSnap.data().referrerId) { 
-                                        updateDoc(userRef, { referrerId: referrerId }, { merge: true })
-                                            .then(() => console.log(`Set referrerId ${referrerId} for user ${window.telegramUserId}`))
-                                            .catch(e => console.error("Error setting referrerId:", e, userRef));
-                                    } else {
-                                        console.log(`ReferrerId for user ${window.telegramUserId} already set or doc not found (will be set on creation).`);
-                                    }
-                                }).catch(e => console.error("Error checking user doc for referrerId:", e));
+                                
+                                logMessage("REFERRAL DEBUG: Checking user document for existing referrerId for user: " + window.telegramUserId);
+                                const docSnap = await getDoc(userRef); 
+                                logMessage("REFERRAL DEBUG: User doc exists for current user: " + docSnap.exists());
+                                logMessage("REFERRAL DEBUG: Existing referrerId on current user's doc: " + (docSnap.exists() ? docSnap.data().referrerId : 'N/A (doc doesn\'t exist or referrerId not set)'));
 
-                                const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
-                                getDoc(referrerRef).then(docSnap => {
-                                    if (docSnap.exists()) {
-                                        updateDoc(referrerRef, { totalReferrals: increment(1) })
-                                            .then(() => console.log(`Incremented totalReferrals for ${referrerId}`))
-                                            .catch(e => console.error(`Error awarding referrer points to ${referrerId}:`, e));
+                                if (docSnap.exists() && !docSnap.data().referrerId) { 
+                                    logMessage(`REFERRAL DEBUG: User ${window.telegramUserId} has no existing referrer. Attempting to set referrerId: ${referrerId}`);
+                                    await updateDoc(userRef, { referrerId: referrerId }, { merge: true });
+                                    logMessage(`REFERRAL DEBUG: Successfully set referrerId ${referrerId} for user ${window.telegramUserId}.`);
+
+                                    // Now update the referrer's totalReferrals
+                                    const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
+                                    logMessage("REFERRAL DEBUG: Attempting to increment totalReferrals for referrer: " + referrerId);
+                                    
+                                    const referrerDocSnap = await getDoc(referrerRef);
+                                    if (referrerDocSnap.exists()) {
+                                        await updateDoc(referrerRef, { totalReferrals: increment(1) });
+                                        logMessage(`REFERRAL DEBUG: Successfully incremented totalReferrals for ${referrerId}.`);
                                     } else {
-                                        console.warn(`Referrer ${referrerId} does not exist in Firestore. Cannot increment totalReferrals.`);
+                                        logMessage(`REFERRAL DEBUG: Referrer document for ${referrerId} does not exist. Cannot increment totalReferrals. (Perhaps referrer needs to open app first?)`, true);
                                     }
-                                }).catch(e => console.error("Error updating referrer's totalReferrals:", e));
+                                } else if (!docSnap.exists()) {
+                                    logMessage(`REFERRAL DEBUG: User document for ${window.telegramUserId} doesn't exist yet. Will set referrerId when doc is first created in loadUserDataFromFirestore.`);
+                                } else {
+                                    logMessage(`REFERRAL DEBUG: User ${window.telegramUserId} already has referrerId: ${docSnap.data().referrerId}. Skipping update.`);
+                                }
+                            } else {
+                                logMessage("REFERRAL DEBUG: Current user ID is the same as referrer ID. Self-referral attempt detected and ignored for stat increment.");
                             }
+                        } else {
+                            logMessage("REFERRAL DEBUG: No valid 'ref_' start_param found.");
                         }
 
                     } else {
-                        console.error("FAILURE: Telegram WebApp SDK not found or not ready. App not running as a Mini App.");
+                        logMessage("FAILURE: Telegram WebApp SDK not found or not ready. App not running as a Mini App.", true);
                         showAdNotification(translations[currentLanguage].not_mini_app);
                         displayUserIdEl.textContent = translations[currentLanguage].not_mini_app;
                         isAppReady = false;
                     }
 
                 } catch (error) {
-                    console.error("FATAL ERROR during app initialization (caught by setTimeout):", error);
+                    logMessage("FATAL ERROR during app initialization (caught by setTimeout): " + error.message, true);
                     showAdNotification(translations[currentLanguage].error_loading_user);
                     displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
                     isAppReady = false; 
@@ -1293,16 +1351,16 @@
         }
 
         async function loadUserDataFromFirestore(appId, userId) {
-            console.log("loadUserDataFromFirestore: Attempting to load data for user:", userId);
+            logMessage("loadUserDataFromFirestore: Attempting to load data for user: " + userId);
             if (!window.db || !userId || !appId) {
-                console.log("loadUserDataFromFirestore: Firestore, User ID, or App ID not ready (or Telegram ID missing). Skipping data load.");
+                logMessage("loadUserDataFromFirestore: Firestore, User ID, or App ID not ready (or Telegram ID missing). Skipping data load.", true);
                 return;
             }
 
             const userDocRef = doc(window.db, `artifacts/${appId}/users`, userId);
 
             onSnapshot(userDocRef, (docSnap) => {
-                console.log("onSnapshot: Data received for user:", userId);
+                logMessage("Firestore onSnapshot: Data received for user: " + userId);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     earnedPoints = data.earnedPoints || 0.00;
@@ -1311,6 +1369,7 @@
                     lastWatchDate = data.lastWatchDate || "";
                     if (!referrerId && data.referrerId) { 
                         referrerId = data.referrerId; 
+                        logMessage(`Firestore onSnapshot: Referrer ID ${referrerId} loaded from doc for user ${userId}.`);
                     }
                     totalReferrals = data.totalReferrals || 0;
                     earnedFromReferrals = data.earnedFromReferrals || 0.00;
@@ -1318,13 +1377,14 @@
                     const todayDate = getTodayDate();
                     if (lastWatchDate !== todayDate) {
                         dailyWatchedAdsCount = 0;
+                        logMessage("Firestore onSnapshot: New day detected, resetting daily count.");
                         updateDoc(userDocRef, { dailyWatchedAdsCount: 0, lastWatchDate: todayDate })
-                            .then(() => console.log("Daily count reset for new day."))
-                            .catch(e => console.error("Error resetting daily count:", e));
+                            .then(() => logMessage("Firestore: Daily count reset for new day successfully."))
+                            .catch(e => logMessage("Firestore Error: resetting daily count: " + e.message, true));
                     }
-                    console.log("User data loaded/updated from Firestore:", data);
+                    logMessage("User data loaded/updated from Firestore via onSnapshot: " + JSON.stringify(data));
                 } else {
-                    console.log("User document not found, creating new one for user:", userId);
+                    logMessage("Firestore onSnapshot: User document not found, creating new one for user: " + userId);
                     earnedPoints = 0.00;
                     watchedAdsCount = 0;
                     dailyWatchedAdsCount = 0;
@@ -1340,15 +1400,15 @@
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
                     })
-                    .then(() => console.log("New user document created in Firestore."))
-                    .catch(e => console.error("Error creating user document:", e));
+                    .then(() => logMessage("Firestore: New user document created successfully."))
+                    .catch(e => logMessage("Firestore Error: creating user document: " + e.message, true));
                 }
                 updateUI(); 
                 updateTapUI();
                 updateReferralUI();
                 updateButtonStates(); 
             }, (error) => {
-                console.error("Error listening to user document in Firestore:", error);
+                logMessage("Firestore Error: listening to user document in Firestore: " + error.message, true);
                 showAdNotification(translations[currentLanguage].error_loading_user);
             });
         }
@@ -1381,7 +1441,6 @@
         }
 
         function updateButtonStates() {
-            // Buttons are disabled if app is not ready OR if daily limit is reached OR if telegramUserId is missing
             const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
             const disableButtons = !isAppReady || limitReached || !window.telegramUserId;
 
@@ -1393,18 +1452,21 @@
         }
         
         tapAreaEl.addEventListener('click', async (event) => {
-            if (!isAppReady || !window.telegramUserId) { // Check for telegramUserId here too
+            if (!isAppReady || !window.telegramUserId) { 
                 showAdNotification(translations[currentLanguage].loading_app); 
+                logMessage("Tap area click blocked: App not ready or Telegram User ID missing.");
                 return;
             }
             if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
                 showAdNotification(translations[currentLanguage].daily_limit_reached);
+                logMessage("Tap area click blocked: Daily limit reached.");
                 return; 
             }
 
             if (tapsCount < TAPS_REQUIRED) {
                 tapsCount++;
                 tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
+                logMessage(`Tap registered. Taps count: ${tapsCount}/${TAPS_REQUIRED}`);
                 
                 const feedback = document.createElement('div');
                 feedback.classList.add('tap-feedback');
@@ -1421,31 +1483,34 @@
 
                 if (tapsCount >= TAPS_REQUIRED) {
                     updateTapUI();
+                    logMessage("Taps count reached. Claim reward button should be visible.");
                 }
             }
         });
 
         window.claimReward = async function() {
-            if (!isAppReady || !window.telegramUserId) { // Check for telegramUserId here too
+            if (!isAppReady || !window.telegramUserId) { 
                 showAdNotification(translations[currentLanguage].loading_app); 
+                logMessage("Claim reward blocked: App not ready or Telegram User ID missing.");
                 return;
             }
             if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
                 showAdNotification(translations[currentLanguage].daily_limit_reached);
+                logMessage("Claim reward blocked: Daily limit reached.");
                 return; 
             }
 
             showAdNotification(translations[currentLanguage].ad_loading);
             claimRewardBtn.disabled = true; 
             tapAreaEl.style.pointerEvents = 'none'; 
+            logMessage("Attempting to claim reward. Ad loading...");
             
             try {
-                // Using Adsgram SDK
                 if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
-                    console.log("Adsgram SDK is available. Attempting to initialize and show ad with blockId: 12307");
-                    console.log("Calling Adsgram.init({ blockId: '12307' }).show()...");
+                    logMessage("Adsgram Init: SDK available. Attempting to initialize and show ad with blockId: 12307");
+                    logMessage("Adsgram Init: Calling Adsgram.init({ blockId: '12307' }).show()...");
                     await window.Adsgram.init({ blockId: "12307" }).show(); 
-                    console.log("Adsgram.show() call completed (this means the function returned, not necessarily that the ad was successfully displayed to the user).");
+                    logMessage("Adsgram Show: Adsgram.show() call completed.");
 
                     const appId = firebaseConfig.projectId; 
                     const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
@@ -1455,26 +1520,29 @@
                     let newWatchedAdsCount = watchedAdsCount + 1;
 
                     if (newWatchedAdsCount % ADS_FOR_BONUS === 0) {
-                        pointsToAdd += 1.00; // Add bonus points
+                        pointsToAdd += 1.00; 
+                        logMessage("Bonus points added for completing ADS_FOR_BONUS cycle.");
                     }
 
+                    logMessage(`Firestore Update: Updating user ${window.telegramUserId} with points: ${pointsToAdd.toFixed(2)}, watchedAdsCount: ${newWatchedAdsCount}, dailyWatchedAdsCount: ${newDailyWatchedAdsCount}`);
                     await updateDoc(userDocRef, {
                         earnedPoints: increment(pointsToAdd),
                         watchedAdsCount: increment(1),
                         dailyWatchedAdsCount: newDailyWatchedAdsCount,
                         lastWatchDate: getTodayDate()
                     });
+                    logMessage(`Firestore Update: User ${window.telegramUserId} updated successfully. New earnedPoints: ${earnedPoints + pointsToAdd}.`);
 
                     if (referrerId && referrerId !== window.telegramUserId) { 
-                        // Referrer earns a percentage of the base ad reward, not including the bonus points
                         const referrerEarn = POINTS_PER_AD * REFERRAL_PERCENTAGE; 
                         const referrerDocRef = doc(window.db, `artifacts/${appId}/users`, referrerId);
                         
-                        updateDoc(referrerDocRef, {
+                        logMessage(`Firestore Update: Attempting to increment earnedFromReferrals for referrer ${referrerId} by ${referrerEarn.toFixed(2)}.`);
+                        await updateDoc(referrerDocRef, {
                             earnedFromReferrals: increment(referrerEarn)
-                        })
-                        .then(() => console.log(`Awarded ${referrerEarn.toFixed(2)} to referrer ${referrerId}`))
-                        .catch(e => console.error(`Error awarding referrer points to ${referrerId}:`, e));
+                        });
+                        logMessage(`Firestore Update: Referrer ${referrerId} earnedFromReferrals updated successfully.`);
+
                     }
 
                     showAdNotification(translations[currentLanguage].ad_completed_success.replace('{POINTS_PER_AD}', pointsToAdd.toFixed(2)));
@@ -1482,12 +1550,12 @@
                     tapsCount = 0;
                     updateTapUI();
                 } else {
-                    console.error("Adsgram SDK is NOT available or init/show functions are missing. Please check the script tag and network.");
+                    logMessage("Adsgram Error: SDK not available or functions missing. Check script tag and network.", true);
                     showAdNotification(translations[currentLanguage].ad_failed);
                 }
 
             } catch (error) {
-                console.error("Error during Adsgram ad display or Firestore update (caught in try-catch block):", error);
+                logMessage("Ad Display/Firestore Error: Caught error during claimReward: " + error.message, true);
                 let errorMessage = translations[currentLanguage].ad_failed;
                 if (error && error.message) {
                     errorMessage += `: ${error.message}`;
@@ -1501,6 +1569,7 @@
         function showAdNotification(message) {
             adNotificationEl.textContent = message;
             adNotificationEl.style.display = 'block';
+            logMessage(`Ad Notification: ${message}`);
             
             setTimeout(() => {
                 adNotificationEl.style.display = 'none';
@@ -1510,6 +1579,7 @@
         window.showWithdrawForm = function() {
             if (!isAppReady || !window.telegramUserId) { 
                 showAdNotification(translations[currentLanguage].loading_app);
+                logMessage("Show withdraw form blocked: App not ready or Telegram User ID missing.");
                 return;
             }
             hideAllSections();
@@ -1517,6 +1587,7 @@
             currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
             currentSection = 'withdraw';
             updateBackButtonVisibility();
+            logMessage("Withdrawal form displayed.");
         }
 
         window.hideWithdrawForm = function() {
@@ -1525,11 +1596,13 @@
             showMainContent(); 
             currentSection = 'main';
             updateBackButtonVisibility();
+            logMessage("Withdrawal form hidden.");
         }
 
         window.withdrawPoints = async function() {
             if (!isAppReady || !window.telegramUserId) { 
                 showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
+                logMessage("Withdrawal blocked: App not ready or Telegram User ID missing.", true);
                 return;
             }
 
@@ -1553,17 +1626,20 @@
                     .replace('{methodName}', methodName)
                     .replace('{minAmount}', minRequiredPoints);
                 showTemporaryMessage(message, 'red');
+                logMessage(`Withdrawal failed: Amount ${amount} is less than min ${minRequiredPoints} or not a number.`, true);
                 return;
             }
 
             if (amount > earnedPoints) {
                 let message = translations[currentLanguage].insufficient_balance.replace('{earnedPoints}', earnedPoints.toFixed(2));
                 showTemporaryMessage(message, 'red');
+                logMessage(`Withdrawal failed: Insufficient balance. Tried to withdraw ${amount}, current: ${earnedPoints}.`, true);
                 return;
             }
 
             if (!walletAddress.trim()) { 
                 showTemporaryMessage(translations[currentLanguage].enter_wallet_address, 'red');
+                logMessage("Withdrawal failed: Wallet address is empty.", true);
                 return;
             }
 
@@ -1571,11 +1647,12 @@
                 const appId = firebaseConfig.projectId; 
                 const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.telegramUserId);
                 
+                logMessage(`Firestore Update: Attempting to deduct ${amount} points from user ${window.telegramUserId}.`);
                 await updateDoc(userDocRef, {
                     earnedPoints: increment(-amount)
                 });
+                logMessage(`Firestore Update: Points deducted successfully for user ${window.telegramUserId}.`);
 
-                // تم تعديل رسالة السحب لتضمين معرف المستخدم واسم المستخدم
                 let messageToAdmin = `New Withdrawal Request:\nUser ID: ${window.telegramUserId}`;
                 if (window.telegramUsername) {
                     messageToAdmin += `\nUsername: @${window.telegramUsername}`;
@@ -1590,15 +1667,17 @@
                     messageToAdmin += `Unknown Method: ${paymentMethod}\nWallet Address: ${walletAddress}`; 
                 }
                 
+                logMessage("Telegram Bot API: Sending withdrawal request to admin.");
                 sendWithdrawRequestToAdmin(messageToAdmin);
 
                 showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green');
+                logMessage("Withdrawal request sent successfully.");
 
                 document.getElementById('withdraw-amount').value = '';
                 document.getElementById('wallet-address').value = '';
 
             } catch (error) {
-                console.error("Error during withdrawal or Firestore update:", error);
+                logMessage("Withdrawal Error: Failed to update Firestore or send Telegram message: " + error.message, true);
                 showTemporaryMessage("Withdrawal failed. Please try again.", 'red');
             }
         }
@@ -1608,15 +1687,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.ok) {
-                        console.log('Message sent to admin');
+                        logMessage('Telegram Bot API: Message sent to admin successfully.');
                     } else {
-                        console.error('Failed to send message to Telegram:', data.description || data);
-                        let errorMessage = translations[currentLanguage].telegram_send_fail.replace('{error}', data.description || data);
+                        logMessage('Telegram Bot API Error: Failed to send message to Telegram: ' + (data.description || JSON.stringify(data)), true);
+                        let errorMessage = translations[currentLanguage].telegram_send_fail.replace('{error}', data.description || JSON.stringify(data));
                         showTemporaryMessage(errorMessage, 'red');
                     }
                 })
                 .catch(error => {
-                    console.error('Error during fetch to Telegram API:', error);
+                    logMessage('Telegram Bot API Error: Network error during fetch to Telegram API: ' + error.message, true);
                     let errorMessage = translations[currentLanguage].telegram_connect_error.replace('{error}', error.message);
                     showTemporaryMessage(errorMessage, 'red');
                 });
@@ -1630,6 +1709,7 @@
             messageTimeout = setTimeout(() => {
                 withdrawStatusEl.textContent = '';
             }, 5000); 
+            logMessage(`Temporary Message: ${msg} (Color: ${color})`);
         }
 
         function generateReferralLink() {
@@ -1643,6 +1723,7 @@
         window.showReferralSection = function() {
             if (!isAppReady || !window.telegramUserId) { 
                 showAdNotification(translations[currentLanguage].loading_app);
+                logMessage("Show referral section blocked: App not ready or Telegram User ID missing.");
                 return;
             }
             hideAllSections();
@@ -1650,6 +1731,7 @@
             updateReferralUI();
             currentSection = 'referral';
             updateBackButtonVisibility();
+            logMessage("Referral section displayed.");
         }
 
         window.hideReferralSection = function() {
@@ -1657,22 +1739,26 @@
             showMainContent(); 
             currentSection = 'main';
             updateBackButtonVisibility();
+            logMessage("Referral section hidden.");
         }
 
         function updateReferralUI() {
             referralLinkInput.value = generateReferralLink();
             totalReferralsEl.textContent = totalReferrals;
             earnedFromReferralsEl.textContent = earnedFromReferrals.toFixed(2);
+            logMessage(`Referral UI updated. Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
         }
 
         window.copyReferralLink = function() {
             if (!isAppReady || !window.telegramUserId) { 
                 showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
+                logMessage("Copy referral link blocked: App not ready or Telegram User ID missing.");
                 return;
             }
             referralLinkInput.select();
             document.execCommand('copy'); 
             showTemporaryMessage(translations[currentLanguage].link_copied_success, 'green');
+            logMessage("Referral link copied.");
         }
 
         function hideAllSections() {
@@ -1681,25 +1767,30 @@
             document.querySelector('.ad-container').style.display = 'none';
             document.querySelector('.website-section').style.display = 'none';
             document.querySelector('.buttons').style.display = 'none';
+            logMessage("All auxiliary sections hidden.");
         }
 
         function showMainContent() {
             document.querySelector('.ad-container').style.display = 'block';
             document.querySelector('.website-section').style.display = 'block';
             document.querySelector('.buttons').style.display = 'flex';
+            logMessage("Main content displayed.");
         }
 
         function updateBackButtonVisibility() {
             if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
                 if (currentSection !== 'main') {
                     window.Telegram.WebApp.BackButton.show();
+                    logMessage("Telegram BackButton shown.");
                 } else {
                     window.Telegram.WebApp.BackButton.hide();
+                    logMessage("Telegram BackButton hidden.");
                 }
             }
         }
 
         function handleBackButtonClick() {
+            logMessage("Telegram BackButton clicked.");
             if (currentSection === 'withdraw') {
                 hideWithdrawForm();
             } else if (currentSection === 'referral') {
@@ -1708,6 +1799,7 @@
         }
 
         window.onload = async function() {
+            logMessage("Window loaded. Starting app initialization sequence.");
             setLanguage(currentLanguage); 
             updateButtonStates(); 
             await initApp(); 
