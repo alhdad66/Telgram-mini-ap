@@ -524,85 +524,6 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .tap-button-container {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        .tap-claim-btn {
-            display: none; /* Hidden by default */
-            position: relative;
-            padding: 16px 30px;
-            border: none;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            color: white;
-            background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
-            box-shadow: 
-                0 8px 0 #1e7e34, 
-                0 15px 20px rgba(0, 0, 0, 0.4);
-            transition: all 0.2s ease;
-            transform-style: preserve-3d;
-            perspective: 500px;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .tap-claim-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, #28a745, #218838); 
-            z-index: -1;
-            transition: all 0.3s ease;
-        }
-        
-        .tap-claim-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            /* Shiny effect on hover */
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.2), 
-                transparent);
-            transition: all 0.5s ease;
-            z-index: -1;
-        }
-        
-        .tap-claim-btn:hover {
-            transform: translateY(4px);
-            box-shadow: 
-                0 4px 0 #1e7e34,
-                0 8px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .tap-claim-btn:hover::after {
-            left: 100%;
-        }
-        
-        .tap-claim-btn:active {
-            transform: translateY(8px);
-            box-shadow: 
-                0 0 0 #1e7e34,
-                0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        .tap-claim-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: 0 8px 0 #1e7e34, 
-                        0 15px 20px rgba(0, 0, 0, 0.4);
-        }
-
         .points-per-tap-message {
             font-size: 16px;
             color: var(--light);
@@ -767,7 +688,8 @@
         }
 
         .xo-game-start-button,
-        .xo-game-reset-button {
+        .xo-game-reset-button,
+        .tap-claim-btn {
             margin-top: 20px;
             padding: 14px 25px;
             border-radius: 15px;
@@ -1268,10 +1190,9 @@
                         element.textContent = translations[lang][key].replace(`(${DAILY_GAME_LIMIT})`, `(${DAILY_GAME_LIMIT})`); 
                     } else if (key === 'insufficient_balance') {
                         element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2));
-                    } else if (key === 'xo_player_turn' || key === 'xo_win_message' || key === 'xo_draw_message' || key === 'xo_start_button') {
-                        // These are handled by updateButtonStates based on game state
-                        // No direct update here, status will be set by updateButtonStates
-                    }
+                    } 
+                    // No need to handle xo_player_turn, xo_win_message, xo_draw_message, xo_start_button here
+                    // as they are handled by updateButtonStates based on game state
                     else {
                         element.textContent = translations[lang][key];
                     }
@@ -1548,19 +1469,19 @@
             xoCells.forEach(cell => {
                 cell.addEventListener('click', handleCellClick);
             });
-            xoStartBtn.addEventListener('click', startNewGame);
-            xoResetBtn.addEventListener('click', startNewGame); // Reset button will also start a new game
+            xoStartBtn.addEventListener('click', () => startNewGame(true));
+            xoResetBtn.addEventListener('click', () => startNewGame(true)); 
 
-            // Set initial UI state
-            startNewGame(true); // Call with true for initial setup (gameActive will be false)
-            logMessage("XO Game event listeners initialized.");
+            // Initial setup: game is not active, waiting for "Start Game"
+            startNewGame(false); 
+            logMessage("XO Game event listeners initialized and initial state set.");
         }
 
         // Function to set up a brand new game state
-        function startNewGame(initialSetup = false) {
+        function startNewGame(activateGame) { 
             board = ['', '', '', '', '', '', '', '', ''];
             currentPlayer = 'X';
-            gameActive = !initialSetup; // If it's initial setup, game is not active yet
+            gameActive = activateGame; // Set gameActive based on parameter
             winningCombination = [];
 
             xoCells.forEach(cell => {
@@ -1641,42 +1562,69 @@
         function updateButtonStates() {
             const limitReached = dailyGameWins >= DAILY_GAME_LIMIT;
             const appNotReady = !isAppReady || !window.telegramUserId;
-            const gameEnded = !gameActive && (winningCombination.length > 0 || !board.includes('')); // Win or Draw
 
-            // Disable all game controls if app not ready or limit reached
-            const disableAllGameControls = appNotReady || limitReached;
-
-            xoCells.forEach(cell => {
-                cell.style.pointerEvents = gameActive && !disableAllGameControls ? 'auto' : 'none';
-            });
-
-            claimRewardBtn.style.display = 'none';
+            // Default visibility
+            xoGameBoard.style.display = 'none';
             xoStartBtn.style.display = 'none';
             xoResetBtn.style.display = 'none';
+            claimRewardBtn.style.display = 'none';
+            
+            // Default interactivity for cells (disabled)
+            xoCells.forEach(cell => {
+                cell.style.pointerEvents = 'none';
+                cell.classList.remove('x', 'o', 'winning-cell'); // Ensure cells are clean
+                cell.textContent = ''; // Clear cell content
+            });
 
-            if (disableAllGameControls) {
-                xoGameStatus.textContent = translations[currentLanguage].daily_limit_reached; // Or loading message
-                // All game buttons remain hidden/disabled via default states
+            // Set text content for status based on game state
+            if (appNotReady) {
+                xoGameStatus.textContent = translations[currentLanguage].loading_app;
+            } else if (limitReached) {
+                xoGameStatus.textContent = translations[currentLanguage].daily_limit_reached;
             } else if (gameActive) {
+                // Game is in progress
+                xoGameBoard.style.display = 'grid';
                 xoGameStatus.textContent = translations[currentLanguage].xo_player_turn.replace('{player}', currentPlayer);
+                xoCells.forEach(cell => {
+                    cell.style.pointerEvents = 'auto'; // Enable clicks for active game
+                });
                 xoResetBtn.style.display = 'block'; // Allow reset during active game
-                xoResetBtn.disabled = false;
-            } else if (gameEnded) {
-                // Game has ended (win or draw)
-                if (winningCombination.length > 0) {
-                    xoGameStatus.textContent = translations[currentLanguage].xo_win_message.replace('{player}', currentPlayer);
-                    claimRewardBtn.style.display = 'block';
-                    claimRewardBtn.disabled = false; // Can claim reward
-                } else { // Draw
-                    xoGameStatus.textContent = translations[currentLanguage].xo_draw_message;
-                }
-                xoResetBtn.style.display = 'block'; // Allow starting new game or resetting
-                xoResetBtn.disabled = false; // Enable reset button
-            } else { // Initial state, or after a game finished and reset, ready to start new
+            } else if (winningCombination.length > 0) {
+                // Game ended with a win
+                xoGameBoard.style.display = 'grid';
+                xoGameStatus.textContent = translations[currentLanguage].xo_win_message.replace('{player}', currentPlayer);
+                claimRewardBtn.style.display = 'block'; // Show claim button
+                xoResetBtn.style.display = 'block'; // Show reset button
+                highlightWinningCells(); // Ensure winning cells are highlighted
+                // Re-populate cells with X/O after highlight to ensure visual state
+                board.forEach((value, index) => {
+                    if (value !== '') {
+                        xoCells[index].textContent = value;
+                        xoCells[index].classList.add(value.toLowerCase());
+                    }
+                });
+            } else if (!board.includes('')) {
+                // Game ended in a draw (board full, no win)
+                xoGameBoard.style.display = 'grid';
+                xoGameStatus.textContent = translations[currentLanguage].xo_draw_message;
+                xoResetBtn.style.display = 'block'; // Show reset button
+                // Re-populate cells with X/O to show final board state
+                board.forEach((value, index) => {
+                    if (value !== '') {
+                        xoCells[index].textContent = value;
+                        xoCells[index].classList.add(value.toLowerCase());
+                    }
+                });
+            } else {
+                // Initial state or after game is reset/claimed, ready to start a new one
                 xoGameStatus.textContent = translations[currentLanguage].xo_start_button;
-                xoStartBtn.style.display = 'block';
-                xoStartBtn.disabled = false;
+                xoStartBtn.style.display = 'block'; // Show start button
             }
+
+            // Common button disabled state logic
+            xoStartBtn.disabled = appNotReady || limitReached;
+            xoResetBtn.disabled = appNotReady || limitReached;
+            claimRewardBtn.disabled = appNotReady || limitReached || !winningCombination.length > 0; // Only enable claim if won
 
             // Disable main navigation buttons if app not ready
             document.getElementById('show-withdraw-btn').disabled = appNotReady;
@@ -1749,7 +1697,7 @@
 
                     showAdNotification(translations[currentLanguage].ad_completed_success.replace('{POINTS_PER_WIN}', pointsToAdd.toFixed(2)));
                     
-                    startNewGame(true); // Go back to the initial state
+                    startNewGame(false); // Go back to the initial state (ready to start new game)
                 } else {
                     logMessage("Adsgram Error: SDK not available or functions missing. Check script tag and network.", true);
                     showAdNotification(translations[currentLanguage].ad_failed);
@@ -2027,8 +1975,8 @@
         window.onload = async function() {
             logMessage("Window loaded. Starting app initialization sequence.");
             setLanguage(currentLanguage); 
-            updateButtonStates(); 
-            await initApp(); 
+            initializeXOGame(); // Initialize XO game event listeners and initial state
+            await initApp(); // initApp calls updateButtonStates after user data is loaded
         };
     </script>
 </body>
