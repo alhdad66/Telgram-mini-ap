@@ -726,7 +726,7 @@
             const profilePicDiv = document.getElementById('profile-pic');
             // Use user photo if available, otherwise use first letter of their name
             if (tgUser.photo_url) {
-                profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
+                profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="صورة الملف الشخصي">`;
                 customLog("loadTelegramUser: تم تعيين اسم المستخدم وصورة الملف الشخصي من Telegram.");
             } else {
                 profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
@@ -831,7 +831,7 @@
             return `
                 <div class="list-item">
                     <div class="rank">#${index + 1}</div>
-                    <img src="${userAvatar}" class="avatar" alt="Avatar" onerror="this.onerror=null;this.src='https://placehold.co/150x150/00a651/ffffff?text=${userName.charAt(0)}';">
+                    <img src="${userAvatar}" class="avatar" alt="صورة رمزية" onerror="this.onerror=null;this.src='https://placehold.co/150x150/00a651/ffffff?text=${userName.charAt(0)}';">
                     <div class="info"><div class="name">${userName}</div></div>
                     <div class="score">${user.points} نقطة</div>
                 </div>`;
@@ -1038,7 +1038,7 @@
             }, { merge: true }); // Use merge: true to update existing fields without overwriting the entire document
             customLog("Firestore: تم حفظ نقاط المستخدم في Firestore بنجاح: " + JSON.stringify({ userId: window.currentUserId, points: points }));
         } catch (error) {
-            customLog("Firestore: خطأ أثناء حفظ نقاط المستخدم في Firestore: " + error.message, 'error');
+            customLog("Firestore: خطأ أثناء حفظ نقاط المستخدم في Firestore: " + error.message, 'error'); // Enhanced error logging
             showMessageModal('خطأ في حفظ البيانات', 'فشل حفظ نقاطك في لوحة المتصدرين. يرجى المحاولة مرة أخرى.');
         }
     }
