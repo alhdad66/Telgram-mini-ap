@@ -6,6 +6,7 @@
   <title>Easy Earning Bot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
+    /* Root CSS variables for consistent theming */
     :root {
       --primary-color: #2ed914;
       --primary-hover: #3bff21;
@@ -16,35 +17,45 @@
       --accent-color: #ff8c00;
       --card-bg: #252528;
     }
+    /* Universal box-sizing and tap highlight removal */
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    /* Body styling for centering content and basic typography */
     body {
       margin: 0; padding: 0; background-color: var(--background-color); color: var(--text-color);
       font-family: 'Segoe UI', 'Roboto', sans-serif; display: flex; justify-content: center; align-items: center;
       height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
+    /* Main container for the app, responsive and styled */
     .container {
       width: 100%; height: 100%; max-width: 400px; background: var(--background-color);
       display: flex; flex-direction: column; overflow: hidden; position: relative;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Added for better container visibility */
     }
+    /* Main content area, takes available space and allows scrolling */
     main {
       flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* Space for footer nav */
     }
+    /* View management for showing/hiding different sections */
     .view { display: none; animation: fadeIn 0.4s ease-in-out; }
     .view.active { display: block; }
+    /* Fade-in animation for view transitions */
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* User header card styling */
     .user-header-card {
       background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 25px;
       display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.05);
     }
+    /* User avatar styling */
     .user-avatar {
       width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; overflow: hidden;
       background: linear-gradient(135deg, var(--primary-color), #00a651);
       display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;
     }
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    /* User info text styling */
     .user-info .username { font-size: 18px; font-weight: 700; margin: 0; }
     .user-info .title { font-size: 14px; color: var(--text-muted-color); margin: 0; }
+    /* Balance card styling with gradient background */
     .balance-card {
       background: linear-gradient(135deg, #00a651, #00753a); border-radius: 16px; padding: 20px;
       text-align: center; margin-bottom: 25px;
@@ -52,7 +63,9 @@
     .balance-card .label { font-size: 16px; opacity: 0.8; margin-bottom: 5px; }
     .balance-card .balance-value { font-size: 36px; font-weight: 800; margin: 0; letter-spacing: 1px; }
     .balance-card .points-value { font-size: 16px; font-weight: 600; color: var(--accent-color); margin-top: 10px; }
+    /* Section title styling */
     .section-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; padding-left: 5px; border-left: 4px solid var(--primary-color); }
+    /* Task card styling for interactive elements */
     .task-card {
       background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px;
       display: flex; align-items: center; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease;
@@ -63,6 +76,7 @@
     .task-details h3 { margin: 0; font-size: 16px; font-weight: 600; }
     .task-details p { margin: 3px 0 0; font-size: 13px; color: var(--text-muted-color); }
     .task-arrow { margin-left: auto; font-size: 18px; color: var(--text-muted-color); }
+    /* List item styling for leaderboard and history */
     .list-item {
       display: flex; align-items: center; background: var(--card-bg); padding: 12px 15px;
       border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.05);
@@ -74,11 +88,13 @@
     .list-item .info .detail { font-size: 13px; color: var(--text-muted-color); }
     .list-item .score { font-size: 16px; font-weight: 700; color: var(--accent-color); }
     .history-icon { color: var(--primary-color); margin-right: 15px; font-size: 18px; }
+    /* Footer navigation bar styling */
     .footer-nav {
       position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 400px; margin: 0 auto;
       display: flex; justify-content: space-around; background: var(--secondary-color);
       padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
+    /* Navigation button styling */
     .nav-button {
       display: flex; flex-direction: column; align-items: center; color: var(--text-muted-color);
       background: none; border: none; font-size: 12px; transition: color 0.2s ease, transform 0.2s ease;
@@ -87,38 +103,44 @@
     .nav-button .icon { font-size: 22px; margin-bottom: 4px; }
     .nav-button:hover { color: var(--text-color); }
     .nav-button.active { color: var(--primary-color); transform: scale(1.1); }
+    /* Action button styling (general) */
     .action-button {
       width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700;
       margin-top: 15px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
     }
+    /* Primary button styling */
     .primary-button { background: var(--primary-color); color: #000; }
     .primary-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 217, 20, 0.3); }
+    /* Secondary button styling */
     .secondary-button { background: var(--secondary-color); color: var(--primary-color); }
     .secondary-button:hover { background: #3a3a3e; }
 
-    /* Modal Styles */
+    /* Modal overlay for popups */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
       display: none; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s;
     }
     .modal-overlay.active { display: flex; }
+    /* Modal content styling */
     .modal-content {
       background: var(--card-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 320px;
       text-align: center; animation: slideIn 0.3s;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
+    /* Slide-in animation for modals */
     @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .modal-content h3 { margin-top: 0; font-size: 20px; }
     .modal-content p { color: var(--text-muted-color); margin-bottom: 25px; }
     .modal-actions { display: flex; gap: 10px; justify-content: center; }
 
-    /* Loading Indicator Styles */
+    /* Loading overlay styling */
     .loading-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
         display: none; align-items: center; justify-content: center; z-index: 2000;
         flex-direction: column;
     }
     .loading-overlay.active { display: flex; }
+    /* Spinner animation for loading */
     .spinner {
         border: 4px solid rgba(255, 255, 255, 0.3);
         border-top: 4px solid var(--primary-color);
@@ -137,7 +159,7 @@
         100% { transform: rotate(360deg); }
     }
 
-    /* XO Game Styles */
+    /* XO Game specific styles */
     .xo-game-container {
         display: flex;
         flex-direction: column;
@@ -205,6 +227,7 @@
 
   <!-- Adsgram SDK -->
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+  <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -227,7 +250,7 @@
         </div>
         <h2 class="section-title">Quick Actions</h2>
         <div class="task-card" onclick="showView('tasks-view')">
-            <div class="task-icon"><i class="fa-solid fa-gamepad"></i></div> <!-- Changed icon to gamepad -->
+            <div class="task-icon"><i class="fa-solid fa-gamepad"></i></div>
             <div class="task-details"><h3>Play Game</h3><p>Win the XO game to earn points.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-chevron-right"></i></div>
         </div>
@@ -277,7 +300,7 @@
 
     <nav class="footer-nav">
       <button class="nav-button active" onclick="showView('home-view')"><i class="icon fa-solid fa-house"></i>Home</button>
-      <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-gamepad"></i>Play</button> <!-- Changed text to Play -->
+      <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-gamepad"></i>Play</button>
       <button class="nav-button" onclick="showView('leaderboard-view')"><i class="icon fa-solid fa-trophy"></i>Leaders</button>
       <button class="nav-button" onclick="showView('history-view')"><i class="icon fa-solid fa-clock-rotate-left"></i>History</button>
       <button class="nav-button" onclick="shareApp()"><i class="icon fa-solid fa-share-nodes"></i>Share</button>
@@ -324,6 +347,7 @@
 
     // --- Adsgram Controller Variable ---
     let adsgramAdController = null; // Will store the initialized AdController
+    const ADSGRAM_BLOCK_ID = "12307"; // Your Adsgram Block ID
 
     // --- XO Game State ---
     let board = ['', '', '', '', '', '', '', '', ''];
@@ -362,20 +386,27 @@
         initXOBoardListeners(); // Initialize XO game click listeners
         resetGame(); // Initialize the game board
         
-        // Initialize Adsgram SDK
-        initializeAdsgram();
+        // Initialize Adsgram SDK with a retry mechanism
+        initializeAdsgram(0); // Start with retry attempt 0
     }
     
-    // --- Initialize Adsgram ---
-    function initializeAdsgram() {
-        // Check if the Adsgram SDK (window.Adsgram) is loaded
+    // --- Initialize Adsgram with retry logic ---
+    function initializeAdsgram(retryAttempt) {
+        const MAX_RETRIES = 10; // Maximum number of retries
+        const RETRY_DELAY_MS = 500; // Delay between retries in milliseconds
+
         if (window.Adsgram) {
-            // Initializing AdController with the provided Block ID
-            adsgramAdController = window.Adsgram.init({ blockId: "12307" });
-            console.log("Adsgram SDK Initialized with AdController (Block ID: 12307).");
+            // Adsgram SDK is loaded, initialize AdController
+            adsgramAdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
+            console.log("Adsgram SDK Initialized with AdController (Block ID: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
+        } else if (retryAttempt < MAX_RETRIES) {
+            // Adsgram SDK not loaded yet, retry after a delay
+            console.warn(`Adsgram SDK (window.Adsgram) not found. Retrying initialization (Attempt ${retryAttempt + 1}/${MAX_RETRIES})...`);
+            setTimeout(() => initializeAdsgram(retryAttempt + 1), RETRY_DELAY_MS);
         } else {
-            console.warn("Adsgram SDK (window.Adsgram) not found. Retrying initialization...");
-            setTimeout(initializeAdsgram, 2000); // Retry after 2 seconds if SDK is not loaded yet
+            // Max retries reached, Adsgram SDK failed to load
+            console.error("Adsgram SDK failed to load after multiple retries. Ads will not function.");
+            showMessageModal('Ad SDK Error', 'Adsgram SDK could not be loaded. Please check your internet connection or try again later.');
         }
     }
 
@@ -644,20 +675,24 @@
     }
 
     function claimReward() {
-        // Check if Adsgram AdController is initialized
-        if (adsgramAdController) {
+        console.log("Attempting to claim reward. Checking Adsgram AdController...");
+        // Check if Adsgram AdController is initialized and has the showAd method
+        if (adsgramAdController && typeof adsgramAdController.showAd === 'function') {
+            console.log("Adsgram AdController is ready. Calling showAd()...");
             // Call Adsgram's showAd function
             adsgramAdController.showAd().then(() => {
                 // This callback is typically for when the ad is successfully shown/closed
+                console.log("Adsgram ad shown successfully (or promise resolved). Granting reward.");
                 grantReward();
             }).catch(e => {
-                // Handle cases where the ad could not be shown
-                showMessageModal('Ad Failed', 'Adsgram ad could not be shown. Please try again.');
-                console.error("Adsgram Ad Error:", e);
+                // Handle cases where the ad could not be shown (e.g., network error, no fill)
+                console.error("Adsgram Ad failed to show:", e);
+                showMessageModal('Ad Failed', 'Adsgram ad could not be shown. Please try again. (Reason: ' + (e.message || 'Unknown error') + ')');
                 resetGame(); // Reset game even if ad fails, to allow user to play again
             });
         } else {
-            return showMessageModal('Ad Error', 'Adsgram SDK is not initialized. Please try again in a moment.');
+            console.error("Adsgram SDK is not initialized or showAd is not a function. adsgramAdController:", adsgramAdController);
+            showMessageModal('Ad Error', 'Adsgram SDK is not ready. Please try again in a moment. Ensure your Block ID is correct and Adsgram SDK is fully loaded.');
         }
     }
 
