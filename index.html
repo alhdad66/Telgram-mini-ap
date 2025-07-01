@@ -287,8 +287,8 @@
         projectId: "pepe-top",
         storageBucket: "pepe-top.firebasestorage.app",
         messagingSenderId: "252494273467",
-        appId: "1:252494273467:web:219f04c177499ad721829e", // Updated appId
-        measurementId: "G-8VW4G3M9MD" // Updated measurementId
+        appId: "1:252494273467:web:643e49c646eb525421829e", // Updated appId as per user's request
+        measurementId: "G-86L0NLDEYH" // Updated measurementId as per user's request
     };
     // --------------------------------------------------------------------
 
@@ -576,35 +576,35 @@
 
     // --- Core App Logic ---
     document.addEventListener('DOMContentLoaded', () => {
-        customLog("DOMContentLoaded: DOM fully loaded.");
+        customLog("DOMContentLoaded: تم تحميل DOM بالكامل.");
         // Listen for Firebase auth ready event before proceeding with app initialization
         window.addEventListener('firebaseAuthReady', () => {
-            customLog("firebaseAuthReady: Firebase auth is ready, proceeding with app initialization.");
+            customLog("firebaseAuthReady: مصادقة Firebase جاهزة، جاري المتابعة بتهيئة التطبيق.");
             initAppAfterFirebase();
         });
     });
 
     function initAppAfterFirebase() {
-        customLog("initAppAfterFirebase: Starting app initialization after Firebase.");
+        customLog("initAppAfterFirebase: جاري بدء تهيئة التطبيق بعد Firebase.");
         // Initialize Telegram Web App features if available
         if (window.Telegram && Telegram.WebApp) {
-            customLog("Telegram WebApp: Telegram WebApp object exists.");
+            customLog("Telegram WebApp: كائن Telegram WebApp موجود.");
             try {
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
-                customLog("Telegram WebApp: ready() and expand() called.");
+                customLog("Telegram WebApp: تم استدعاء ready() و expand().");
                 // Check if initDataUnsafe and user object are available
                 if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
                     tgUser = Telegram.WebApp.initDataUnsafe.user;
-                    customLog("Telegram WebApp: Telegram user data loaded: " + JSON.stringify(tgUser));
+                    customLog("Telegram WebApp: تم تحميل بيانات مستخدم Telegram: " + JSON.stringify(tgUser));
                 } else {
-                    customLog("Telegram WebApp: Telegram WebApp initDataUnsafe.user data not available. This typically happens if the app is not opened from within Telegram.", 'warn');
+                    customLog("Telegram WebApp: بيانات مستخدم Telegram WebApp initDataUnsafe.user غير متاحة. هذا يحدث عادةً إذا لم يتم فتح التطبيق من داخل Telegram.", 'warn');
                 }
             } catch (error) {
-                customLog("Telegram WebApp: Error initializing Telegram WebApp: " + error.message, 'error');
+                customLog("Telegram WebApp: خطأ أثناء تهيئة Telegram WebApp: " + error.message, 'error');
             }
         } else {
-            customLog("Telegram WebApp: Telegram WebApp object not found. Running outside Telegram context.", 'warn');
+            customLog("Telegram WebApp: كائن Telegram WebApp غير موجود. يعمل خارج سياق Telegram.", 'warn');
         }
 
         loadData(); // Load saved user data (from local storage)
@@ -634,26 +634,26 @@
             // Adsgram SDK is loaded, initialize AdController
             try {
                 adsgramAdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-                customLog("Adsgram: Adsgram SDK initialized with AdController (Block ID: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
+                customLog("Adsgram: تم تهيئة Adsgram SDK مع AdController (معرف الكتلة: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
             } catch (error) {
-                customLog("Adsgram: Error initializing AdController: " + error.message, 'error');
-                showMessageModal('Ad Initialization Error', 'Could not initialize Adsgram AdController. Please check your block ID.');
+                customLog("Adsgram: خطأ أثناء تهيئة AdController: " + error.message, 'error');
+                showMessageModal('خطأ في تهيئة الإعلان', 'تعذر تهيئة Adsgram AdController. يرجى التحقق من معرف الكتلة الخاص بك.');
                 return; // Stop further attempts if initial init fails
             }
         } else if (retryAttempt < MAX_RETRIES) {
             // Adsgram SDK not loaded yet, retry after a delay
-            customLog(`Adsgram: Adsgram SDK (window.Adsgram) not found. Retrying initialization (Attempt ${retryAttempt + 1}/${MAX_RETRIES})...`, 'warn');
+            customLog(`Adsgram: لم يتم العثور على Adsgram SDK (window.Adsgram). جاري إعادة تهيئة (المحاولة ${retryAttempt + 1}/${MAX_RETRIES})...`, 'warn');
             setTimeout(() => initializeAdsgram(retryAttempt + 1), RETRY_DELAY_MS);
         } else {
             // Max retries reached, Adsgram SDK failed to load
-            customLog("Adsgram: Failed to load Adsgram SDK after multiple attempts. Ads will not function.", 'error');
-            showMessageModal('Ad SDK Error', 'Could not load Adsgram SDK. Please check your internet connection or try again later.');
+            customLog("Adsgram: فشل تحميل Adsgram SDK بعد عدة محاولات. لن تعمل الإعلانات.", 'error');
+            showMessageModal('خطأ في SDK الإعلانات', 'تعذر تحميل Adsgram SDK. يرجى التحقق من اتصالك بالإنترنت أو المحاولة مرة أخرى لاحقًا.');
         }
     }
 
     // --- View Management ---
     function showView(viewId) {
-        customLog("View Management: Switching to view: " + viewId);
+        customLog("View Management: جاري التبديل إلى العرض: " + viewId);
         // Hide all views
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         // Show the desired view
@@ -672,7 +672,7 @@
     
     // --- Data Persistence ---
     function loadData() {
-        customLog("Data Persistence: Loading data from local storage.");
+        customLog("Data Persistence: جاري تحميل البيانات من التخزين المحلي.");
         try {
             // Retrieve data from local storage
             const savedData = localStorage.getItem('easyEarningBotV2');
@@ -682,83 +682,83 @@
                 points = data.points || 0;
                 balance = data.balance || 0.00;
                 historyLog = data.historyLog || [];
-                customLog("Data Persistence: Data loaded successfully: " + JSON.stringify({ points, balance, historyLog }));
+                customLog("Data Persistence: تم تحميل البيانات بنجاح: " + JSON.stringify({ points, balance, historyLog }));
             } else {
-                customLog("Data Persistence: No saved data found. Starting with default values.");
+                customLog("Data Persistence: لم يتم العثور على بيانات محفوظة. جاري البدء بقيم افتراضية.");
             }
         } catch (error) {
-            customLog("Data Persistence: Error loading data from local storage: " + error.message, 'error');
+            customLog("Data Persistence: خطأ أثناء تحميل البيانات من التخزين المحلي: " + error.message, 'error');
         }
         updateDisplay(); // Update UI with loaded data
     }
 
     function saveData() {
-        customLog("Data Persistence: Saving data to local storage.");
+        customLog("Data Persistence: جاري حفظ البيانات في التخزين المحلي.");
         try {
             // Save current points, balance, and history log to local storage
             localStorage.setItem('easyEarningBotV2', JSON.stringify({ points, balance, historyLog }));
-            customLog("Data Persistence: Data saved successfully.");
+            customLog("Data Persistence: تم حفظ البيانات بنجاح.");
         } catch (error) {
-            customLog("Data Persistence: Error saving data to local storage: " + error.message, 'error');
+            customLog("Data Persistence: خطأ أثناء حفظ البيانات في التخزين المحلي: " + error.message, 'error');
         }
     }
 
     function updateDisplay() {
-        customLog("Display Update: Updating UI display.");
+        customLog("Display Update: جاري تحديث عرض واجهة المستخدم.");
         // Update displayed points and balance values
         document.getElementById('points-value').textContent = points;
         document.getElementById('balance-value').textContent = `$${balance.toFixed(2)}`;
         // Update Firebase User ID display
         if (window.currentUserId) {
-            displayUserIdElement.textContent = `ID: ${window.currentUserId}`;
+            displayUserIdElement.textContent = `المعرف: ${window.currentUserId}`;
         } else {
-            displayUserIdElement.textContent = `ID: N/A`; // Fallback if Firebase User ID not ready
+            displayUserIdElement.textContent = `المعرف: غير متاح`; // Fallback if Firebase User ID not ready
         }
-        customLog("Display Update: Points, Balance, and User ID updated.");
+        customLog("Display Update: تم تحديث النقاط والرصيد ومعرف المستخدم.");
     }
     
     // --- User & Profile ---
     function loadTelegramUser() {
-        customLog("loadTelegramUser: Function called.");
+        customLog("loadTelegramUser: تم استدعاء الدالة.");
         // If Telegram user data is available
         if (tgUser) {
-            document.getElementById('username').textContent = tgUser.first_name || 'Telegram User';
+            document.getElementById('username').textContent = tgUser.first_name || 'مستخدم Telegram';
             const profilePicDiv = document.getElementById('profile-pic');
             // Use user photo if available, otherwise use first letter of their name
             if (tgUser.photo_url) {
                 profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
-                customLog("loadTelegramUser: Username and profile picture set from Telegram.");
+                customLog("loadTelegramUser: تم تعيين اسم المستخدم وصورة الملف الشخصي من Telegram.");
             } else {
                 profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
-                customLog("loadTelegramUser: Username and first letter of name set (no photo).");
+                customLog("loadTelegramUser: تم تعيين اسم المستخدم والحرف الأول من الاسم (لا توجد صورة).");
             }
         } else {
-            document.getElementById('username').textContent = 'Guest';
+            document.getElementById('username').textContent = 'ضيف';
             document.getElementById('profile-pic').textContent = 'G';
-            customLog("loadTelegramUser: Telegram user data not available. User set as 'Guest'.", 'warn');
+            customLog("loadTelegramUser: بيانات مستخدم Telegram غير متاحة. تم تعيين المستخدم كـ 'ضيف'.", 'warn');
         }
         updateDisplay(); // Also update Firebase User ID display
     }
 
     // --- History Logic ---
     function addToHistory(type, detail) {
-        customLog("History: Adding item to history: " + JSON.stringify({ type, detail }));
+        customLog("History: جاري إضافة عنصر إلى السجل: " + JSON.stringify({ type, detail }));
         const timestamp = new Date().toISOString(); // Get current timestamp
         // Add new item to the beginning of the history log
         historyLog.unshift({ type, detail, timestamp });
         // Keep history log size limited to 50 items
         if (historyLog.length > 50) historyLog.pop();
         saveData(); // Save updated history
-        customLog("History: Item added and history saved.");
+        customLog("History: تم إضافة العنصر وحفظ السجل.");
     }
 
     function renderHistory() {
-        customLog("History: Rendering history.");
+        customLog("History: جاري عرض السجل.");
         const list = document.getElementById('history-list');
         // Display message if history is empty
         if (historyLog.length === 0) {
-            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">No activity yet.</div><div class="detail">Play the XO game to start earning!</div></div></div>`;
-            customLog("History: History is empty. Displayed message.");
+            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا يوجد نشاط بعد.</div><div class="detail">العب لعبة XO للبدء!</div></div></div>`;
+            customLog("History: السجل فارغ. تم عرض رسالة.");
             return;
         }
         
@@ -776,16 +776,16 @@
                     </div>
                 </div>`;
         }).join('');
-        customLog("History: History items rendered.");
+        customLog("History: تم عرض عناصر السجل.");
     }
 
     // --- Leaderboard Logic (Integrated with Firestore) ---
     let leaderboardData = []; // Store fetched leaderboard data
 
     function listenToLeaderboard() {
-        customLog("Leaderboard: Setting up leaderboard listener.");
+        customLog("Leaderboard: جاري إعداد مستمع لوحة المتصدرين.");
         if (!window.db || !window.isAuthReady) {
-            customLog("Leaderboard: Firestore or currentUserId not ready, cannot listen to leaderboard yet.", 'warn');
+            customLog("Leaderboard: Firestore أو المصادقة غير جاهزة، لا يمكن الاستماع إلى لوحة المتصدرين بعد.", 'warn');
             return;
         }
 
@@ -800,7 +800,7 @@
 
         // Set up real-time listener for leaderboard
         onSnapshot(q, (snapshot) => {
-            customLog("Leaderboard: Received update from Firestore.");
+            customLog("Leaderboard: تم تلقي تحديث من Firestore.");
             customLog("Leaderboard: Raw snapshot data (number of docs): " + snapshot.size); // Added log
             leaderboardData = []; // Clear previous data
             snapshot.forEach(doc => {
@@ -809,18 +809,18 @@
             customLog("Leaderboard: Processed leaderboardData array content: " + JSON.stringify(leaderboardData)); // Added log
             renderLeaderboard(); // Re-render leaderboard whenever data changes
         }, (error) => {
-            customLog("Leaderboard: Error listening to leaderboard: " + error.message, 'error');
-            showMessageModal('Leaderboard Error', 'Failed to load leaderboard data. Please try again later.');
+            customLog("Leaderboard: خطأ أثناء الاستماع إلى لوحة المتصدرين: " + error.message, 'error');
+            showMessageModal('خطأ في لوحة المتصدرين', 'فشل تحميل بيانات لوحة المتصدرين. يرجى المحاولة مرة أخرى لاحقًا.');
         });
     }
 
     function renderLeaderboard() {
-        customLog("Leaderboard: Rendering leaderboard.");
+        customLog("Leaderboard: جاري عرض لوحة المتصدرين.");
         customLog("Leaderboard: renderLeaderboard called. Current leaderboardData length: " + leaderboardData.length); // Added log
         const list = document.getElementById('leaderboard-list');
         if (leaderboardData.length === 0) {
             list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا أحد على لوحة المتصدرين بعد.</div><div class="detail">كن أول من يكسب النقاط!</div></div></div>`;
-            customLog("Leaderboard: Leaderboard is empty. Displayed message.");
+            customLog("Leaderboard: لوحة المتصدرين فارغة. تم عرض رسالة.");
             return;
         }
         
@@ -836,50 +836,50 @@
                     <div class="score">${user.points} نقطة</div>
                 </div>`;
         }).join('');
-        customLog("Leaderboard: Leaderboard items rendered.");
+        customLog("Leaderboard: تم عرض عناصر لوحة المتصدرين.");
     }
 
 
     // --- XO Game Logic ---
     function initXOBoardListeners() {
-        customLog("XO Game: Initializing XO board listeners.");
+        customLog("XO Game: جاري تهيئة مستمعي لوحة XO.");
         xoCells.forEach(cell => {
             cell.addEventListener('click', handleCellClick);
         });
     }
 
     function handleCellClick(event) {
-        customLog("XO Game: Cell clicked.");
+        customLog("XO Game: تم النقر على خلية.");
         const clickedCell = event.target;
         const clickedCellIndex = parseInt(clickedCell.dataset.cellIndex);
 
-        // If cell is already filled, or game is inactive, or it's AI's turn, do nothing
+        // إذا كانت الخلية مملوءة بالفعل، أو كانت اللعبة غير نشطة، أو كان دور الذكاء الاصطناعي، فلا تفعل شيئًا
         if (board[clickedCellIndex] !== '' || !gameActive || currentPlayer === 'O') {
-            customLog("XO Game: Invalid move (cell already filled, game inactive, or AI's turn).", 'warn');
+            customLog("XO Game: حركة غير صالحة (خلية مملوءة أو لعبة غير نشطة أو دور الذكاء الاصطناعي).", 'warn');
             return;
         }
 
-        // User's move (Player X)
+        // حركة المستخدم (اللاعب X)
         makeMove(clickedCellIndex, 'X');
         
-        // Check result after user's move
+        // التحقق من النتيجة بعد حركة المستخدم
         if (handleResultValidation()) {
-            customLog("XO Game: Game ended after user's move.");
-            return; // Game ended
+            customLog("XO Game: انتهت اللعبة بعد حركة المستخدم.");
+            return; // انتهت اللعبة
         }
 
-        // If game is still active, AI makes a move after a short delay
+        // إذا كانت اللعبة لا تزال نشطة، يقوم الذكاء الاصطناعي بحركة بعد تأخير قصير
         if (gameActive) {
-            xoStatus.textContent = `AI's Turn...`;
+            xoStatus.textContent = `دور الذكاء الاصطناعي...`;
             xoStatus.style.color = 'var(--text-muted-color)';
-            disableBoard(); // Disable board while AI thinks
-            customLog("XO Game: AI's turn. Disabling board.");
-            setTimeout(aiMove, 1000); // AI moves after 1 second
+            disableBoard(); // تعطيل اللوحة بينما يفكر الذكاء الاصطناعي
+            customLog("XO Game: دور الذكاء الاصطناعي. جاري تعطيل اللوحة.");
+            setTimeout(aiMove, 1000); // الذكاء الاصطناعي يتحرك بعد ثانية واحدة
         }
     }
 
     function makeMove(index, player) {
-        customLog(`XO Game: Making move for player ${player} at cell ${index}.`);
+        customLog(`XO Game: جاري تنفيذ حركة اللاعب ${player} في الخلية ${index}.`);
         board[index] = player;
         const cell = xoCells[index];
         cell.textContent = player;
@@ -888,7 +888,7 @@
     }
 
     function handleResultValidation() {
-        customLog("XO Game: Validating game result.");
+        customLog("XO Game: جاري التحقق من نتيجة اللعبة.");
         let roundWon = false;
         for (let i = 0; i < winningConditions.length; i++) {
             const winCondition = winningConditions[i];
@@ -906,63 +906,63 @@
         }
 
         if (roundWon) {
-            xoStatus.textContent = `Player ${currentPlayer} Wins!`;
+            xoStatus.textContent = `اللاعب ${currentPlayer} يفوز!`;
             xoStatus.style.color = currentPlayer === 'X' ? 'var(--accent-color)' : 'var(--primary-color)';
             gameActive = false;
-            // Show claim reward button ONLY if Player X (user) wins
+            // إظهار زر المطالبة بالمكافأة فقط إذا فاز اللاعب X (المستخدم)
             if (currentPlayer === 'X') {
                 claimRewardButton.style.display = 'block'; 
             }
-            disableBoard(); // Disable further clicks
+            disableBoard(); // تعطيل المزيد من النقرات
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-            customLog(`XO Game: Player ${currentPlayer} won. Game over.`);
-            return true; // Game ended
+            customLog(`XO Game: فاز اللاعب ${currentPlayer}. اللعبة انتهت.`);
+            return true; // انتهت اللعبة
         }
 
         let roundDraw = !board.includes('');
         if (roundDraw) {
-            xoStatus.textContent = `Draw!`;
+            xoStatus.textContent = `تعادل!`;
             xoStatus.style.color = 'var(--text-muted-color)';
             gameActive = false;
             Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
-            customLog("XO Game: Draw. Game over.", 'warn');
-            return true; // Game ended
+            customLog("XO Game: تعادل. اللعبة انتهت.", 'warn');
+            return true; // انتهت اللعبة
         }
-        customLog("XO Game: Game continues.");
-        return false; // Game not ended
+        customLog("XO Game: اللعبة مستمرة.");
+        return false; // اللعبة لم تنته
     }
 
     function aiMove() {
-        customLog("XO Game: Performing AI move.");
+        customLog("XO Game: جاري تنفيذ حركة الذكاء الاصطناعي.");
         const aiPlayer = 'O';
         const humanPlayer = 'X';
         const emptyCells = board.map((val, idx) => val === '' ? idx : -1).filter(idx => idx !== -1);
 
         let chosenMove = -1;
 
-        // AI will now simply pick a random empty cell, making it easy to win against.
+        // سيختار الذكاء الاصطناعي الآن ببساطة خلية فارغة عشوائية، مما يسهل الفوز عليه.
         if (emptyCells.length > 0) {
             chosenMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            customLog("XO Game: AI chose cell: " + chosenMove);
+            customLog("XO Game: الذكاء الاصطناعي اختار الخلية: " + chosenMove);
         } else {
-            customLog("XO Game: No empty cells for AI to move.", 'warn');
+            customLog("XO Game: لا توجد خلايا فارغة للذكاء الاصطناعي للتحرك.", 'warn');
         }
         
         if (chosenMove !== -1) {
-            currentPlayer = aiPlayer; // Set current player to O for the move
+            currentPlayer = aiPlayer; // تعيين اللاعب الحالي إلى O للحركة
             makeMove(chosenMove, aiPlayer);
             if (!handleResultValidation()) {
-                // If game didn't end, switch back to user's turn
+                // إذا لم تنته اللعبة، قم بالتبديل مرة أخرى إلى دور المستخدم
                 currentPlayer = humanPlayer;
-                xoStatus.textContent = `Player X's Turn`;
+                xoStatus.textContent = `دور اللاعب X`;
                 xoStatus.style.color = 'var(--primary-color)';
-                enableBoard(); // Enable board for next user move
-                customLog("XO Game: AI turn finished. Enabling board for user's turn.");
+                enableBoard(); // تمكين اللوحة لحركة المستخدم التالية
+                customLog("XO Game: انتهى دور الذكاء الاصطناعي. جاري تمكين اللوحة لدور المستخدم.");
             }
         } else {
-            // This state should only be reached if the board is full (draw or win already happened)
-            customLog("XO Game: AI could not find a move, but game is active. This should not happen.", 'error');
-            xoStatus.textContent = `Draw!`;
+            // يجب أن يتم الوصول إلى هذه الحالة فقط إذا كانت اللوحة ممتلئة (تعادل أو فوز حدث بالفعل)
+            customLog("XO Game: لم يتمكن الذكاء الاصطناعي من العثور على حركة، ولكن اللعبة نشطة. لا ينبغي أن يحدث هذا.", 'error');
+            xoStatus.textContent = `تعادل!`;
             xoStatus.style.color = 'var(--text-muted-color)';
             gameActive = false;
             disableBoard();
@@ -971,21 +971,21 @@
 
 
     function disableBoard() {
-        customLog("XO Game: Disabling board.");
+        customLog("XO Game: جاري تعطيل اللوحة.");
         xoCells.forEach(cell => cell.classList.add('disabled'));
     }
 
     function enableBoard() {
-        customLog("XO Game: Enabling board.");
+        customLog("XO Game: جاري تمكين اللوحة.");
          xoCells.forEach(cell => cell.classList.remove('disabled'));
     }
 
     function resetGame() {
-        customLog("XO Game: Resetting game.");
+        customLog("XO Game: جاري إعادة تعيين اللعبة.");
         board = ['', '', '', '', '', '', '', '', ''];
         currentPlayer = 'X'; // User always starts as 'X'
         gameActive = true;
-        xoStatus.textContent = `Player X's Turn`;
+        xoStatus.textContent = `دور اللاعب X`;
         xoStatus.style.color = 'var(--primary-color)';
         claimRewardButton.style.display = 'none'; // Hide claim reward button
         enableBoard(); // Enable board for new game
@@ -994,38 +994,38 @@
             cell.textContent = '';
             cell.classList.remove('x', 'o', 'disabled');
         });
-        customLog("XO Game: Game reset successfully.");
+        customLog("XO Game: تم إعادة تعيين اللعبة بنجاح.");
     }
 
     // --- Earning Functions ---
     async function grantReward() {
-        customLog("Reward: Granting reward.");
+        customLog("Reward: جاري منح المكافأة.");
         points += pointsPerAd; // Increase points
         balance = points * ratePerPoint; // Calculate new balance
         updateDisplay(); // Update UI
-        addToHistory('earn', `+${pointsPerAd} Points from XO game win`); // Log the earning
+        addToHistory('earn', `+${pointsPerAd} نقطة (نقاط) من فوز لعبة XO`); // Log the earning
         saveData(); // Save data (local storage)
         
         Telegram.WebApp.HapticFeedback.notificationOccurred('success'); // Provide haptic feedback
-        showMessageModal('Congratulations!', `You earned +${pointsPerAd} points. Your new balance is $${balance.toFixed(2)}.`);
+        showMessageModal('تهانينا!', `لقد ربحت +${pointsPerAd} نقطة. رصيدك الجديد هو $${balance.toFixed(2)}.`);
         resetGame(); // Reset game after granting reward
 
         // Save points to Firestore leaderboard
         await saveUserPointsToFirestore();
-        customLog("Reward: Reward granted and saved to Firestore.");
+        customLog("Reward: تم منح المكافأة وحفظها في Firestore.");
     }
 
     async function saveUserPointsToFirestore() {
-        customLog("Firestore: Saving user points to Firestore.");
+        customLog("Firestore: جاري حفظ نقاط المستخدم في Firestore.");
         if (!window.db || !window.currentUserId) {
-            customLog("Firestore: Firestore or currentUserId not available. Cannot save points to leaderboard.", 'error');
+            customLog("Firestore: Firestore أو currentUserId غير متاحين. لا يمكن حفظ النقاط في لوحة المتصدرين.", 'error');
             return;
         }
 
         // We use projectId from userProvidedFirebaseConfig as appId here for consistency with Firestore pathing
         const appId = userProvidedFirebaseConfig.projectId || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
         const userDocRef = doc(window.db, `/artifacts/${appId}/public/data/leaderboard/${window.currentUserId}`);
-        const userName = tgUser ? tgUser.first_name || 'Anonymous' : 'Anonymous';
+        const userName = tgUser ? tgUser.first_name || 'مجهول' : 'مجهول';
         const userAvatar = tgUser ? tgUser.photo_url || '' : ''; // Save photo URL if available
 
         try {
@@ -1036,71 +1036,71 @@
                 avatar: userAvatar,
                 lastUpdated: new Date()
             }, { merge: true }); // Use merge: true to update existing fields without overwriting the entire document
-            customLog("Firestore: User points saved to Firestore successfully: " + JSON.stringify({ userId: window.currentUserId, points: points }));
+            customLog("Firestore: تم حفظ نقاط المستخدم في Firestore بنجاح: " + JSON.stringify({ userId: window.currentUserId, points: points }));
         } catch (error) {
-            customLog("Firestore: Error saving user points to Firestore: " + error.message, 'error');
-            showMessageModal('Data Save Error', 'Failed to save your points to the leaderboard. Please try again.');
+            customLog("Firestore: خطأ أثناء حفظ نقاط المستخدم في Firestore: " + error.message, 'error');
+            showMessageModal('خطأ في حفظ البيانات', 'فشل حفظ نقاطك في لوحة المتصدرين. يرجى المحاولة مرة أخرى.');
         }
     }
 
 
     function claimReward() {
-        customLog("Adsgram: Attempting to claim reward. Checking Adsgram AdController...");
+        customLog("Adsgram: جاري محاولة المطالبة بالمكافأة. جاري التحقق من Adsgram AdController...");
         
         if (!adsgramAdController) {
-            customLog("Adsgram: Adsgram AdController not initialized. Cannot show ad.", 'error');
-            showMessageModal('Ad Error', 'Adsgram SDK is not initialized. Please try again in a moment. Ensure your block ID is correct and Adsgram SDK is fully loaded.');
+            customLog("Adsgram: Adsgram AdController غير مهيأ. لا يمكن عرض الإعلان.", 'error');
+            showMessageModal('خطأ في الإعلان', 'Adsgram SDK غير مهيأ. يرجى المحاولة مرة أخرى بعد قليل. تأكد من صحة معرف الكتلة الخاص بك وأن Adsgram SDK تم تحميله بالكامل.');
             return;
         }
 
         // Use AdController.show() method as per Adsgram documentation
         // This method returns a Promise with a ShowPromiseResult
         adsgramAdController.show().then((result) => {
-            customLog("Adsgram: Adsgram ad show promise resolved: " + JSON.stringify(result));
+            customLog("Adsgram: تم حل وعد عرض إعلان Adsgram: " + JSON.stringify(result));
             if (result.done) {
-                customLog("Adsgram: User watched the ad to completion or interstitial ad closed. Granting reward.");
+                customLog("Adsgram: شاهد المستخدم الإعلان حتى النهاية أو أغلق الإعلان البيني. جاري منح المكافأة.");
                 grantReward();
             } else {
-                customLog("Adsgram: Ad not watched completely or closed prematurely. Reward will not be granted. Description: " + result.description, 'warn');
-                showMessageModal('Ad Not Completed', 'Please watch the ad completely to claim your reward. (Reason: ' + result.description + ')');
+                customLog("Adsgram: لم يتم مشاهدة الإعلان بالكامل أو تم إغلاقه قبل الأوان. لن يتم منح المكافأة. الوصف: " + result.description, 'warn');
+                showMessageModal('الإعلان لم يكتمل', 'يرجى مشاهدة الإعلان بالكامل للمطالبة بمكافأتك. (السبب: ' + result.description + ')');
                 resetGame(); // Reset game even if ad not completed, to allow user to play again
             }
         }).catch((errorResult) => {
             // This part of the code handles errors during ad playback (e.g., no ads available, network issues)
-            customLog("Adsgram: Adsgram ad show failed or encountered error: " + JSON.stringify(errorResult), 'error');
-            showMessageModal('Ad Failed', 'Could not display Adsgram ad. Please try again. (Reason: ' + (errorResult.description || 'Unknown error') + ')');
+            customLog("Adsgram: فشل عرض إعلان Adsgram أو واجه خطأ: " + JSON.stringify(errorResult), 'error');
+            showMessageModal('فشل الإعلان', 'تعذر عرض إعلان Adsgram. يرجى المحاولة مرة أخرى. (السبب: ' + (errorResult.description || 'Unknown error') + ')');
             resetGame(); // Reset game on ad error
         });
     }
 
     // --- Withdrawal Logic ---
     function openWithdrawModal() {
-        customLog("Withdrawal: Opening withdrawal modal.");
+        customLog("Withdrawal: جاري فتح نموذج السحب.");
         // Check for minimum withdrawal amount
         if (balance < 5) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            customLog("Withdrawal: Insufficient balance for withdrawal.", 'warn');
-            return showMessageModal('Withdrawal Notice', "Minimum withdrawal is $5.00. Keep earning!");
+            customLog("Withdrawal: الرصيد غير كافٍ للسحب.", 'warn');
+            return showMessageModal('إشعار السحب', "الحد الأدنى للسحب هو 5.00 دولارات. استمر في الكسب!");
         }
         document.getElementById('withdraw-modal').classList.add('active'); // Show withdrawal modal
-        customLog("Withdrawal: Withdrawal modal opened.");
+        customLog("Withdrawal: تم فتح نموذج السحب.");
     }
     
     function closeWithdrawModal() {
-        customLog("Withdrawal: Closing withdrawal modal.");
+        customLog("Withdrawal: جاري إغلاق نموذج السحب.");
         document.getElementById('withdraw-modal').classList.remove('active'); // Hide withdrawal modal
     }
 
     async function requestWithdraw() {
-        customLog("Withdrawal: Sending withdrawal request.");
+        customLog("Withdrawal: جاري إرسال طلب السحب.");
         closeWithdrawModal(); // Close confirmation modal
-        showLoadingOverlay('Sending withdrawal request...'); // Show loading indicator
+        showLoadingOverlay('جاري إرسال طلب السحب...'); // Show loading indicator
 
         const botToken = '7201062892:AAGewLnDhE6l7buTuXAIScVhI4d-XJZZ5Hs'; // Your Telegram bot token
         const adminUserId = '6357701459'; // Your Telegram admin user ID
         const userInfo = tgUser ? `@${tgUser.username || 'N/A'} (ID: ${tgUser.id})` : 'Unknown User';
-        const message = `💸 *Withdrawal Request*\n\n👤 *User:* ${userInfo}\n💰 *Amount:* $${balance.toFixed(2)}\n\n_Please process this request._`;
-        customLog("Withdrawal: Withdrawal message ready to send: " + message);
+        const message = `💸 *طلب سحب*\n\n👤 *المستخدم:* ${userInfo}\n💰 *المبلغ:* $${balance.toFixed(2)}\n\n_يرجى معالجة هذا الطلب._`;
+        customLog("Withdrawal: رسالة السحب الجاهزة للإرسال: " + message);
 
         try {
             const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -1109,13 +1109,13 @@
                 body: JSON.stringify({ chat_id: adminUserId, text: message, parse_mode: "Markdown" })
             });
             const data = await response.json();
-            customLog("Withdrawal: Telegram API response for withdrawal request: " + JSON.stringify(data));
+            customLog("Withdrawal: استجابة Telegram API لطلب السحب: " + JSON.stringify(data));
 
             if (data.ok) {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-                showMessageModal('Success!', "Your withdrawal request has been sent successfully! We will process it soon.");
-                addToHistory('withdraw', `Requested withdrawal of $${balance.toFixed(2)}`);
-                customLog("Withdrawal: Withdrawal request sent successfully.");
+                showMessageModal('نجاح!', "تم إرسال طلب السحب الخاص بك بنجاح! سنقوم بمعالجته قريبًا.");
+                addToHistory('withdraw', `طلب سحب $${balance.toFixed(2)}`);
+                customLog("Withdrawal: تم إرسال طلب السحب بنجاح.");
                 // Optionally reset balance after successful withdrawal request
                 // points = 0;
                 // balance = 0.00;
@@ -1123,58 +1123,58 @@
                 // saveData();
             } else {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-                showMessageModal('Error', "Failed to send request. Please try again later.");
-                customLog("Withdrawal: Telegram API error: " + JSON.stringify(data), 'error');
+                showMessageModal('خطأ', "فشل إرسال الطلب. يرجى المحاولة مرة أخرى لاحقًا.");
+                customLog("Withdrawal: خطأ في Telegram API: " + JSON.stringify(data), 'error');
             }
         } catch (err) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal('Error', "An error occurred. Check your internet connection and try again.");
-            customLog("Withdrawal: Fetch error: " + err.message, 'error');
+            showMessageModal('خطأ', "حدث خطأ. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.");
+            customLog("Withdrawal: خطأ في الجلب: " + err.message, 'error');
         } finally {
             hideLoadingOverlay(); // Hide loading indicator regardless of success or failure
-            customLog("Withdrawal: Withdrawal request process finished.");
+            customLog("Withdrawal: انتهت عملية طلب السحب.");
         }
     }
 
     // --- Share & Referral ---
     function shareApp() {
-        customLog("Share: Attempting to share app.");
+        customLog("Share: جاري محاولة مشاركة التطبيق.");
         if (!tgUser || !tgUser.id) {
-            customLog("Share: Telegram user data not available for sharing. (tgUser: " + JSON.stringify(tgUser) + ")", 'warn');
+            customLog("Share: بيانات مستخدم Telegram غير متاحة للمشاركة. (tgUser: " + JSON.stringify(tgUser) + ")", 'warn');
             // More detailed message for the user
-            return showMessageModal('Share Error', 'Could not get user data from Telegram to create referral link. Please ensure the app is opened inside Telegram.');
+            return showMessageModal('خطأ في المشاركة', 'تعذر الحصول على بيانات المستخدم من Telegram لإنشاء رابط الإحالة. يرجى التأكد من فتح التطبيق داخل Telegram.');
         }
         const botUsername = "Easyearing99_bot"; // Replace with your actual bot username
         const referralLink = `https://t.me/${botUsername}?start=${tgUser.id}`;
-        const text = `🎉 Join this awesome bot and start earning! Play XO and win rewards! Use my link for a special bonus:`;
+        const text = `🎉 انضم إلى هذا البوت الرائع وابدأ في الكسب! العب XO واربح المكافآت! استخدم رابطي للحصول على مكافأة خاصة:`;
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
         
         Telegram.WebApp.openTelegramLink(shareUrl); // Open Telegram share dialog
-        customLog("Share: Telegram share link opened: " + shareUrl);
+        customLog("Share: تم فتح رابط مشاركة Telegram: " + shareUrl);
     }
 
     // --- Custom Message Modal Functions ---
     function showMessageModal(title, body) {
-        customLog(`Modal: Showing message: Title="${title}", Body="${body}"`);
+        customLog(`Modal: جاري عرض رسالة: العنوان="${title}", النص="${body}"`);
         document.getElementById('message-modal-title').textContent = title;
         document.getElementById('message-modal-body').textContent = body;
         document.getElementById('message-modal').classList.add('active');
     }
 
     function closeMessageModal() {
-        customLog("Modal: Closing message modal.");
+        customLog("Modal: جاري إغلاق نموذج الرسالة.");
         document.getElementById('message-modal').classList.remove('active');
     }
 
     // --- Loading Overlay Functions ---
-    function showLoadingOverlay(message = 'Processing...') {
-        customLog("Loading Overlay: Showing loading overlay: " + message);
+    function showLoadingOverlay(message = 'جاري المعالجة...') {
+        customLog("Loading Overlay: جاري إظهار غطاء التحميل: " + message);
         document.getElementById('loading-text').textContent = message;
         document.getElementById('loading-overlay').classList.add('active');
     }
 
     function hideLoadingOverlay() {
-        customLog("Loading Overlay: Hiding loading overlay.");
+        customLog("Loading Overlay: جاري إخفاء غطاء التحميل.");
         document.getElementById('loading-overlay').classList.remove('active');
     }
 
@@ -1182,10 +1182,10 @@
     function toggleDebugConsole() {
         if (debugConsoleElement.style.display === 'block') {
             debugConsoleElement.style.display = 'none';
-            customLog("Debug Console: Debug console hidden.");
+            customLog("Debug Console: تم إخفاء وحدة تحكم تصحيح الأخطاء.");
         } else {
             debugConsoleElement.style.display = 'block';
-            customLog("Debug Console: Debug console shown.");
+            customLog("Debug Console: تم إظهار وحدة تحكم تصحيح الأخطاء.");
         }
     }
     window.toggleDebugConsole = toggleDebugConsole; // Make it globally available
