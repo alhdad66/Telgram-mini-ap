@@ -320,22 +320,45 @@
         try {
             // الحصول على معرف التطبيق وتكوين Firebase من المتغيرات العامة للبيئة
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+            let firebaseConfig = {};
+
+            // التحقق مما إذا كان __firebase_config متاحًا وصالحًا قبل تحليله
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                try {
+                    firebaseConfig = JSON.parse(__firebase_config);
+                    customLog("Firebase: __firebase_config (parsed): " + JSON.stringify(firebaseConfig));
+                } catch (parseError) {
+                    customLog("Firebase: خطأ في تحليل __firebase_config: " + parseError.message, 'error');
+                    customLog("Firebase: __firebase_config الأصلي: " + __firebase_config, 'error');
+                    // لا ترجع هنا، اسمح للكود بالاستمرار مع تكوين فارغ
+                    // ولكن يجب أن تكون على دراية بأن Firestore لن يعمل
+                }
+            } else {
+                customLog("Firebase: المتغير __firebase_config غير متاح أو فارغ. لا يمكن تهيئة Firebase بشكل كامل.", 'error');
+                // لا ترجع هنا، اسمح للكود بالاستمرار مع تكوين فارغ
+                // ولكن يجب أن تكون على دراية بأن Firestore لن يعمل
+            }
 
             customLog("Firebase: __app_id: " + appId);
-            customLog("Firebase: __firebase_config (parsed): " + JSON.stringify(firebaseConfig));
-
-            // التحقق مما إذا كان تكوين Firebase فارغًا
+            
+            // التحقق مما إذا كان تكوين Firebase لا يزال فارغًا بعد محاولة التحليل
             if (Object.keys(firebaseConfig).length === 0) {
-                customLog("Firebase: تكوين Firebase فارغ. لا يمكن تهيئة Firebase.", 'error');
-                return;
+                customLog("Firebase: تكوين Firebase فارغ بعد الفحص. لا يمكن تهيئة Firebase.", 'error');
+                // لا ترجع هنا، اسمح للكود بالاستمرار مع تكوين فارغ
+                // ولكن يجب أن تكون على دراية بأن Firestore لن يعمل
             }
 
             // تهيئة تطبيق Firebase وخدمات Firestore والمصادقة
-            window.firebaseApp = initializeApp(firebaseConfig);
-            window.db = getFirestore(window.firebaseApp);
-            window.auth = getAuth(window.firebaseApp);
-            customLog("Firebase: تم تهيئة Firebase بنجاح.");
+            // قد يفشل هذا إذا كان firebaseConfig فارغًا، ولكننا نواصل لتسجيل الأخطاء اللاحقة
+            try {
+                window.firebaseApp = initializeApp(firebaseConfig);
+                window.db = getFirestore(window.firebaseApp);
+                window.auth = getAuth(window.firebaseApp);
+                customLog("Firebase: تم تهيئة Firebase بنجاح.");
+            } catch (initError) {
+                customLog("Firebase: خطأ أثناء تهيئة Firebase services (initializeApp, getFirestore, getAuth): " + initError.message, 'error');
+                // لا ترجع هنا، اسمح للكود بالاستمرار لتسجيل المزيد من الأخطاء
+            }
 
             // الاستماع إلى تغييرات حالة المصادقة
             onAuthStateChanged(window.auth, async (user) => {
@@ -375,7 +398,7 @@
             });
 
         } catch (error) {
-            customLog("Firebase: خطأ أثناء تهيئة Firebase: " + error.message, 'error');
+            customLog("Firebase: خطأ عام أثناء تهيئة Firebase: " + error.message, 'error');
         }
     }
 
