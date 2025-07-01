@@ -226,6 +226,46 @@
     #claim-reward-button {
         display: none; /* مخفي افتراضيا */
     }
+
+    /* أنماط وحدة تحكم تصحيح الأخطاء */
+    #debug-console {
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #00ff00; /* لون أخضر ساطع للنصوص */
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 20px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 10px; /* حجم خط صغير */
+      max-height: 200px; /* ارتفاع أقصى */
+      overflow-y: auto; /* شريط تمرير عند الحاجة */
+      border: 1px solid var(--primary-color);
+      display: none; /* مخفي افتراضيا */
+      text-align: left; /* محاذاة النص لليسار */
+      direction: ltr; /* اتجاه النص من اليسار لليمين داخل الكونسول */
+    }
+    #debug-console p {
+      margin: 0 0 3px 0;
+      word-wrap: break-word; /* كسر الكلمات الطويلة */
+      white-space: pre-wrap; /* الحفاظ على المسافات البيضاء وكسر الأسطر */
+    }
+    #debug-console .log-info { color: #00ff00; }
+    #debug-console .log-warn { color: #ffff00; }
+    #debug-console .log-error { color: #ff0000; font-weight: bold; }
+
+    #toggle-debug-button {
+        background-color: var(--secondary-color);
+        color: var(--text-muted-color);
+        border: 1px solid var(--primary-color);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: background-color 0.2s ease;
+    }
+    #toggle-debug-button:hover {
+        background-color: #3a3a3e;
+    }
   </style>
 
   <!-- Adsgram SDK -->
@@ -244,20 +284,50 @@
     window.currentUserId = null;
     window.isAuthReady = false; // علامة للإشارة إلى ما إذا كانت مصادقة Firebase جاهزة
 
+    // دالة لتسجيل الرسائل في وحدة تحكم تصحيح الأخطاء المخصصة وفي وحدة تحكم المتصفح
+    function customLog(message, type = 'info') {
+        const debugConsole = document.getElementById('debug-console');
+        if (debugConsole) {
+            const p = document.createElement('p');
+            p.textContent = `[${new Date().toLocaleTimeString('ar-EG')}] ${message}`;
+            p.classList.add(`log-${type}`);
+            // إضافة الرسالة إلى الأعلى
+            if (debugConsole.firstChild) {
+                debugConsole.insertBefore(p, debugConsole.firstChild);
+            } else {
+                debugConsole.appendChild(p);
+            }
+            // الحفاظ على عدد محدود من الرسائل
+            while (debugConsole.children.length > 50) {
+                debugConsole.removeChild(debugConsole.lastChild);
+            }
+        }
+
+        // تسجيل في وحدة تحكم المتصفح أيضًا
+        if (type === 'error') {
+            console.error(message);
+        } else if (type === 'warn') {
+            console.warn(message);
+        } else {
+            console.log(message);
+        }
+    }
+    window.customLog = customLog; // جعلها متاحة عالميًا
+
     // تهيئة Firebase
     function initFirebase() {
-        console.log("Firebase: جاري بدء تهيئة Firebase...");
+        customLog("Firebase: جاري بدء تهيئة Firebase...");
         try {
             // الحصول على معرف التطبيق وتكوين Firebase من المتغيرات العامة للبيئة
             const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
             const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
 
-            console.log("Firebase: __app_id:", appId);
-            console.log("Firebase: __firebase_config (parsed):", firebaseConfig);
+            customLog("Firebase: __app_id: " + appId);
+            customLog("Firebase: __firebase_config (parsed): " + JSON.stringify(firebaseConfig));
 
             // التحقق مما إذا كان تكوين Firebase فارغًا
             if (Object.keys(firebaseConfig).length === 0) {
-                console.error("Firebase: تكوين Firebase فارغ. لا يمكن تهيئة Firebase.");
+                customLog("Firebase: تكوين Firebase فارغ. لا يمكن تهيئة Firebase.", 'error');
                 return;
             }
 
@@ -265,47 +335,47 @@
             window.firebaseApp = initializeApp(firebaseConfig);
             window.db = getFirestore(window.firebaseApp);
             window.auth = getAuth(window.firebaseApp);
-            console.log("Firebase: تم تهيئة Firebase بنجاح.");
+            customLog("Firebase: تم تهيئة Firebase بنجاح.");
 
             // الاستماع إلى تغييرات حالة المصادقة
             onAuthStateChanged(window.auth, async (user) => {
-                console.log("Firebase Auth: تم تغيير حالة المصادقة.");
+                customLog("Firebase Auth: تم تغيير حالة المصادقة.");
                 if (user) {
                     // المستخدم مسجل الدخول
                     window.currentUserId = user.uid;
-                    console.log("Firebase Auth: المستخدم مسجل الدخول بمعرف UID:", user.uid);
+                    customLog("Firebase Auth: المستخدم مسجل الدخول بمعرف UID: " + user.uid);
                 } else {
                     // لا يوجد مستخدم مسجل الدخول، حاول تسجيل الدخول مجهول الهوية أو باستخدام رمز مخصص
-                    console.log("Firebase Auth: لا يوجد مستخدم مسجل الدخول. جاري محاولة تسجيل الدخول المجهول.");
+                    customLog("Firebase Auth: لا يوجد مستخدم مسجل الدخول. جاري محاولة تسجيل الدخول المجهول.");
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                             // تسجيل الدخول باستخدام رمز مخصص إذا كان متاحًا
-                            console.log("Firebase Auth: تم العثور على __initial_auth_token. جاري تسجيل الدخول باستخدام الرمز المخصص.");
+                            customLog("Firebase Auth: تم العثور على __initial_auth_token. جاري تسجيل الدخول باستخدام الرمز المخصص.");
                             await signInWithCustomToken(window.auth, __initial_auth_token);
                             window.currentUserId = window.auth.currentUser.uid;
-                            console.log("Firebase Auth: تم تسجيل الدخول باستخدام الرمز المخصص. معرف UID:", window.currentUserId);
+                            customLog("Firebase Auth: تم تسجيل الدخول باستخدام الرمز المخصص. معرف UID: " + window.currentUserId);
                         } else {
                             // تسجيل الدخول مجهول الهوية إذا لم يكن هناك رمز مخصص
-                            console.log("Firebase Auth: لم يتم العثور على __initial_auth_token. جاري تسجيل الدخول مجهول الهوية.");
+                            customLog("Firebase Auth: لم يتم العثور على __initial_auth_token. جاري تسجيل الدخول مجهول الهوية.");
                             await signInAnonymously(window.auth);
                             window.currentUserId = window.auth.currentUser.uid;
-                            console.log("Firebase Auth: تم تسجيل الدخول مجهول الهوية. معرف UID:", window.currentUserId);
+                            customLog("Firebase Auth: تم تسجيل الدخول مجهول الهوية. معرف UID: " + window.currentUserId);
                         }
                     } catch (error) {
-                        console.error("Firebase Auth: خطأ في المصادقة أثناء تسجيل الدخول:", error);
+                        customLog("Firebase Auth: خطأ في المصادقة أثناء تسجيل الدخول: " + error.message, 'error');
                         // العودة إلى معرف عشوائي إذا فشلت المصادقة تمامًا
                         window.currentUserId = crypto.randomUUID();
-                        console.warn("Firebase Auth: استخدام معرف UUID عشوائي كمعرف المستخدم بسبب فشل مصادقة Firebase:", window.currentUserId);
+                        customLog("Firebase Auth: استخدام معرف UUID عشوائي كمعرف المستخدم بسبب فشل مصادقة Firebase: " + window.currentUserId, 'warn');
                     }
                 }
                 window.isAuthReady = true; // تعيين العلامة إلى صحيح بمجرد أن تكون المصادقة جاهزة
-                console.log("Firebase Auth: المصادقة جاهزة. معرف المستخدم الحالي:", window.currentUserId);
+                customLog("Firebase Auth: المصادقة جاهزة. معرف المستخدم الحالي: " + window.currentUserId);
                 // إرسال حدث مخصص بمجرد أن تكون المصادقة جاهزة
                 window.dispatchEvent(new Event('firebaseAuthReady'));
             });
 
         } catch (error) {
-            console.error("Firebase: خطأ أثناء تهيئة Firebase:", error);
+            customLog("Firebase: خطأ أثناء تهيئة Firebase: " + error.message, 'error');
         }
     }
 
@@ -345,6 +415,11 @@
             <div class="task-details"><h3>سحب الأموال</h3><p>اطلب سحب رصيدك المتاح.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-chevron-left"></i></div> <!-- تم تغيير السهم لـ RTL -->
         </div>
+
+        <!-- زر تبديل وحدة تحكم تصحيح الأخطاء -->
+        <button id="toggle-debug-button" onclick="toggleDebugConsole()">تبديل كونسول الأخطاء</button>
+        <!-- وحدة تحكم تصحيح الأخطاء -->
+        <div id="debug-console"></div>
       </div>
 
       <!-- عرض المهام (الآن عرض لعبة XO) -->
@@ -453,39 +528,40 @@
     const claimRewardButton = document.getElementById('claim-reward-button');
     const resetGameButton = document.getElementById('reset-game-button');
     const displayUserIdElement = document.getElementById('display-user-id');
+    const debugConsoleElement = document.getElementById('debug-console');
 
 
     // --- منطق التطبيق الأساسي ---
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("DOMContentLoaded: تم تحميل DOM بالكامل.");
+        customLog("DOMContentLoaded: تم تحميل DOM بالكامل.");
         // الاستماع لحدث جاهزية مصادقة Firebase قبل المتابعة بتهيئة التطبيق
         window.addEventListener('firebaseAuthReady', () => {
-            console.log("firebaseAuthReady: مصادقة Firebase جاهزة، جاري المتابعة بتهيئة التطبيق.");
+            customLog("firebaseAuthReady: مصادقة Firebase جاهزة، جاري المتابعة بتهيئة التطبيق.");
             initAppAfterFirebase();
         });
     });
 
     function initAppAfterFirebase() {
-        console.log("initAppAfterFirebase: جاري بدء تهيئة التطبيق بعد Firebase.");
+        customLog("initAppAfterFirebase: جاري بدء تهيئة التطبيق بعد Firebase.");
         // تهيئة ميزات تطبيق Telegram Web App إذا كانت متاحة
         if (window.Telegram && Telegram.WebApp) {
-            console.log("Telegram WebApp: كائن Telegram WebApp موجود.");
+            customLog("Telegram WebApp: كائن Telegram WebApp موجود.");
             try {
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
-                console.log("Telegram WebApp: تم استدعاء ready() و expand().");
+                customLog("Telegram WebApp: تم استدعاء ready() و expand().");
                 // التحقق مما إذا كان initDataUnsafe وكائن المستخدم موجودين
                 if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
                     tgUser = Telegram.WebApp.initDataUnsafe.user;
-                    console.log("Telegram WebApp: تم تحميل بيانات مستخدم Telegram:", tgUser);
+                    customLog("Telegram WebApp: تم تحميل بيانات مستخدم Telegram: " + JSON.stringify(tgUser));
                 } else {
-                    console.warn("Telegram WebApp: بيانات مستخدم Telegram WebApp initDataUnsafe.user غير متاحة. هذا يحدث عادةً إذا لم يتم فتح التطبيق من داخل Telegram.");
+                    customLog("Telegram WebApp: بيانات مستخدم Telegram WebApp initDataUnsafe.user غير متاحة. هذا يحدث عادةً إذا لم يتم فتح التطبيق من داخل Telegram.", 'warn');
                 }
             } catch (error) {
-                console.error("Telegram WebApp: خطأ أثناء تهيئة Telegram WebApp:", error);
+                customLog("Telegram WebApp: خطأ أثناء تهيئة Telegram WebApp: " + error.message, 'error');
             }
         } else {
-            console.warn("Telegram WebApp: كائن Telegram WebApp غير موجود. يعمل خارج سياق Telegram.");
+            customLog("Telegram WebApp: كائن Telegram WebApp غير موجود. يعمل خارج سياق Telegram.", 'warn');
         }
 
         loadData(); // تحميل بيانات المستخدم المحفوظة (من التخزين المحلي)
@@ -499,10 +575,10 @@
 
         // البدء في الاستماع لتحديثات لوحة المتصدرين فقط عندما تكون Firebase جاهزة
         if (window.db && window.isAuthReady) {
-            console.log("Firestore: Firestore جاهز، جاري الاستماع إلى لوحة المتصدرين.");
+            customLog("Firestore: Firestore جاهز، جاري الاستماع إلى لوحة المتصدرين.");
             listenToLeaderboard();
         } else {
-            console.error("Firestore: Firestore غير جاهز عند محاولة الاستماع إلى لوحة المتصدرين. قد لا تعمل لوحة المتصدرين في الوقت الفعلي.");
+            customLog("Firestore: Firestore غير جاهز عند محاولة الاستماع إلى لوحة المتصدرين. قد لا تعمل لوحة المتصدرين في الوقت الفعلي.", 'error');
         }
     }
     
@@ -515,26 +591,26 @@
             // تم تحميل Adsgram SDK، قم بتهيئة AdController
             try {
                 adsgramAdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-                console.log("Adsgram: تم تهيئة Adsgram SDK مع AdController (معرف الكتلة: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
+                customLog("Adsgram: تم تهيئة Adsgram SDK مع AdController (معرف الكتلة: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
             } catch (error) {
-                console.error("Adsgram: خطأ أثناء تهيئة AdController:", error);
+                customLog("Adsgram: خطأ أثناء تهيئة AdController: " + error.message, 'error');
                 showMessageModal('خطأ في تهيئة الإعلان', 'تعذر تهيئة Adsgram AdController. يرجى التحقق من معرف الكتلة الخاص بك.');
                 return; // إيقاف المزيد من المحاولات إذا فشلت التهيئة الأولية
             }
         } else if (retryAttempt < MAX_RETRIES) {
             // لم يتم تحميل Adsgram SDK بعد، أعد المحاولة بعد تأخير
-            console.warn(`Adsgram: لم يتم العثور على Adsgram SDK (window.Adsgram). جاري إعادة تهيئة (المحاولة ${retryAttempt + 1}/${MAX_RETRIES})...`);
+            customLog(`Adsgram: لم يتم العثور على Adsgram SDK (window.Adsgram). جاري إعادة تهيئة (المحاولة ${retryAttempt + 1}/${MAX_RETRIES})...`, 'warn');
             setTimeout(() => initializeAdsgram(retryAttempt + 1), RETRY_DELAY_MS);
         } else {
             // تم الوصول إلى الحد الأقصى لمرات إعادة المحاولة، فشل تحميل Adsgram SDK
-            console.error("Adsgram: فشل تحميل Adsgram SDK بعد عدة محاولات. لن تعمل الإعلانات.");
+            customLog("Adsgram: فشل تحميل Adsgram SDK بعد عدة محاولات. لن تعمل الإعلانات.", 'error');
             showMessageModal('خطأ في SDK الإعلانات', 'تعذر تحميل Adsgram SDK. يرجى التحقق من اتصالك بالإنترنت أو المحاولة مرة أخرى لاحقًا.');
         }
     }
 
     // --- إدارة العرض ---
     function showView(viewId) {
-        console.log("View Management: جاري التبديل إلى العرض:", viewId);
+        customLog("View Management: جاري التبديل إلى العرض: " + viewId);
         // إخفاء جميع طرق العرض
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         // إظهار طريقة العرض المطلوبة
@@ -553,7 +629,7 @@
     
     // --- استمرارية البيانات ---
     function loadData() {
-        console.log("Data Persistence: جاري تحميل البيانات من التخزين المحلي.");
+        customLog("Data Persistence: جاري تحميل البيانات من التخزين المحلي.");
         try {
             // استرداد البيانات من التخزين المحلي
             const savedData = localStorage.getItem('easyEarningBotV2');
@@ -563,29 +639,29 @@
                 points = data.points || 0;
                 balance = data.balance || 0.00;
                 historyLog = data.historyLog || [];
-                console.log("Data Persistence: تم تحميل البيانات بنجاح:", { points, balance, historyLog });
+                customLog("Data Persistence: تم تحميل البيانات بنجاح: " + JSON.stringify({ points, balance, historyLog }));
             } else {
-                console.log("Data Persistence: لم يتم العثور على بيانات محفوظة. جاري البدء بقيم افتراضية.");
+                customLog("Data Persistence: لم يتم العثور على بيانات محفوظة. جاري البدء بقيم افتراضية.");
             }
         } catch (error) {
-            console.error("Data Persistence: خطأ أثناء تحميل البيانات من التخزين المحلي:", error);
+            customLog("Data Persistence: خطأ أثناء تحميل البيانات من التخزين المحلي: " + error.message, 'error');
         }
         updateDisplay(); // تحديث واجهة المستخدم بالبيانات المحملة
     }
 
     function saveData() {
-        console.log("Data Persistence: جاري حفظ البيانات في التخزين المحلي.");
+        customLog("Data Persistence: جاري حفظ البيانات في التخزين المحلي.");
         try {
             // حفظ النقاط الحالية والرصيد والسجل في التخزين المحلي
             localStorage.setItem('easyEarningBotV2', JSON.stringify({ points, balance, historyLog }));
-            console.log("Data Persistence: تم حفظ البيانات بنجاح.");
+            customLog("Data Persistence: تم حفظ البيانات بنجاح.");
         } catch (error) {
-            console.error("Data Persistence: خطأ أثناء حفظ البيانات في التخزين المحلي:", error);
+            customLog("Data Persistence: خطأ أثناء حفظ البيانات في التخزين المحلي: " + error.message, 'error');
         }
     }
 
     function updateDisplay() {
-        console.log("Display Update: جاري تحديث عرض واجهة المستخدم.");
+        customLog("Display Update: جاري تحديث عرض واجهة المستخدم.");
         // تحديث قيم النقاط والرصيد المعروضة
         document.getElementById('points-value').textContent = points;
         document.getElementById('balance-value').textContent = `$${balance.toFixed(2)}`;
@@ -595,12 +671,12 @@
         } else {
             displayUserIdElement.textContent = `المعرف: غير متاح`; // بديل إذا لم يكن معرف مستخدم Firebase جاهزًا
         }
-        console.log("Display Update: تم تحديث النقاط والرصيد ومعرف المستخدم.");
+        customLog("Display Update: تم تحديث النقاط والرصيد ومعرف المستخدم.");
     }
     
     // --- المستخدم والملف الشخصي ---
     function loadTelegramUser() {
-        console.log("loadTelegramUser: تم استدعاء الدالة.");
+        customLog("loadTelegramUser: تم استدعاء الدالة.");
         // إذا كانت بيانات مستخدم Telegram متاحة
         if (tgUser) {
             document.getElementById('username').textContent = tgUser.first_name || 'مستخدم Telegram';
@@ -608,38 +684,38 @@
             // استخدام صورة المستخدم إذا كانت متاحة، وإلا استخدم الحرف الأول من اسمه
             if (tgUser.photo_url) {
                 profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
-                console.log("loadTelegramUser: تم تعيين اسم المستخدم وصورة الملف الشخصي من Telegram.");
+                customLog("loadTelegramUser: تم تعيين اسم المستخدم وصورة الملف الشخصي من Telegram.");
             } else {
                 profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
-                console.log("loadTelegramUser: تم تعيين اسم المستخدم والحرف الأول من الاسم (لا توجد صورة).");
+                customLog("loadTelegramUser: تم تعيين اسم المستخدم والحرف الأول من الاسم (لا توجد صورة).");
             }
         } else {
             document.getElementById('username').textContent = 'ضيف';
             document.getElementById('profile-pic').textContent = 'G';
-            console.warn("loadTelegramUser: بيانات مستخدم Telegram غير متاحة. تم تعيين المستخدم كـ 'ضيف'.");
+            customLog("loadTelegramUser: بيانات مستخدم Telegram غير متاحة. تم تعيين المستخدم كـ 'ضيف'.", 'warn');
         }
         updateDisplay(); // تحديث عرض معرف مستخدم Firebase أيضًا
     }
 
     // --- منطق السجل ---
     function addToHistory(type, detail) {
-        console.log("History: جاري إضافة عنصر إلى السجل:", { type, detail });
+        customLog("History: جاري إضافة عنصر إلى السجل: " + JSON.stringify({ type, detail }));
         const timestamp = new Date().toISOString(); // الحصول على الطابع الزمني الحالي
         // إضافة عنصر جديد إلى بداية سجل السجل
         historyLog.unshift({ type, detail, timestamp });
         // الحفاظ على حجم سجل السجل محدودًا بـ 50 عنصرًا
         if (historyLog.length > 50) historyLog.pop();
         saveData(); // حفظ السجل المحدث
-        console.log("History: تم إضافة العنصر وحفظ السجل.");
+        customLog("History: تم إضافة العنصر وحفظ السجل.");
     }
 
     function renderHistory() {
-        console.log("History: جاري عرض السجل.");
+        customLog("History: جاري عرض السجل.");
         const list = document.getElementById('history-list');
         // عرض رسالة إذا كان السجل فارغًا
         if (historyLog.length === 0) {
             list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا يوجد نشاط بعد.</div><div class="detail">العب لعبة XO للبدء!</div></div></div>`;
-            console.log("History: السجل فارغ. تم عرض رسالة.");
+            customLog("History: السجل فارغ. تم عرض رسالة.");
             return;
         }
         
@@ -657,16 +733,16 @@
                     </div>
                 </div>`;
         }).join('');
-        console.log("History: تم عرض عناصر السجل.");
+        customLog("History: تم عرض عناصر السجل.");
     }
 
     // --- منطق لوحة المتصدرين (متكامل مع Firestore) ---
     let leaderboardData = []; // تخزين بيانات لوحة المتصدرين التي تم جلبها
 
     function listenToLeaderboard() {
-        console.log("Leaderboard: جاري إعداد مستمع لوحة المتصدرين.");
+        customLog("Leaderboard: جاري إعداد مستمع لوحة المتصدرين.");
         if (!window.db || !window.isAuthReady) {
-            console.warn("Leaderboard: Firestore أو المصادقة غير جاهزة، لا يمكن الاستماع إلى لوحة المتصدرين بعد.");
+            customLog("Leaderboard: Firestore أو المصادقة غير جاهزة، لا يمكن الاستماع إلى لوحة المتصدرين بعد.", 'warn');
             return;
         }
 
@@ -680,25 +756,25 @@
 
         // إعداد مستمع في الوقت الفعلي للوحة المتصدرين
         window.db.onSnapshot(q, (snapshot) => {
-            console.log("Leaderboard: تم تلقي تحديث من Firestore.");
+            customLog("Leaderboard: تم تلقي تحديث من Firestore.");
             leaderboardData = []; // مسح البيانات السابقة
             snapshot.forEach(doc => {
                 leaderboardData.push({ id: doc.id, ...doc.data() });
             });
-            console.log("Leaderboard: تم تحديث بيانات لوحة المتصدرين:", leaderboardData);
+            customLog("Leaderboard: تم تحديث بيانات لوحة المتصدرين: " + JSON.stringify(leaderboardData));
             renderLeaderboard(); // إعادة عرض لوحة المتصدرين كلما تغيرت البيانات
         }, (error) => {
-            console.error("Leaderboard: خطأ أثناء الاستماع إلى لوحة المتصدرين:", error);
+            customLog("Leaderboard: خطأ أثناء الاستماع إلى لوحة المتصدرين: " + error.message, 'error');
             showMessageModal('خطأ في لوحة المتصدرين', 'فشل تحميل بيانات لوحة المتصدرين. يرجى المحاولة مرة أخرى لاحقًا.');
         });
     }
 
     function renderLeaderboard() {
-        console.log("Leaderboard: جاري عرض لوحة المتصدرين.");
+        customLog("Leaderboard: جاري عرض لوحة المتصدرين.");
         const list = document.getElementById('leaderboard-list');
         if (leaderboardData.length === 0) {
             list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا أحد على لوحة المتصدرين بعد.</div><div class="detail">كن أول من يكسب النقاط!</div></div></div>`;
-            console.log("Leaderboard: لوحة المتصدرين فارغة. تم عرض رسالة.");
+            customLog("Leaderboard: لوحة المتصدرين فارغة. تم عرض رسالة.");
             return;
         }
         
@@ -714,26 +790,26 @@
                     <div class="score">${user.points} نقطة</div>
                 </div>`;
         }).join('');
-        console.log("Leaderboard: تم عرض عناصر لوحة المتصدرين.");
+        customLog("Leaderboard: تم عرض عناصر لوحة المتصدرين.");
     }
 
 
     // --- منطق لعبة XO ---
     function initXOBoardListeners() {
-        console.log("XO Game: جاري تهيئة مستمعي لوحة XO.");
+        customLog("XO Game: جاري تهيئة مستمعي لوحة XO.");
         xoCells.forEach(cell => {
             cell.addEventListener('click', handleCellClick);
         });
     }
 
     function handleCellClick(event) {
-        console.log("XO Game: تم النقر على خلية.");
+        customLog("XO Game: تم النقر على خلية.");
         const clickedCell = event.target;
         const clickedCellIndex = parseInt(clickedCell.dataset.cellIndex);
 
         // إذا كانت الخلية مملوءة بالفعل، أو كانت اللعبة غير نشطة، أو كان دور الذكاء الاصطناعي، فلا تفعل شيئًا
         if (board[clickedCellIndex] !== '' || !gameActive || currentPlayer === 'O') {
-            console.log("XO Game: حركة غير صالحة (خلية مملوءة أو لعبة غير نشطة أو دور الذكاء الاصطناعي).");
+            customLog("XO Game: حركة غير صالحة (خلية مملوءة أو لعبة غير نشطة أو دور الذكاء الاصطناعي).", 'warn');
             return;
         }
 
@@ -742,7 +818,7 @@
         
         // التحقق من النتيجة بعد حركة المستخدم
         if (handleResultValidation()) {
-            console.log("XO Game: انتهت اللعبة بعد حركة المستخدم.");
+            customLog("XO Game: انتهت اللعبة بعد حركة المستخدم.");
             return; // انتهت اللعبة
         }
 
@@ -751,13 +827,13 @@
             xoStatus.textContent = `دور الذكاء الاصطناعي...`;
             xoStatus.style.color = 'var(--text-muted-color)';
             disableBoard(); // تعطيل اللوحة بينما يفكر الذكاء الاصطناعي
-            console.log("XO Game: دور الذكاء الاصطناعي. جاري تعطيل اللوحة.");
+            customLog("XO Game: دور الذكاء الاصطناعي. جاري تعطيل اللوحة.");
             setTimeout(aiMove, 1000); // الذكاء الاصطناعي يتحرك بعد ثانية واحدة
         }
     }
 
     function makeMove(index, player) {
-        console.log(`XO Game: جاري تنفيذ حركة اللاعب ${player} في الخلية ${index}.`);
+        customLog(`XO Game: جاري تنفيذ حركة اللاعب ${player} في الخلية ${index}.`);
         board[index] = player;
         const cell = xoCells[index];
         cell.textContent = player;
@@ -766,7 +842,7 @@
     }
 
     function handleResultValidation() {
-        console.log("XO Game: جاري التحقق من نتيجة اللعبة.");
+        customLog("XO Game: جاري التحقق من نتيجة اللعبة.");
         let roundWon = false;
         for (let i = 0; i < winningConditions.length; i++) {
             const winCondition = winningConditions[i];
@@ -793,7 +869,7 @@
             }
             disableBoard(); // تعطيل المزيد من النقرات
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-            console.log(`XO Game: فاز اللاعب ${currentPlayer}. اللعبة انتهت.`);
+            customLog(`XO Game: فاز اللاعب ${currentPlayer}. اللعبة انتهت.`);
             return true; // انتهت اللعبة
         }
 
@@ -803,15 +879,15 @@
             xoStatus.style.color = 'var(--text-muted-color)';
             gameActive = false;
             Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
-            console.log("XO Game: تعادل. اللعبة انتهت.");
+            customLog("XO Game: تعادل. اللعبة انتهت.", 'warn');
             return true; // انتهت اللعبة
         }
-        console.log("XO Game: اللعبة مستمرة.");
+        customLog("XO Game: اللعبة مستمرة.");
         return false; // اللعبة لم تنته
     }
 
     function aiMove() {
-        console.log("XO Game: جاري تنفيذ حركة الذكاء الاصطناعي.");
+        customLog("XO Game: جاري تنفيذ حركة الذكاء الاصطناعي.");
         const aiPlayer = 'O';
         const humanPlayer = 'X';
         const emptyCells = board.map((val, idx) => val === '' ? idx : -1).filter(idx => idx !== -1);
@@ -821,9 +897,9 @@
         // سيختار الذكاء الاصطناعي الآن ببساطة خلية فارغة عشوائية، مما يسهل الفوز عليه.
         if (emptyCells.length > 0) {
             chosenMove = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            console.log("XO Game: الذكاء الاصطناعي اختار الخلية:", chosenMove);
+            customLog("XO Game: الذكاء الاصطناعي اختار الخلية: " + chosenMove);
         } else {
-            console.warn("XO Game: لا توجد خلايا فارغة للذكاء الاصطناعي للتحرك.");
+            customLog("XO Game: لا توجد خلايا فارغة للذكاء الاصطناعي للتحرك.", 'warn');
         }
         
         if (chosenMove !== -1) {
@@ -835,11 +911,11 @@
                 xoStatus.textContent = `دور اللاعب X`;
                 xoStatus.style.color = 'var(--primary-color)';
                 enableBoard(); // تمكين اللوحة لحركة المستخدم التالية
-                console.log("XO Game: انتهى دور الذكاء الاصطناعي. جاري تمكين اللوحة لدور المستخدم.");
+                customLog("XO Game: انتهى دور الذكاء الاصطناعي. جاري تمكين اللوحة لدور المستخدم.");
             }
         } else {
             // يجب أن يتم الوصول إلى هذه الحالة فقط إذا كانت اللوحة ممتلئة (تعادل أو فوز حدث بالفعل)
-            console.error("XO Game: لم يتمكن الذكاء الاصطناعي من العثور على حركة، ولكن اللعبة نشطة. لا ينبغي أن يحدث هذا.");
+            customLog("XO Game: لم يتمكن الذكاء الاصطناعي من العثور على حركة، ولكن اللعبة نشطة. لا ينبغي أن يحدث هذا.", 'error');
             xoStatus.textContent = `تعادل!`;
             xoStatus.style.color = 'var(--text-muted-color)';
             gameActive = false;
@@ -849,17 +925,17 @@
 
 
     function disableBoard() {
-        console.log("XO Game: جاري تعطيل اللوحة.");
+        customLog("XO Game: جاري تعطيل اللوحة.");
         xoCells.forEach(cell => cell.classList.add('disabled'));
     }
 
     function enableBoard() {
-        console.log("XO Game: جاري تمكين اللوحة.");
+        customLog("XO Game: جاري تمكين اللوحة.");
          xoCells.forEach(cell => cell.classList.remove('disabled'));
     }
 
     function resetGame() {
-        console.log("XO Game: جاري إعادة تعيين اللعبة.");
+        customLog("XO Game: جاري إعادة تعيين اللعبة.");
         board = ['', '', '', '', '', '', '', '', ''];
         currentPlayer = 'X'; // المستخدم يبدأ دائمًا كـ 'X'
         gameActive = true;
@@ -872,12 +948,12 @@
             cell.textContent = '';
             cell.classList.remove('x', 'o', 'disabled');
         });
-        console.log("XO Game: تم إعادة تعيين اللعبة بنجاح.");
+        customLog("XO Game: تم إعادة تعيين اللعبة بنجاح.");
     }
 
     // --- وظائف الكسب ---
     async function grantReward() {
-        console.log("Reward: جاري منح المكافأة.");
+        customLog("Reward: جاري منح المكافأة.");
         points += pointsPerAd; // زيادة النقاط
         balance = points * ratePerPoint; // حساب الرصيد الجديد
         updateDisplay(); // تحديث واجهة المستخدم
@@ -890,13 +966,13 @@
 
         // حفظ النقاط في لوحة المتصدرين في Firestore
         await saveUserPointsToFirestore();
-        console.log("Reward: تم منح المكافأة وحفظها في Firestore.");
+        customLog("Reward: تم منح المكافأة وحفظها في Firestore.");
     }
 
     async function saveUserPointsToFirestore() {
-        console.log("Firestore: جاري حفظ نقاط المستخدم في Firestore.");
+        customLog("Firestore: جاري حفظ نقاط المستخدم في Firestore.");
         if (!window.db || !window.currentUserId) {
-            console.error("Firestore: Firestore أو currentUserId غير متاحين. لا يمكن حفظ النقاط في لوحة المتصدرين.");
+            customLog("Firestore: Firestore أو currentUserId غير متاحين. لا يمكن حفظ النقاط في لوحة المتصدرين.", 'error');
             return;
         }
 
@@ -912,19 +988,19 @@
                 avatar: userAvatar,
                 lastUpdated: new Date()
             }, { merge: true }); // استخدام merge: true لتحديث الحقول الموجودة دون الكتابة فوق المستند بأكمله
-            console.log("Firestore: تم حفظ نقاط المستخدم في Firestore بنجاح:", { userId: window.currentUserId, points: points });
+            customLog("Firestore: تم حفظ نقاط المستخدم في Firestore بنجاح: " + JSON.stringify({ userId: window.currentUserId, points: points }));
         } catch (error) {
-            console.error("Firestore: خطأ أثناء حفظ نقاط المستخدم في Firestore:", error);
+            customLog("Firestore: خطأ أثناء حفظ نقاط المستخدم في Firestore: " + error.message, 'error');
             showMessageModal('خطأ في حفظ البيانات', 'فشل حفظ نقاطك في لوحة المتصدرين. يرجى المحاولة مرة أخرى.');
         }
     }
 
 
     function claimReward() {
-        console.log("Adsgram: جاري محاولة المطالبة بالمكافأة. جاري التحقق من Adsgram AdController...");
+        customLog("Adsgram: جاري محاولة المطالبة بالمكافأة. جاري التحقق من Adsgram AdController...");
         
         if (!adsgramAdController) {
-            console.error("Adsgram: Adsgram AdController غير مهيأ. لا يمكن عرض الإعلان.");
+            customLog("Adsgram: Adsgram AdController غير مهيأ. لا يمكن عرض الإعلان.", 'error');
             showMessageModal('خطأ في الإعلان', 'Adsgram SDK غير مهيأ. يرجى المحاولة مرة أخرى بعد قليل. تأكد من صحة معرف الكتلة الخاص بك وأن Adsgram SDK تم تحميله بالكامل.');
             return;
         }
@@ -932,18 +1008,18 @@
         // استخدام طريقة AdController.show() وفقًا لوثائق Adsgram
         // تعيد هذه الطريقة وعدًا (Promise) مع ShowPromiseResult
         adsgramAdController.show().then((result) => {
-            console.log("Adsgram: تم حل وعد عرض إعلان Adsgram:", result);
+            customLog("Adsgram: تم حل وعد عرض إعلان Adsgram: " + JSON.stringify(result));
             if (result.done) {
-                console.log("Adsgram: شاهد المستخدم الإعلان حتى النهاية أو أغلق الإعلان البيني. جاري منح المكافأة.");
+                customLog("Adsgram: شاهد المستخدم الإعلان حتى النهاية أو أغلق الإعلان البيني. جاري منح المكافأة.");
                 grantReward();
             } else {
-                console.warn("Adsgram: لم يتم مشاهدة الإعلان بالكامل أو تم إغلاقه قبل الأوان. لن يتم منح المكافأة. الوصف:", result.description);
+                customLog("Adsgram: لم يتم مشاهدة الإعلان بالكامل أو تم إغلاقه قبل الأوان. لن يتم منح المكافأة. الوصف: " + result.description, 'warn');
                 showMessageModal('الإعلان لم يكتمل', 'يرجى مشاهدة الإعلان بالكامل للمطالبة بمكافأتك. (السبب: ' + result.description + ')');
                 resetGame(); // إعادة تعيين اللعبة حتى لو لم يكتمل الإعلان، للسماح للمستخدم باللعب مرة أخرى
             }
         }).catch((errorResult) => {
             // يتعامل هذا الجزء من الكود مع الأخطاء أثناء تشغيل الإعلان (مثل عدم توفر إعلانات، مشاكل في الشبكة)
-            console.error("Adsgram: فشل عرض إعلان Adsgram أو واجه خطأ:", errorResult);
+            customLog("Adsgram: فشل عرض إعلان Adsgram أو واجه خطأ: " + JSON.stringify(errorResult), 'error');
             showMessageModal('فشل الإعلان', 'تعذر عرض إعلان Adsgram. يرجى المحاولة مرة أخرى. (السبب: ' + (errorResult.description || 'خطأ غير معروف') + ')');
             resetGame(); // إعادة تعيين اللعبة عند حدوث خطأ في الإعلان
         });
@@ -951,24 +1027,24 @@
 
     // --- منطق السحب ---
     function openWithdrawModal() {
-        console.log("Withdrawal: جاري فتح نموذج السحب.");
+        customLog("Withdrawal: جاري فتح نموذج السحب.");
         // التحقق من الحد الأدنى لمبلغ السحب
         if (balance < 5) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            console.warn("Withdrawal: الرصيد غير كافٍ للسحب.");
+            customLog("Withdrawal: الرصيد غير كافٍ للسحب.", 'warn');
             return showMessageModal('إشعار السحب', "الحد الأدنى للسحب هو 5.00 دولارات. استمر في الكسب!");
         }
         document.getElementById('withdraw-modal').classList.add('active'); // إظهار نموذج السحب المنبثق
-        console.log("Withdrawal: تم فتح نموذج السحب.");
+        customLog("Withdrawal: تم فتح نموذج السحب.");
     }
     
     function closeWithdrawModal() {
-        console.log("Withdrawal: جاري إغلاق نموذج السحب.");
+        customLog("Withdrawal: جاري إغلاق نموذج السحب.");
         document.getElementById('withdraw-modal').classList.remove('active'); // إخفاء نموذج السحب المنبثق
     }
 
     async function requestWithdraw() {
-        console.log("Withdrawal: جاري إرسال طلب السحب.");
+        customLog("Withdrawal: جاري إرسال طلب السحب.");
         closeWithdrawModal(); // إغلاق نموذج التأكيد
         showLoadingOverlay('جاري إرسال طلب السحب...'); // إظهار مؤشر التحميل
 
@@ -976,7 +1052,7 @@
         const adminUserId = '6357701459'; // معرف مستخدم مسؤول Telegram الخاص بك
         const userInfo = tgUser ? `@${tgUser.username || 'غير متاح'} (المعرف: ${tgUser.id})` : 'مستخدم غير معروف';
         const message = `💸 *طلب سحب*\n\n👤 *المستخدم:* ${userInfo}\n💰 *المبلغ:* $${balance.toFixed(2)}\n\n_يرجى معالجة هذا الطلب._`;
-        console.log("Withdrawal: رسالة السحب الجاهزة للإرسال:", message);
+        customLog("Withdrawal: رسالة السحب الجاهزة للإرسال: " + message);
 
         try {
             const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -985,13 +1061,13 @@
                 body: JSON.stringify({ chat_id: adminUserId, text: message, parse_mode: "Markdown" })
             });
             const data = await response.json();
-            console.log("Withdrawal: استجابة Telegram API لطلب السحب:", data);
+            customLog("Withdrawal: استجابة Telegram API لطلب السحب: " + JSON.stringify(data));
 
             if (data.ok) {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('success');
                 showMessageModal('نجاح!', "تم إرسال طلب السحب الخاص بك بنجاح! سنقوم بمعالجته قريبًا.");
                 addToHistory('withdraw', `طلب سحب $${balance.toFixed(2)}`);
-                console.log("Withdrawal: تم إرسال طلب السحب بنجاح.");
+                customLog("Withdrawal: تم إرسال طلب السحب بنجاح.");
                 // اختياريًا إعادة تعيين الرصيد بعد طلب السحب الناجح
                 // points = 0;
                 // balance = 0.00;
@@ -1000,23 +1076,23 @@
             } else {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('error');
                 showMessageModal('خطأ', "فشل إرسال الطلب. يرجى المحاولة مرة أخرى لاحقًا.");
-                console.error("Withdrawal: خطأ في Telegram API:", data);
+                customLog("Withdrawal: خطأ في Telegram API: " + JSON.stringify(data), 'error');
             }
         } catch (err) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             showMessageModal('خطأ', "حدث خطأ. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.");
-            console.error("Withdrawal: خطأ في الجلب:", err);
+            customLog("Withdrawal: خطأ في الجلب: " + err.message, 'error');
         } finally {
             hideLoadingOverlay(); // إخفاء مؤشر التحميل بغض النظر عن النجاح أو الفشل
-            console.log("Withdrawal: انتهت عملية طلب السحب.");
+            customLog("Withdrawal: انتهت عملية طلب السحب.");
         }
     }
 
     // --- المشاركة والإحالة ---
     function shareApp() {
-        console.log("Share: جاري محاولة مشاركة التطبيق.");
+        customLog("Share: جاري محاولة مشاركة التطبيق.");
         if (!tgUser || !tgUser.id) {
-            console.warn("Share: بيانات مستخدم Telegram غير متاحة للمشاركة. (tgUser:", tgUser, ")");
+            customLog("Share: بيانات مستخدم Telegram غير متاحة للمشاركة. (tgUser: " + JSON.stringify(tgUser) + ")", 'warn');
             // رسالة أكثر تفصيلاً للمستخدم
             return showMessageModal('خطأ في المشاركة', 'تعذر الحصول على بيانات المستخدم من Telegram لإنشاء رابط الإحالة. يرجى التأكد من فتح التطبيق داخل Telegram.');
         }
@@ -1026,33 +1102,45 @@
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
         
         Telegram.WebApp.openTelegramLink(shareUrl); // فتح مربع حوار مشاركة Telegram
-        console.log("Share: تم فتح رابط مشاركة Telegram:", shareUrl);
+        customLog("Share: تم فتح رابط مشاركة Telegram: " + shareUrl);
     }
 
     // --- وظائف نموذج الرسالة المخصص ---
     function showMessageModal(title, body) {
-        console.log(`Modal: جاري عرض رسالة: العنوان="${title}", النص="${body}"`);
+        customLog(`Modal: جاري عرض رسالة: العنوان="${title}", النص="${body}"`);
         document.getElementById('message-modal-title').textContent = title;
         document.getElementById('message-modal-body').textContent = body;
         document.getElementById('message-modal').classList.add('active');
     }
 
     function closeMessageModal() {
-        console.log("Modal: جاري إغلاق نموذج الرسالة.");
+        customLog("Modal: جاري إغلاق نموذج الرسالة.");
         document.getElementById('message-modal').classList.remove('active');
     }
 
     // --- وظائف غطاء التحميل ---
     function showLoadingOverlay(message = 'جاري المعالجة...') {
-        console.log("Loading Overlay: جاري إظهار غطاء التحميل:", message);
+        customLog("Loading Overlay: جاري إظهار غطاء التحميل: " + message);
         document.getElementById('loading-text').textContent = message;
         document.getElementById('loading-overlay').classList.add('active');
     }
 
     function hideLoadingOverlay() {
-        console.log("Loading Overlay: جاري إخفاء غطاء التحميل.");
+        customLog("Loading Overlay: جاري إخفاء غطاء التحميل.");
         document.getElementById('loading-overlay').classList.remove('active');
     }
+
+    // --- وظيفة تبديل وحدة تحكم تصحيح الأخطاء ---
+    function toggleDebugConsole() {
+        if (debugConsoleElement.style.display === 'block') {
+            debugConsoleElement.style.display = 'none';
+            customLog("Debug Console: تم إخفاء وحدة تحكم تصحيح الأخطاء.");
+        } else {
+            debugConsoleElement.style.display = 'block';
+            customLog("Debug Console: تم إظهار وحدة تحكم تصحيح الأخطاء.");
+        }
+    }
+    window.toggleDebugConsole = toggleDebugConsole; // جعلها متاحة عالميًا
 </script>
 
 </body>
