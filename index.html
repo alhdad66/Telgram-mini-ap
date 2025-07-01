@@ -35,7 +35,6 @@
     main {
       flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* Space for footer nav */
     }
-    /* View management for showing/hiding different sections */
     .view { display: none; animation: fadeIn 0.4s ease-in-out; }
     .view.active { display: block; }
     /* Fade-in animation for view transitions */
@@ -108,10 +107,8 @@
       width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700;
       margin-top: 15px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
     }
-    /* Primary button styling */
     .primary-button { background: var(--primary-color); color: #000; }
     .primary-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 217, 20, 0.3); }
-    /* Secondary button styling */
     .secondary-button { background: var(--secondary-color); color: var(--primary-color); }
     .secondary-button:hover { background: #3a3a3e; }
 
@@ -397,8 +394,11 @@
 
         if (window.Adsgram) {
             // Adsgram SDK is loaded, initialize AdController
+            // Adsgram.init does not seem to take onAdLoaded/onAdFailed callbacks directly
+            // These events are typically handled by the promise returned by .show()
             adsgramAdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
             console.log("Adsgram SDK Initialized with AdController (Block ID: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
+            // No explicit loadAd() call needed here, as show() handles it.
         } else if (retryAttempt < MAX_RETRIES) {
             // Adsgram SDK not loaded yet, retry after a delay
             console.warn(`Adsgram SDK (window.Adsgram) not found. Retrying initialization (Attempt ${retryAttempt + 1}/${MAX_RETRIES})...`);
@@ -676,24 +676,31 @@
 
     function claimReward() {
         console.log("Attempting to claim reward. Checking Adsgram AdController...");
-        // Check if Adsgram AdController is initialized and has the showAd method
-        if (adsgramAdController && typeof adsgramAdController.showAd === 'function') {
-            console.log("Adsgram AdController is ready. Calling showAd()...");
-            // Call Adsgram's showAd function
-            adsgramAdController.showAd().then(() => {
-                // This callback is typically for when the ad is successfully shown/closed
-                console.log("Adsgram ad shown successfully (or promise resolved). Granting reward.");
-                grantReward();
-            }).catch(e => {
-                // Handle cases where the ad could not be shown (e.g., network error, no fill)
-                console.error("Adsgram Ad failed to show:", e);
-                showMessageModal('Ad Failed', 'Adsgram ad could not be shown. Please try again. (Reason: ' + (e.message || 'Unknown error') + ')');
-                resetGame(); // Reset game even if ad fails, to allow user to play again
-            });
-        } else {
-            console.error("Adsgram SDK is not initialized or showAd is not a function. adsgramAdController:", adsgramAdController);
-            showMessageModal('Ad Error', 'Adsgram SDK is not ready. Please try again in a moment. Ensure your Block ID is correct and Adsgram SDK is fully loaded.');
+        
+        if (!adsgramAdController) {
+            console.error("Adsgram AdController is not initialized.");
+            showMessageModal('Ad Error', 'Adsgram SDK is not initialized. Please try again in a moment. Ensure your Block ID is correct and Adsgram SDK is fully loaded.');
+            return;
         }
+
+        // Use the AdController.show() method as per Adsgram documentation
+        // It returns a promise with ShowPromiseResult
+        adsgramAdController.show().then((result) => {
+            console.log("Adsgram Ad show promise resolved:", result);
+            if (result.done) {
+                console.log("Adsgram: User watched ad till the end or closed interstitial. Granting reward.");
+                grantReward();
+            } else {
+                console.warn("Adsgram: Ad was not fully watched or closed prematurely. Not granting reward. Description:", result.description);
+                showMessageModal('Ad Not Completed', 'Please watch the entire ad to claim your reward. (Reason: ' + result.description + ')');
+                resetGame(); // Reset game even if ad not completed, to allow user to play again
+            }
+        }).catch((errorResult) => {
+            // This catch block handles errors during ad playback (e.g., no fill, network issues)
+            console.error("Adsgram Ad failed to show or encountered an error:", errorResult);
+            showMessageModal('Ad Failed', 'Adsgram ad could not be shown. Please try again. (Reason: ' + (errorResult.description || 'Unknown error') + ')');
+            resetGame(); // Reset game on ad error
+        });
     }
 
     // --- Withdrawal Logic ---
