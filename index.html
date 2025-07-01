@@ -334,22 +334,28 @@
                     // ولكن يجب أن تكون على دراية بأن Firestore لن يعمل
                 }
             } else {
-                customLog("Firebase: المتغير __firebase_config غير متاح أو فارغ. لا يمكن تهيئة Firebase بشكل كامل.", 'error');
-                // لا ترجع هنا، اسمح للكود بالاستمرار مع تكوين فارغ
-                // ولكن يجب أن تكون على دراية بأن Firestore لن يعمل
+                customLog("Firebase: المتغير __firebase_config غير متاح أو فارغ. جاري استخدام تكوين وهمي.", 'error');
+                // **تكوين Firebase وهمي (Placeholder) - لا تستخدم هذا في الإنتاج!**
+                // هذا يسمح للتطبيق بالتهيئة وتجاوز خطأ "projectID not provided"
+                firebaseConfig = {
+                    apiKey: "YOUR_PLACEHOLDER_API_KEY",
+                    authDomain: "your-project-id.firebaseapp.com",
+                    projectId: "your-project-id",
+                    storageBucket: "your-project-id.appspot.com",
+                    messagingSenderId: "YOUR_PLACEHOLDER_MESSAGING_SENDER_ID",
+                    appId: "YOUR_PLACEHOLDER_APP_ID"
+                };
+                customLog("Firebase: تم استخدام تكوين Firebase وهمي. لن تعمل وظائف Firestore/Auth بشكل صحيح دون تكوين حقيقي.", 'warn');
             }
 
             customLog("Firebase: __app_id: " + appId);
             
             // التحقق مما إذا كان تكوين Firebase لا يزال فارغًا بعد محاولة التحليل
-            if (Object.keys(firebaseConfig).length === 0) {
-                customLog("Firebase: تكوين Firebase فارغ بعد الفحص. لا يمكن تهيئة Firebase.", 'error');
-                // لا ترجع هنا، اسمح للكود بالاستمرار مع تكوين فارغ
-                // ولكن يجب أن تكون على دراية بأن Firestore لن يعمل
+            if (Object.keys(firebaseConfig).length === 0 || firebaseConfig.projectId === "your-project-id") {
+                customLog("Firebase: تكوين Firebase غير مكتمل أو وهمي. قد لا تعمل وظائف Firestore/Auth بشكل صحيح.", 'warn');
             }
 
             // تهيئة تطبيق Firebase وخدمات Firestore والمصادقة
-            // قد يفشل هذا إذا كان firebaseConfig فارغًا، ولكننا نواصل لتسجيل الأخطاء اللاحقة
             try {
                 window.firebaseApp = initializeApp(firebaseConfig);
                 window.db = getFirestore(window.firebaseApp);
@@ -357,7 +363,7 @@
                 customLog("Firebase: تم تهيئة Firebase بنجاح.");
             } catch (initError) {
                 customLog("Firebase: خطأ أثناء تهيئة Firebase services (initializeApp, getFirestore, getAuth): " + initError.message, 'error');
-                // لا ترجع هنا، اسمح للكود بالاستمرار لتسجيل المزيد من الأخطاء
+                customLog("Firebase: هذا الخطأ قد يشير إلى أن تكوين Firebase غير صحيح أو أن هناك مشكلة في الوصول إلى خدمات Firebase.", 'error');
             }
 
             // الاستماع إلى تغييرات حالة المصادقة
@@ -772,13 +778,13 @@
         // تحديد مسار المجموعة للبيانات العامة
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const leaderboardCollectionPath = `/artifacts/${appId}/public/data/leaderboard`;
-        const leaderboardRef = window.db.collection(leaderboardCollectionPath);
+        const leaderboardRef = collection(window.db, leaderboardCollectionPath); // استخدام collection مباشرة
         
         // إنشاء استعلام للحصول على أفضل 100 مستخدم حسب النقاط، مرتبة تنازليًا
-        const q = window.db.query(leaderboardRef, window.db.orderBy('points', 'desc'), window.db.limit(100));
+        const q = query(leaderboardRef, orderBy('points', 'desc'), limit(100)); // استخدام query و orderBy و limit مباشرة
 
         // إعداد مستمع في الوقت الفعلي للوحة المتصدرين
-        window.db.onSnapshot(q, (snapshot) => {
+        onSnapshot(q, (snapshot) => { // استخدام onSnapshot مباشرة
             customLog("Leaderboard: تم تلقي تحديث من Firestore.");
             leaderboardData = []; // مسح البيانات السابقة
             snapshot.forEach(doc => {
@@ -1000,12 +1006,12 @@
         }
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const userDocRef = window.db.doc(`/artifacts/${appId}/public/data/leaderboard/${window.currentUserId}`);
+        const userDocRef = doc(window.db, `/artifacts/${appId}/public/data/leaderboard/${window.currentUserId}`); // استخدام doc مباشرة
         const userName = tgUser ? tgUser.first_name || 'مجهول' : 'مجهول';
         const userAvatar = tgUser ? tgUser.photo_url || '' : ''; // حفظ عنوان URL للصورة إذا كان متاحًا
 
         try {
-            await window.db.setDoc(userDocRef, {
+            await setDoc(userDocRef, { // استخدام setDoc مباشرة
                 username: userName,
                 points: points, // استخدام متغير 'points' العام الحالي
                 avatar: userAvatar,
