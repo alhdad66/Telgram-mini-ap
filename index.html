@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"> <!-- تم تعيين اللغة العربية والاتجاه من اليمين لليسار -->
+<html lang="ar" dir="rtl"> <!-- Language set to Arabic and direction to Right-to-Left -->
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <title>بوت الكسب السهل</title>
+  <title>Easy Earning Bot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     /* Root CSS variables for consistent theming */
@@ -280,15 +280,15 @@
 
     // --- Firebase Configuration (Your Firebase Project Configuration) ---
     // This is the Firebase configuration you obtained from the Firebase Console for your "pepe-top" project.
-    // It has been directly integrated here.
+    // It has been directly integrated here with the latest appId and measurementId.
     let userProvidedFirebaseConfig = {
         apiKey: "AIzaSyD3e-zwSiLECQE9BjUhgQsRRay19pI39MM",
         authDomain: "pepe-top.firebaseapp.com",
         projectId: "pepe-top",
         storageBucket: "pepe-top.firebasestorage.app",
         messagingSenderId: "252494273467",
-        appId: "1:252494273467:web:643e49c646eb525421829e",
-        measurementId: "G-86L0NLDEYH"
+        appId: "1:252494273467:web:219f04c177499ad721829e", // Updated appId
+        measurementId: "G-8VW4G3M9MD" // Updated measurementId
     };
     // --------------------------------------------------------------------
 
@@ -437,39 +437,39 @@
         <div class="user-header-card">
           <div class="user-avatar" id="profile-pic">EE</div>
           <div class="user-info">
-            <h2 class="username" id="username">Loading...</h2>
-            <p class="title">Welcome back!</p>
-            <p class="user-id" id="display-user-id">ID: Loading...</p> <!-- Display user ID -->
+            <h2 class="username" id="username">جار التحميل...</h2>
+            <p class="title">مرحبًا بك مرة أخرى!</p>
+            <p class="user-id" id="display-user-id">المعرف: جار التحميل...</p> <!-- Display user ID -->
           </div>
         </div>
         <div class="balance-card">
-            <p class="label">Total Balance</p>
+            <p class="label">الرصيد الإجمالي</p>
             <h1 class="balance-value" id="balance-value">$0.00</h1>
-            <p class="points-value"><i class="fa-solid fa-coins"></i> <span id="points-value">0</span> Points</p>
+            <p class="points-value"><i class="fa-solid fa-coins"></i> <span id="points-value">0</span> نقطة</p>
         </div>
-        <h2 class="section-title">Quick Actions</h2>
+        <h2 class="section-title">إجراءات سريعة</h2>
         <div class="task-card" onclick="showView('tasks-view')">
             <div class="task-icon"><i class="fa-solid fa-gamepad"></i></div>
-            <div class="task-details"><h3>Play Game</h3><p>Win an XO game to earn points.</p></div>
+            <div class="task-details"><h3>العب اللعبة</h3><p>اربح لعبة XO لكسب النقاط.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-chevron-left"></i></div>
         </div>
         <div class="task-card" onclick="openWithdrawModal()">
             <div class="task-icon"><i class="fa-solid fa-wallet"></i></div>
-            <div class="task-details"><h3>Withdraw Funds</h3><p>Request a withdrawal of your available balance.</p></div>
+            <div class="task-details"><h3>سحب الأموال</h3><p>اطلب سحب رصيدك المتاح.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-chevron-left"></i></div>
         </div>
 
         <!-- Debug Console Toggle Button -->
-        <button id="toggle-debug-button" onclick="toggleDebugConsole()">Toggle Debug Console</button>
+        <button id="toggle-debug-button" onclick="toggleDebugConsole()">تبديل كونسول الأخطاء</button>
         <!-- Debug Console -->
         <div id="debug-console"></div>
       </div>
 
       <!-- Tasks View (now XO Game View) -->
       <div id="tasks-view" class="view">
-        <h2 class="section-title">Play XO & Earn!</h2>
+        <h2 class="section-title">العب XO واكسب!</h2>
         <div class="xo-game-container">
-            <div id="xo-status" class="xo-status">Player X's Turn</div>
+            <div id="xo-status" class="xo-status">دور اللاعب X</div>
             <div class="xo-board" id="xo-board">
                 <div class="xo-cell" data-cell-index="0"></div>
                 <div class="xo-cell" data-cell-index="1"></div>
@@ -482,21 +482,21 @@
                 <div class="xo-cell" data-cell-index="8"></div>
             </div>
             <div class="game-actions">
-                <button id="claim-reward-button" class="action-button primary-button" onclick="claimReward()">Claim Reward!</button>
-                <button id="reset-game-button" class="action-button secondary-button" onclick="resetGame()">Reset Game</button>
+                <button id="claim-reward-button" class="action-button primary-button" onclick="claimReward()">المطالبة بالمكافأة!</button>
+                <button id="reset-game-button" class="action-button secondary-button" onclick="resetGame()">إعادة تعيين اللعبة</button>
             </div>
         </div>
       </div>
 
       <!-- Leaderboard View -->
       <div id="leaderboard-view" class="view">
-        <h2 class="section-title">Top Earners</h2>
+        <h2 class="section-title">أفضل الكاسبين</h2>
         <div id="leaderboard-list"><!-- Leaderboard items will be generated here by JS --></div>
       </div>
 
       <!-- History View -->
       <div id="history-view" class="view">
-        <h2 class="section-title">Recent Activity</h2>
+        <h2 class="section-title">النشاط الأخير</h2>
         <div id="history-list"><!-- History items will be generated here by JS --></div>
       </div>
 
@@ -504,22 +504,22 @@
 
     <!-- Bottom Navigation Bar -->
     <nav class="footer-nav">
-      <button class="nav-button active" onclick="showView('home-view')"><i class="icon fa-solid fa-house"></i>Home</button>
-      <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-gamepad"></i>Play</button>
-      <button class="nav-button" onclick="showView('leaderboard-view')"><i class="icon fa-solid fa-trophy"></i>Leaders</button>
-      <button class="nav-button" onclick="showView('history-view')"><i class="icon fa-solid fa-clock-rotate-left"></i>History</button>
-      <button class="nav-button" onclick="shareApp()"><i class="icon fa-solid fa-share-nodes"></i>Share</button>
+      <button class="nav-button active" onclick="showView('home-view')"><i class="icon fa-solid fa-house"></i>الرئيسية</button>
+      <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-gamepad"></i>العب</button>
+      <button class="nav-button" onclick="showView('leaderboard-view')"><i class="icon fa-solid fa-trophy"></i>القادة</button>
+      <button class="nav-button" onclick="showView('history-view')"><i class="icon fa-solid fa-clock-rotate-left"></i>السجل</button>
+      <button class="nav-button" onclick="shareApp()"><i class="icon fa-solid fa-share-nodes"></i>مشاركة</button>
     </nav>
   </div>
   
   <!-- Withdraw Modal -->
   <div class="modal-overlay" id="withdraw-modal">
     <div class="modal-content">
-        <h3>Confirm Withdrawal</h3>
-        <p>You are about to request a withdrawal of your full balance. Please confirm.</p>
+        <h3>تأكيد السحب</h3>
+        <p>أنت على وشك طلب سحب رصيدك بالكامل. يرجى التأكيد.</p>
         <div class="modal-actions">
-            <button class="action-button secondary-button" onclick="closeWithdrawModal()">Cancel</button>
-            <button class="action-button primary-button" onclick="requestWithdraw()">Confirm</button>
+            <button class="action-button secondary-button" onclick="closeWithdrawModal()">إلغاء</button>
+            <button class="action-button primary-button" onclick="requestWithdraw()">تأكيد</button>
         </div>
     </div>
   </div>
@@ -530,7 +530,7 @@
         <h3 id="message-modal-title"></h3>
         <p id="message-modal-body"></p>
         <div class="modal-actions">
-            <button class="action-button primary-button" onclick="closeMessageModal()">Close</button>
+            <button class="action-button primary-button" onclick="closeMessageModal()">إغلاق</button>
         </div>
     </div>
   </div>
@@ -538,7 +538,7 @@
   <!-- Loading Overlay -->
   <div class="loading-overlay" id="loading-overlay">
       <div class="spinner"></div>
-      <p class="loading-text" id="loading-text">Processing...</p>
+      <p class="loading-text" id="loading-text">جار المعالجة...</p>
   </div>
 
 <script>
@@ -801,11 +801,12 @@
         // Set up real-time listener for leaderboard
         onSnapshot(q, (snapshot) => {
             customLog("Leaderboard: Received update from Firestore.");
+            customLog("Leaderboard: Raw snapshot data (number of docs): " + snapshot.size); // Added log
             leaderboardData = []; // Clear previous data
             snapshot.forEach(doc => {
                 leaderboardData.push({ id: doc.id, ...doc.data() });
             });
-            customLog("Leaderboard: Leaderboard data updated: " + JSON.stringify(leaderboardData));
+            customLog("Leaderboard: Processed leaderboardData array content: " + JSON.stringify(leaderboardData)); // Added log
             renderLeaderboard(); // Re-render leaderboard whenever data changes
         }, (error) => {
             customLog("Leaderboard: Error listening to leaderboard: " + error.message, 'error');
@@ -815,15 +816,16 @@
 
     function renderLeaderboard() {
         customLog("Leaderboard: Rendering leaderboard.");
+        customLog("Leaderboard: renderLeaderboard called. Current leaderboardData length: " + leaderboardData.length); // Added log
         const list = document.getElementById('leaderboard-list');
         if (leaderboardData.length === 0) {
-            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">No one on the leaderboard yet.</div><div class="detail">Be the first to earn points!</div></div></div>`;
+            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا أحد على لوحة المتصدرين بعد.</div><div class="detail">كن أول من يكسب النقاط!</div></div></div>`;
             customLog("Leaderboard: Leaderboard is empty. Displayed message.");
             return;
         }
         
         list.innerHTML = leaderboardData.map((user, index) => {
-            const userName = user.username || 'Anonymous';
+            const userName = user.username || 'مجهول';
             // Use fallback image if avatar is not available or fails to load
             const userAvatar = user.avatar || `https://placehold.co/150x150/00a651/ffffff?text=${userName.charAt(0)}`;
             return `
@@ -831,7 +833,7 @@
                     <div class="rank">#${index + 1}</div>
                     <img src="${userAvatar}" class="avatar" alt="Avatar" onerror="this.onerror=null;this.src='https://placehold.co/150x150/00a651/ffffff?text=${userName.charAt(0)}';">
                     <div class="info"><div class="name">${userName}</div></div>
-                    <div class="score">${user.points} Points</div>
+                    <div class="score">${user.points} نقطة</div>
                 </div>`;
         }).join('');
         customLog("Leaderboard: Leaderboard items rendered.");
@@ -1027,6 +1029,7 @@
         const userAvatar = tgUser ? tgUser.photo_url || '' : ''; // Save photo URL if available
 
         try {
+            customLog("Firestore: Attempting to save for userId: " + window.currentUserId + ", points: " + points + ", username: " + userName); // Added log
             await setDoc(userDocRef, {
                 username: userName,
                 points: points, // Use current global 'points' variable
