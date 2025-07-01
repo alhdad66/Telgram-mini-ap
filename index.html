@@ -31,30 +31,26 @@
       display: flex; flex-direction: column; overflow: hidden; position: relative;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* Added for better container visibility */
     }
-    /* Main content area, takes available space and allows scrolling */
     main {
       flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* Space for footer nav */
     }
     .view { display: none; animation: fadeIn 0.4s ease-in-out; }
     .view.active { display: block; }
-    /* Fade-in animation for view transitions */
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    /* User header card styling */
     .user-header-card {
       background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 25px;
       display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.05);
     }
-    /* User avatar styling */
     .user-avatar {
       width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; overflow: hidden;
       background: linear-gradient(135deg, var(--primary-color), #00a651);
       display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;
     }
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    /* User info text styling */
     .user-info .username { font-size: 18px; font-weight: 700; margin: 0; }
     .user-info .title { font-size: 14px; color: var(--text-muted-color); margin: 0; }
-    /* Balance card styling with gradient background */
+    .user-info .user-id { font-size: 12px; color: var(--text-muted-color); margin: 0; word-break: break-all; } /* Added for user ID */
+
     .balance-card {
       background: linear-gradient(135deg, #00a651, #00753a); border-radius: 16px; padding: 20px;
       text-align: center; margin-bottom: 25px;
@@ -62,9 +58,7 @@
     .balance-card .label { font-size: 16px; opacity: 0.8; margin-bottom: 5px; }
     .balance-card .balance-value { font-size: 36px; font-weight: 800; margin: 0; letter-spacing: 1px; }
     .balance-card .points-value { font-size: 16px; font-weight: 600; color: var(--accent-color); margin-top: 10px; }
-    /* Section title styling */
     .section-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; padding-left: 5px; border-left: 4px solid var(--primary-color); }
-    /* Task card styling for interactive elements */
     .task-card {
       background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px;
       display: flex; align-items: center; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease;
@@ -75,7 +69,6 @@
     .task-details h3 { margin: 0; font-size: 16px; font-weight: 600; }
     .task-details p { margin: 3px 0 0; font-size: 13px; color: var(--text-muted-color); }
     .task-arrow { margin-left: auto; font-size: 18px; color: var(--text-muted-color); }
-    /* List item styling for leaderboard and history */
     .list-item {
       display: flex; align-items: center; background: var(--card-bg); padding: 12px 15px;
       border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.05);
@@ -109,6 +102,7 @@
     }
     .primary-button { background: var(--primary-color); color: #000; }
     .primary-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 217, 20, 0.3); }
+    /* Secondary button styling */
     .secondary-button { background: var(--secondary-color); color: var(--primary-color); }
     .secondary-button:hover { background: #3a3a3e; }
 
@@ -224,7 +218,72 @@
 
   <!-- Adsgram SDK -->
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-  <!-- Telegram Web App SDK -->
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Global variables for Firebase instances
+    window.firebaseApp = null;
+    window.db = null;
+    window.auth = null;
+    window.currentUserId = null;
+    window.isAuthReady = false; // Flag to indicate if Firebase Auth is ready
+
+    // Initialize Firebase
+    function initFirebase() {
+        try {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is empty. Cannot initialize Firebase.");
+                return;
+            }
+
+            window.firebaseApp = initializeApp(firebaseConfig);
+            window.db = getFirestore(window.firebaseApp);
+            window.auth = getAuth(window.firebaseApp);
+
+            onAuthStateChanged(window.auth, async (user) => {
+                if (user) {
+                    window.currentUserId = user.uid;
+                    console.log("Firebase Auth State Changed: User is signed in with UID:", user.uid);
+                } else {
+                    console.log("Firebase Auth State Changed: No user signed in. Attempting anonymous sign-in.");
+                    try {
+                        // Use __initial_auth_token if available, otherwise sign in anonymously
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(window.auth, __initial_auth_token);
+                            window.currentUserId = window.auth.currentUser.uid;
+                            console.log("Signed in with custom token. UID:", window.currentUserId);
+                        } else {
+                            await signInAnonymously(window.auth);
+                            window.currentUserId = window.auth.currentUser.uid;
+                            console.log("Signed in anonymously. UID:", window.currentUserId);
+                        }
+                    } catch (error) {
+                        console.error("Firebase Auth Error during sign-in:", error);
+                        // Fallback to a random ID if authentication fails completely
+                        window.currentUserId = crypto.randomUUID();
+                        console.warn("Using random UUID as userId due to Firebase Auth failure:", window.currentUserId);
+                    }
+                }
+                window.isAuthReady = true; // Set flag that auth is ready
+                console.log("Firebase Auth is ready. Current userId:", window.currentUserId);
+                // Now that auth is ready, proceed with app initialization that depends on userId
+                window.dispatchEvent(new Event('firebaseAuthReady')); // Custom event
+            });
+
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+        }
+    }
+
+    // Call initFirebase when the script loads
+    initFirebase();
+  </script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -238,6 +297,7 @@
           <div class="user-info">
             <h2 class="username" id="username">Loading...</h2>
             <p class="title">Welcome Back!</p>
+            <p class="user-id" id="display-user-id">ID: Loading...</p> <!-- Display User ID -->
           </div>
         </div>
         <div class="balance-card">
@@ -362,29 +422,34 @@
     const xoStatus = document.getElementById('xo-status');
     const claimRewardButton = document.getElementById('claim-reward-button');
     const resetGameButton = document.getElementById('reset-game-button');
+    const displayUserIdElement = document.getElementById('display-user-id');
+
 
     // --- Core App Logic ---
     document.addEventListener('DOMContentLoaded', () => {
-        initApp();
+        // Listen for Firebase Auth Ready event before proceeding with app initialization
+        window.addEventListener('firebaseAuthReady', () => {
+            console.log("Firebase Auth is ready, proceeding with app initialization.");
+            initAppAfterFirebase();
+        });
     });
 
-    function initApp() {
-        // Initialize Telegram Web App features if available
-        if (window.Telegram && Telegram.WebApp) {
-            Telegram.WebApp.ready();
-            Telegram.WebApp.expand();
-            tgUser = Telegram.WebApp.initDataUnsafe.user;
-        }
-        
+    function initAppAfterFirebase() {
         loadData(); // Load saved user data
         loadTelegramUser(); // Display Telegram user info
         showView('home-view'); // Set initial view to home
-        renderLeaderboard(); // Render the static leaderboard
         initXOBoardListeners(); // Initialize XO game click listeners
         resetGame(); // Initialize the game board
         
         // Initialize Adsgram SDK with a retry mechanism
         initializeAdsgram(0); // Start with retry attempt 0
+
+        // Start listening to leaderboard updates only when Firebase is ready
+        if (window.db && window.isAuthReady) {
+            listenToLeaderboard();
+        } else {
+            console.error("Firestore not ready, cannot listen to leaderboard.");
+        }
     }
     
     // --- Initialize Adsgram with retry logic ---
@@ -394,11 +459,8 @@
 
         if (window.Adsgram) {
             // Adsgram SDK is loaded, initialize AdController
-            // Adsgram.init does not seem to take onAdLoaded/onAdFailed callbacks directly
-            // These events are typically handled by the promise returned by .show()
             adsgramAdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
             console.log("Adsgram SDK Initialized with AdController (Block ID: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
-            // No explicit loadAd() call needed here, as show() handles it.
         } else if (retryAttempt < MAX_RETRIES) {
             // Adsgram SDK not loaded yet, retry after a delay
             console.warn(`Adsgram SDK (window.Adsgram) not found. Retrying initialization (Attempt ${retryAttempt + 1}/${MAX_RETRIES})...`);
@@ -425,6 +487,11 @@
         
         // If switching to history view, re-render history to ensure it's up-to-date
         if (viewId === 'history-view') renderHistory();
+        // If switching to leaderboard view, ensure it's updated
+        if (viewId === 'leaderboard-view') {
+            // The leaderboard is updated via onSnapshot, so just ensure it's rendered
+            // No need to call fetchLeaderboard() explicitly here, onSnapshot handles it.
+        }
     }
     
     // --- Data Persistence ---
@@ -450,6 +517,9 @@
         // Update the displayed points and balance values
         document.getElementById('points-value').textContent = points;
         document.getElementById('balance-value').textContent = `$${balance.toFixed(2)}`;
+        if (window.currentUserId) {
+            displayUserIdElement.textContent = `ID: ${window.currentUserId}`;
+        }
     }
     
     // --- User & Profile ---
@@ -465,6 +535,7 @@
                 profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
             }
         }
+        updateDisplay(); // Update user ID display
     }
 
     // --- History Logic ---
@@ -501,27 +572,51 @@
         }).join('');
     }
 
-    // --- Leaderboard Logic ---
-    function renderLeaderboard() {
-        // Static leaderboard data (can be replaced with dynamic data from a backend)
-        const leaderboardData = [
-            { name: "CryptoKing", score: 2540, avatar: "https://i.pravatar.cc/150?img=1" },
-            { name: "Elena", score: 2210, avatar: "https://i.pravatar.cc/150?img=2" },
-            { name: "ProMiner", score: 1980, avatar: "https://i.pravatar.cc/150?img=3" },
-            { name: "Aisha", score: 1750, avatar: "https://i.pravatar.cc/150?img=4" },
-            { name: "BotMaster", score: 1530, avatar: "https://i.pravatar.cc/150?img=5" },
-        ];
-        
-        // Generate HTML for each leaderboard entry
-        document.getElementById('leaderboard-list').innerHTML = leaderboardData.map((user, index) => `
-            <div class="list-item">
-                <div class="rank">#${index + 1}</div>
-                <img src="${user.avatar}" class="avatar" alt="Avatar">
-                <div class="info"><div class="name">${user.name}</div></div>
-                <div class="score">${user.score} pts</div>
-            </div>
-        `).join('');
+    // --- Leaderboard Logic (Firestore Integrated) ---
+    let leaderboardData = []; // Store fetched leaderboard data
+
+    function listenToLeaderboard() {
+        if (!window.db || !window.isAuthReady) {
+            console.warn("Firestore or Auth not ready, cannot listen to leaderboard yet.");
+            return;
+        }
+
+        const leaderboardRef = window.db.collection(`/artifacts/${window.__app_id}/public/data/leaderboard`);
+        const q = window.db.query(leaderboardRef, window.db.orderBy('points', 'desc'), window.db.limit(100));
+
+        window.db.onSnapshot(q, (snapshot) => {
+            leaderboardData = [];
+            snapshot.forEach(doc => {
+                leaderboardData.push({ id: doc.id, ...doc.data() });
+            });
+            console.log("Leaderboard data updated:", leaderboardData);
+            renderLeaderboard(); // Re-render leaderboard whenever data changes
+        }, (error) => {
+            console.error("Error listening to leaderboard:", error);
+            showMessageModal('Leaderboard Error', 'Failed to load leaderboard data. Please try again later.');
+        });
     }
+
+    function renderLeaderboard() {
+        const list = document.getElementById('leaderboard-list');
+        if (leaderboardData.length === 0) {
+            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">No one on the leaderboard yet.</div><div class="detail">Be the first to earn points!</div></div></div>`;
+            return;
+        }
+        
+        list.innerHTML = leaderboardData.map((user, index) => {
+            const userName = user.username || 'Anonymous';
+            const userAvatar = user.avatar || `https://placehold.co/150x150/00a651/ffffff?text=${userName.charAt(0)}`;
+            return `
+                <div class="list-item">
+                    <div class="rank">#${index + 1}</div>
+                    <img src="${userAvatar}" class="avatar" alt="Avatar" onerror="this.onerror=null;this.src='https://placehold.co/150x150/00a651/ffffff?text=${userName.charAt(0)}';">
+                    <div class="info"><div class="name">${userName}</div></div>
+                    <div class="score">${user.points} pts</div>
+                </div>`;
+        }).join('');
+    }
+
 
     // --- XO Game Logic ---
     function initXOBoardListeners() {
@@ -662,17 +757,44 @@
     }
 
     // --- Earning Functions ---
-    function grantReward() {
+    async function grantReward() {
         points += pointsPerAd; // Increase points
         balance = points * ratePerPoint; // Calculate new balance
         updateDisplay(); // Update UI
         addToHistory('earn', `+${pointsPerAd} Point(s) from XO Game Win`); // Log the earning
-        saveData(); // Save data
+        saveData(); // Save data (local storage)
+        
         Telegram.WebApp.HapticFeedback.notificationOccurred('success'); // Provide haptic feedback
-        // Use custom message modal instead of alert
         showMessageModal('Congratulations!', `You've earned +${pointsPerAd} point. Your new balance is $${balance.toFixed(2)}.`);
         resetGame(); // Reset game after reward is granted
+
+        // Save points to Firestore leaderboard
+        await saveUserPointsToFirestore();
     }
+
+    async function saveUserPointsToFirestore() {
+        if (!window.db || !window.currentUserId) {
+            console.error("Firestore or currentUserId not available. Cannot save points to leaderboard.");
+            return;
+        }
+
+        const userDocRef = window.db.doc(`/artifacts/${window.__app_id}/public/data/leaderboard/${window.currentUserId}`);
+        const userName = tgUser ? tgUser.first_name || 'Anonymous' : 'Anonymous';
+        const userAvatar = tgUser ? tgUser.photo_url || '' : ''; // Save photo URL if available
+
+        try {
+            await window.db.setDoc(userDocRef, {
+                username: userName,
+                points: points, // Use the current global 'points' variable
+                avatar: userAvatar,
+                lastUpdated: new Date()
+            }, { merge: true }); // Use merge: true to update existing fields without overwriting the entire document
+            console.log("User points saved to Firestore successfully:", { userId: window.currentUserId, points: points });
+        } catch (error) {
+            console.error("Error saving user points to Firestore:", error);
+        }
+    }
+
 
     function claimReward() {
         console.log("Attempting to claim reward. Checking Adsgram AdController...");
