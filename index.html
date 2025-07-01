@@ -239,9 +239,9 @@
       max-height: 200px; /* ارتفاع أقصى */
       overflow-y: auto; /* شريط تمرير عند الحاجة */
       border: 1px solid var(--primary-color);
-      display: none; /* مخفي افتراضيا */
       text-align: left; /* محاذاة النص لليسار */
       direction: ltr; /* اتجاه النص من اليسار لليمين داخل الكونسول */
+      display: none; /* مخفي افتراضيا */
     }
     #debug-console p {
       margin: 0 0 3px 0;
@@ -273,14 +273,30 @@
   <!-- Firebase SDKs -->
   <script type="module">
     // استيراد وحدات Firebase الضرورية
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"; // تم التحديث إلى 11.10.0
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"; // تم التحديث إلى 11.10.0
+    import { getFirestore, doc, setDoc, onSnapshot, collection, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js"; // تم التحديث إلى 11.10.0
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js"; // إضافة Analytics
+
+    // --- Firebase Configuration (تكوين مشروع Firebase الخاص بك) ---
+    // هذا هو تكوين Firebase الذي حصلت عليه من لوحة تحكم Firebase لمشروعك "pepe-top".
+    // لقد قمت بدمجه مباشرة هنا.
+    let userProvidedFirebaseConfig = {
+        apiKey: "AIzaSyD3e-zwSiLECQE9BjUhgQsRRay19pI39MM",
+        authDomain: "pepe-top.firebaseapp.com",
+        projectId: "pepe-top",
+        storageBucket: "pepe-top.firebasestorage.app",
+        messagingSenderId: "252494273467",
+        appId: "1:252494273467:web:643e49c646eb525421829e",
+        measurementId: "G-86L0NLDEYH" // تم إضافة measurementId
+    };
+    // --------------------------------------------------------------------
 
     // المتغيرات العامة لمثيلات Firebase
     window.firebaseApp = null;
     window.db = null;
     window.auth = null;
+    window.analytics = null; // إضافة analytics
     window.currentUserId = null;
     window.isAuthReady = false; // علامة للإشارة إلى ما إذا كانت مصادقة Firebase جاهزة
 
@@ -318,52 +334,51 @@
     function initFirebase() {
         customLog("Firebase: جاري بدء تهيئة Firebase...");
         try {
-            // الحصول على معرف التطبيق وتكوين Firebase من المتغيرات العامة للبيئة
-            const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // معرف التطبيق، يستخدم لإنشاء مسارات Firestore (مثل /artifacts/{appId}/public/data/...)
+            // نستخدم معرف المشروع من تكوين Firebase كـ appId هنا لضمان التطابق مع مسار Firestore
+            const appId = userProvidedFirebaseConfig.projectId || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
             let firebaseConfig = {};
 
-            // التحقق مما إذا كان __firebase_config متاحًا وصالحًا قبل تحليله
+            // الأولوية 1: تكوين Firebase من متغير البيئة (لبيئات مثل Canvas)
             if (typeof __firebase_config !== 'undefined' && __firebase_config) {
                 try {
                     firebaseConfig = JSON.parse(__firebase_config);
-                    customLog("Firebase: __firebase_config (parsed): " + JSON.stringify(firebaseConfig));
+                    customLog("Firebase: تم استخدام تكوين Firebase من متغير البيئة (__firebase_config).");
                 } catch (parseError) {
                     customLog("Firebase: خطأ في تحليل __firebase_config: " + parseError.message, 'error');
                     customLog("Firebase: __firebase_config الأصلي: " + __firebase_config, 'error');
-                    // لا ترجع هنا، اسمح للكود بالاستمرار مع تكوين فارغ
-                    // ولكن يجب أن تكون على دراية بأن Firestore لن يعمل
                 }
-            } else {
-                customLog("Firebase: المتغير __firebase_config غير متاح أو فارغ. جاري استخدام تكوين وهمي.", 'error');
-                // **تكوين Firebase وهمي (Placeholder) - لا تستخدم هذا في الإنتاج!**
-                // هذا يسمح للتطبيق بالتهيئة وتجاوز خطأ "projectID not provided"
-                firebaseConfig = {
-                    apiKey: "YOUR_PLACEHOLDER_API_KEY",
-                    authDomain: "your-project-id.firebaseapp.com",
-                    projectId: "your-project-id",
-                    storageBucket: "your-project-id.appspot.com",
-                    messagingSenderId: "YOUR_PLACEHOLDER_MESSAGING_SENDER_ID",
-                    appId: "YOUR_PLACEHOLDER_APP_ID"
-                };
-                customLog("Firebase: تم استخدام تكوين Firebase وهمي. لن تعمل وظائف Firestore/Auth بشكل صحيح دون تكوين حقيقي.", 'warn');
             }
 
-            customLog("Firebase: __app_id: " + appId);
-            
-            // التحقق مما إذا كان تكوين Firebase لا يزال فارغًا بعد محاولة التحليل
-            if (Object.keys(firebaseConfig).length === 0 || firebaseConfig.projectId === "your-project-id") {
-                customLog("Firebase: تكوين Firebase غير مكتمل أو وهمي. قد لا تعمل وظائف Firestore/Auth بشكل صحيح.", 'warn');
+            // الأولوية 2: التكوين المقدم من المستخدم (إذا لم يتم توفيره بواسطة البيئة أو كان غير صالح)
+            // نتحقق مما إذا كان userProvidedFirebaseConfig يحتوي على قيم فعلية (ليس مجرد سلاسل فارغة)
+            if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId || firebaseConfig.projectId.includes("YOUR_PLACEHOLDER")) {
+                if (Object.values(userProvidedFirebaseConfig).some(val => val !== "")) {
+                    firebaseConfig = userProvidedFirebaseConfig;
+                    customLog("Firebase: تم استخدام تكوين Firebase المقدم من المستخدم (userProvidedFirebaseConfig).");
+                } else {
+                    customLog("Firebase: تكوين Firebase المقدم من المستخدم فارغ أيضًا. لن تعمل وظائف Firestore/Auth بشكل صحيح.", 'error');
+                    // يمكننا تعيين تكوين وهمي هنا لمنع الأعطال، ولكن لن يعمل Firestore/Auth
+                    firebaseConfig = {
+                        apiKey: "NO_API_KEY", authDomain: "no-domain.firebaseapp.com",
+                        projectId: "no-project", storageBucket: "no-bucket.appspot.com",
+                        messagingSenderId: "no-sender", appId: "no-app"
+                    };
+                }
             }
+            
+            customLog("Firebase: معرف التطبيق المستخدم (appId): " + appId);
 
             // تهيئة تطبيق Firebase وخدمات Firestore والمصادقة
             try {
                 window.firebaseApp = initializeApp(firebaseConfig);
                 window.db = getFirestore(window.firebaseApp);
                 window.auth = getAuth(window.firebaseApp);
+                window.analytics = getAnalytics(window.firebaseApp); // تهيئة Analytics
                 customLog("Firebase: تم تهيئة Firebase بنجاح.");
             } catch (initError) {
-                customLog("Firebase: خطأ أثناء تهيئة Firebase services (initializeApp, getFirestore, getAuth): " + initError.message, 'error');
-                customLog("Firebase: هذا الخطأ قد يشير إلى أن تكوين Firebase غير صحيح أو أن هناك مشكلة في الوصول إلى خدمات Firebase.", 'error');
+                customLog("Firebase: خطأ أثناء تهيئة Firebase services (initializeApp, getFirestore, getAuth, getAnalytics): " + initError.message, 'error');
+                customLog("Firebase: هذا الخطأ قد يشير إلى أن تكوين Firebase غير صحيح أو أن هناك مشكلة في الوصول إلى خدمات Firebase. يرجى التحقق من `userProvidedFirebaseConfig`.", 'error');
             }
 
             // الاستماع إلى تغييرات حالة المصادقة
@@ -377,14 +392,13 @@
                     // لا يوجد مستخدم مسجل الدخول، حاول تسجيل الدخول مجهول الهوية أو باستخدام رمز مخصص
                     customLog("Firebase Auth: لا يوجد مستخدم مسجل الدخول. جاري محاولة تسجيل الدخول المجهول.");
                     try {
+                        // __initial_auth_token يتم توفيره بواسطة بيئات مثل Canvas للمصادقة التلقائية
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            // تسجيل الدخول باستخدام رمز مخصص إذا كان متاحًا
                             customLog("Firebase Auth: تم العثور على __initial_auth_token. جاري تسجيل الدخول باستخدام الرمز المخصص.");
                             await signInWithCustomToken(window.auth, __initial_auth_token);
                             window.currentUserId = window.auth.currentUser.uid;
                             customLog("Firebase Auth: تم تسجيل الدخول باستخدام الرمز المخصص. معرف UID: " + window.currentUserId);
                         } else {
-                            // تسجيل الدخول مجهول الهوية إذا لم يكن هناك رمز مخصص
                             customLog("Firebase Auth: لم يتم العثور على __initial_auth_token. جاري تسجيل الدخول مجهول الهوية.");
                             await signInAnonymously(window.auth);
                             window.currentUserId = window.auth.currentUser.uid;
@@ -776,7 +790,8 @@
         }
 
         // تحديد مسار المجموعة للبيانات العامة
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // نستخدم معرف المشروع من تكوين Firebase كـ appId هنا لضمان التطابق مع مسار Firestore
+        const appId = userProvidedFirebaseConfig.projectId || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
         const leaderboardCollectionPath = `/artifacts/${appId}/public/data/leaderboard`;
         const leaderboardRef = collection(window.db, leaderboardCollectionPath); // استخدام collection مباشرة
         
@@ -1005,7 +1020,8 @@
             return;
         }
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // نستخدم معرف المشروع من تكوين Firebase كـ appId هنا لضمان التطابق مع مسار Firestore
+        const appId = userProvidedFirebaseConfig.projectId || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
         const userDocRef = doc(window.db, `/artifacts/${appId}/public/data/leaderboard/${window.currentUserId}`); // استخدام doc مباشرة
         const userName = tgUser ? tgUser.first_name || 'مجهول' : 'مجهول';
         const userAvatar = tgUser ? tgUser.photo_url || '' : ''; // حفظ عنوان URL للصورة إذا كان متاحًا
