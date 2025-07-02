@@ -557,7 +557,7 @@
     let firebaseAuthUid = null; // Firebase Auth User ID (will be used for Firestore doc IDs)
     let telegramUserInitData = null; // Store full Telegram user init data from WebApp.initDataUnsafe.user
 
-    let isAppReady = false;
+    let isAppReady = false; // Flag to indicate if the app is fully initialized and ready
 
     // --- Constants ---
     const POINTS_PER_AD = 1; 
@@ -569,14 +569,6 @@
     // Telegram Bot API details (Replace with your actual bot token and admin ID)
     const BOT_TOKEN = '7201062892:AAGewLnDhE6l7buTuXAIScVhI4d-XJZZ5Hs'; 
     const ADMIN_USER_ID = '6357701459'; 
-
-    // --- State Variables (Managed by Firestore) ---
-    let points = 0;
-    let balance = 0.00; 
-    let historyLog = []; 
-    let referrerTelegramId = null; // This will store the Telegram ID of the referrer
-    let totalReferrals = 0;
-    let earnedFromReferrals = 0.00;
 
     // --- DOM Elements ---
     const usernameEl = document.getElementById('username');
@@ -615,12 +607,14 @@
 
     // --- Core App Logic ---
     document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM Content Loaded. Initializing app...");
         initApp();
     });
 
     async function initApp() {
         showLoadingOverlay('جاري تهيئة التطبيق...');
         try {
+            console.log("Step 1: Initializing Telegram WebApp...");
             // Initialize Telegram WebApp
             if (window.Telegram && Telegram.WebApp) {
                 Telegram.WebApp.ready();
@@ -630,29 +624,36 @@
                 
                 telegramUserInitData = Telegram.WebApp.initDataUnsafe.user; 
                 if (!telegramUserInitData || !telegramUserInitData.id) {
-                    showErrorModal("خطأ في بيانات المستخدم", "معرف مستخدم Telegram غير متاح. قد لا يكون التطبيق يعمل في Telegram.", "Telegram WebApp initDataUnsafe.user.id is missing.");
+                    const errorMsg = "معرف مستخدم Telegram غير متاح. قد لا يكون التطبيق يعمل في بيئة Telegram Mini App.";
+                    const errorDetails = "Telegram WebApp initDataUnsafe.user.id is missing or Telegram WebApp is not properly initialized. This app is designed to run within Telegram.";
+                    showErrorModal("خطأ في بيانات المستخدم", errorMsg, errorDetails);
                     isAppReady = false;
                     hideLoadingOverlay();
+                    console.error("Telegram WebApp initialization failed:", errorDetails);
                     return;
                 }
-                console.log("Telegram User ID:", telegramUserInitData.id);
+                console.log("Telegram WebApp initialized successfully. User ID:", telegramUserInitData.id);
                 console.log("Telegram Username:", telegramUserInitData.username || 'N/A');
 
+                console.log("Step 2: Initializing Firebase App and Services...");
                 // Initialize Firebase App and Services
                 firebaseApp = initializeApp(firebaseConfig);
                 db = getFirestore(firebaseApp);
                 auth = getAuth(firebaseApp); 
-                console.log("Firebase initialized.");
+                console.log("Firebase initialized successfully.");
 
+                console.log("Step 3: Signing in anonymously with Firebase...");
                 // Sign in anonymously to get a Firebase UID. This is crucial for Firestore security rules.
                 const userCredential = await signInAnonymously(auth);
                 firebaseAuthUid = userCredential.user.uid;
                 console.log("Signed in anonymously with Firebase UID:", firebaseAuthUid);
                 
+                console.log("Step 4: Setting up Firestore onSnapshot listener for user data...");
                 // Load user data from Firestore using the Firebase UID as the document ID
                 // This onSnapshot will keep the local state updated in real-time
                 const userDocRef = doc(db, `artifacts/${appId}/users/${firebaseAuthUid}`);
                 onSnapshot(userDocRef, async (docSnap) => {
+                    console.log("Firestore onSnapshot triggered.");
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         points = data.points || 0;
@@ -662,7 +663,7 @@
                         totalReferrals = data.totalReferrals || 0;
                         earnedFromReferrals = data.earnedFromReferrals || 0.00;
 
-                        console.log("User data loaded/updated from Firestore (onSnapshot):", data);
+                        console.log("User data loaded/updated from Firestore:", data);
                     } else {
                         console.log("User document not found, creating new one for Firebase UID:", firebaseAuthUid);
                         points = 0;
@@ -712,18 +713,21 @@
                     }
                     updateUI(); // Always update UI after data changes
                     hideLoadingOverlay(); // Hide loading overlay once initial data is loaded
+                    isAppReady = true; // Set app ready after initial data load
+                    showNotification('تم تحميل التطبيق بنجاح!', 'success');
+                    console.log("App is now fully ready.");
                 }, (error) => {
                     console.error("Error listening to user document in Firestore:", error);
                     showErrorModal("خطأ في تحميل بيانات المستخدم", `حدث خطأ أثناء تحميل بياناتك: ${error.message}`, error.stack);
                     hideLoadingOverlay();
+                    isAppReady = false; // App is not ready if data loading fails
                 });
 
-                isAppReady = true;
-                showNotification('تم تحميل التطبيق بنجاح!', 'success');
             } else {
+                // Standalone mode for development/testing outside Telegram
                 showNotification("لم يتم العثور على Telegram WebApp SDK. يعمل في الوضع المستقل (للتطوير).", 'info');
-                // For standalone testing/development, mock Telegram user data and sign in anonymously
-                telegramUserInitData = { id: 123456789, first_name: 'Test', username: 'testuser' };
+                console.warn("Telegram WebApp SDK not found. Running in standalone mode.");
+                telegramUserInitData = { id: 123456789, first_name: 'Test', username: 'testuser' }; // Mock user data
                 
                 firebaseApp = initializeApp(firebaseConfig);
                 db = getFirestore(firebaseApp);
@@ -734,9 +738,9 @@
                 firebaseAuthUid = userCredential.user.uid;
                 console.log("Signed in anonymously (standalone) with Firebase UID:", firebaseAuthUid);
 
-                // Set up onSnapshot listener for standalone mode
                 const userDocRef = doc(db, `artifacts/${appId}/users/${firebaseAuthUid}`);
                 onSnapshot(userDocRef, async (docSnap) => {
+                    console.log("Firestore onSnapshot triggered (standalone).");
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         points = data.points || 0;
@@ -745,7 +749,7 @@
                         referrerTelegramId = data.referrerTelegramId || null; 
                         totalReferrals = data.totalReferrals || 0;
                         earnedFromReferrals = data.earnedFromReferrals || 0.00;
-                        console.log("User data loaded/updated from Firestore (onSnapshot - standalone):", data);
+                        console.log("User data loaded/updated from Firestore (standalone):", data);
                     } else {
                         console.log("User document not found, creating new one for Firebase UID (standalone):", firebaseAuthUid);
                         points = 0;
@@ -768,43 +772,49 @@
                     }
                     updateUI();
                     hideLoadingOverlay();
+                    isAppReady = true; // Set app ready after initial data load in standalone mode
+                    showNotification('تم تحميل التطبيق بنجاح (وضع مستقل)!', 'success');
+                    console.log("App is now fully ready (standalone mode).");
                 }, (error) => {
                     console.error("Error listening to user document in Firestore (standalone):", error);
                     showErrorModal("خطأ في تحميل بيانات المستخدم (وضع مستقل)", `حدث خطأ أثناء تحميل بياناتك: ${error.message}`, error.stack);
                     hideLoadingOverlay();
+                    isAppReady = false;
                 });
-
-                isAppReady = true;
-                showNotification('تم تحميل التطبيق بنجاح (وضع مستقل)!', 'success');
             }
         } catch (error) {
-            console.error("Error initializing app (outer catch):", error);
+            console.error("Error initializing app (outer catch block):", error);
             showErrorModal("فشل تهيئة التطبيق", `حدث خطأ فادح أثناء تهيئة التطبيق: ${error.message}`, error.stack);
             isAppReady = false;
             hideLoadingOverlay();
         } finally {
-            // Initial UI update is now handled by the onSnapshot callback
-            // renderLeaderboard(); // Render static leaderboard
-            // updateWithdrawalWarning(); // Update withdrawal warning message
-            // initializeInAppAds(); // This can run independently
+            // These functions can be called regardless of Firebase/Telegram init success
+            initializeInAppAds(); 
+            renderLeaderboard(); 
         }
-
-        initializeInAppAds(); // Keep ad initialization here
-        renderLeaderboard(); // Keep leaderboard render here
     }
 
     // --- Loading Overlay Functions ---
     function showLoadingOverlay(message) {
         loadingOverlayEl.classList.remove('hidden');
         loadingOverlayEl.querySelector('p').textContent = message;
+        console.log("Loading Overlay Shown:", message);
     }
 
     function hideLoadingOverlay() {
         loadingOverlayEl.classList.add('hidden');
+        console.log("Loading Overlay Hidden.");
     }
 
     // --- View Management ---
     function showView(viewId) {
+        console.log("Attempting to show view:", viewId);
+        if (!isAppReady) {
+            showNotification("التطبيق غير جاهز بعد. يرجى الانتظار.", 'info');
+            console.warn("Attempted to show view before app is ready.");
+            return;
+        }
+
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
         
@@ -822,14 +832,18 @@
         if (window.Telegram && Telegram.WebApp && Telegram.WebApp.BackButton) {
             if (viewId === 'home-view') {
                 Telegram.WebApp.BackButton.hide();
+                console.log("Telegram BackButton hidden.");
             } else {
                 Telegram.WebApp.BackButton.show();
+                console.log("Telegram BackButton shown.");
             }
         }
+        console.log("View changed to:", viewId);
     }
 
     // Handles Telegram's native back button click
     function handleBackButtonClick() {
+        console.log("Telegram Back Button Clicked.");
         const currentActiveView = document.querySelector('.view.active');
         if (currentActiveView && currentActiveView.id !== 'home-view') {
             showView('home-view');
@@ -837,18 +851,21 @@
             // If on home view, close the Mini App
             if (window.Telegram && Telegram.WebApp) {
                 Telegram.WebApp.close();
+                console.log("Telegram Mini App closed.");
             }
         }
     }
 
     // --- Data Display Update ---
     function updateUI() {
+        console.log("Updating UI...");
         // Use telegramUserInitData for display, firebaseAuthUid for Firestore operations
         if (!telegramUserInitData || !firebaseAuthUid) {
             usernameEl.textContent = "جاري التحميل...";
             profilePicDiv.textContent = "EE";
             pointsValueEl.textContent = "0";
             balanceValueEl.textContent = "$0.00";
+            console.warn("UI update skipped: Telegram user data or Firebase UID not available.");
             return;
         }
 
@@ -862,6 +879,7 @@
         pointsValueEl.textContent = points;
         balanceValueEl.textContent = `$${balance.toFixed(2)}`;
         
+        // Only update specific view elements if that view is active
         if (document.getElementById('withdraw-view').classList.contains('active')) {
             updateWithdrawalView();
         }
@@ -876,20 +894,22 @@
 
     // --- History Logic ---
     async function addToHistory(type, detail) {
+        console.log("Adding to history:", type, detail);
         if (!db || !firebaseAuthUid) {
             console.error("Firestore أو معرف Firebase UID غير جاهز لتحديث السجل.");
+            showErrorModal("خطأ في السجل", "Firestore أو معرف المستخدم غير جاهز لتحديث السجل.", "Missing db or firebaseAuthUid.");
             return;
         }
         const timestamp = new Date().toISOString();
         const newEntry = { type, detail, timestamp };
         
-        const updatedHistory = [newEntry, ...historyLog].slice(0, 50);
+        const updatedHistory = [newEntry, ...historyLog].slice(0, 50); // Keep last 50 entries
         
         const userDocRef = doc(db, `artifacts/${appId}/users/${firebaseAuthUid}`);
         try {
             await updateDoc(userDocRef, { historyLog: updatedHistory });
-            historyLog = updatedHistory; 
-            console.log("تم تحديث السجل في Firestore.");
+            historyLog = updatedHistory; // Update local state immediately
+            console.log("تم تحديث السجل في Firestore بنجاح.");
         } catch (error) {
             console.error("خطأ في تحديث السجل في Firestore:", error);
             showErrorModal("خطأ في تحديث السجل", `فشل تحديث سجل نشاطك: ${error.message}`, error.stack);
@@ -897,6 +917,7 @@
     }
 
     function renderHistory() {
+        console.log("Rendering history...");
         const list = historyListEl;
         if (historyLog.length === 0) {
             list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا يوجد نشاط بعد.</div><div class="detail">شاهد بعض الإعلانات للبدء!</div></div></div>`;
@@ -916,10 +937,12 @@
                     </div>
                 </div>`;
         }).join('');
+        console.log("History rendered.");
     }
 
     // --- Leaderboard Logic (Static for now, can be dynamic with Firestore) ---
     function renderLeaderboard() {
+        console.log("Rendering leaderboard (static data).");
         const leaderboardData = [
             { name: "CryptoKing", score: 2540, avatar: "https://i.pravatar.cc/150?img=1" },
             { name: "Elena", score: 2210, avatar: "https://i.pravatar.cc/150?img=2" },
@@ -936,12 +959,15 @@
                 <div class="score">${user.score} pts</div>
             </div>
         `).join('');
+        console.log("Leaderboard rendered.");
     }
 
     // --- Earning Functions ---
     async function grantReward() {
-        if (!isAppReady || !firebaseAuthUid) {
+        console.log("Granting reward...");
+        if (!isAppReady || !firebaseAuthUid || !db) {
             showNotification("التطبيق غير جاهز. يرجى الانتظار.", 'error');
+            console.warn("Grant reward skipped: App not ready or Firebase UID/DB missing.");
             return;
         }
 
@@ -981,53 +1007,71 @@
 
             showNotification(`تهانينا! لقد ربحت +${pointsToAdd} نقطة.`, 'success');
             addToHistory('earn', `+${pointsToAdd} نقطة من الإعلان`);
-            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         } catch (error) {
             console.error("خطأ في منح المكافأة أو تحديث Firestore:", error);
             showErrorModal("خطأ في منح المكافأة", `فشل منح المكافأة أو تحديث بياناتك: ${error.message}`, error.stack);
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        }
+    }
+
+    // Placeholder for actual ad initialization
+    function initializeInAppAds() {
+        console.log("Initializing in-app ads...");
+        // This is where you'd put the actual ad network SDK initialization.
+        // For now, we're just checking if `show_9459352` function is available.
+        if (typeof show_9459352 === 'function') {
+            console.log("Ad provider (libtl.com) SDK function 'show_9459352' is available.");
+        } else {
+            console.warn("Ad provider (libtl.com) SDK function 'show_9459352' is NOT available yet. Ads might not work.");
         }
     }
 
     function showRewardedInterstitial() {
+        console.log("Attempting to show Rewarded Interstitial ad.");
         if (!isAppReady) {
             showNotification("التطبيق لم يتم تحميله بالكامل بعد. يرجى الانتظار.", 'info');
             return;
         }
         if (typeof show_9459352 !== 'function') {
             showNotification('مزود الإعلانات غير جاهز. يرجى المحاولة مرة أخرى.', 'error');
+            console.error("Ad provider function 'show_9459352' is not defined.");
             return;
         }
         showNotification('جاري تحميل الإعلان...', 'info');
         show_9459352().then(grantReward).catch(e => {
             console.error("فشل الإعلان البيني بمكافأة:", e);
             showNotification('تعذر عرض الإعلان. يرجى المحاولة مرة أخرى.', 'error');
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         });
     }
 
     function showRewardedPopup() {
+        console.log("Attempting to show Rewarded Popup ad.");
         if (!isAppReady) {
             showNotification("التطبيق لم يتم تحميله بالكامل بعد. يرجى الانتظار.", 'info');
             return;
         }
         if (typeof show_9459352 !== 'function') {
             showNotification('مزود الإعلانات غير جاهز. يرجى المحاولة مرة أخرى.', 'error');
+            console.error("Ad provider function 'show_9459352' is not defined.");
             return;
         }
         showNotification('جاري تحميل الإعلان...', 'info');
         show_9459352('pop').then(grantReward).catch(e => {
             console.error("فشل الإعلان المنبثق بمكافأة:", e);
             showNotification('تعذر عرض الإعلان. يرجى المحاولة مرة أخرى.', 'error');
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         });
     }
 
     // --- Custom Notification Function ---
     let notificationTimeout;
     function showNotification(message, type = 'info', duration = 3000) {
+        console.log(`Notification (${type}): ${message}`);
         customNotificationEl.textContent = message;
         customNotificationEl.className = 'custom-notification show'; 
+        customNotificationEl.classList.remove('error', 'success'); // Clear previous types
         if (type === 'error') {
             customNotificationEl.classList.add('error');
         } else if (type === 'success') {
@@ -1042,6 +1086,7 @@
 
     // --- New Error Modal Functions ---
     function showErrorModal(title, message, details = '') {
+        console.error(`Error Modal Displayed - Title: ${title}, Message: ${message}, Details: ${details}`);
         errorModalTitle.textContent = title;
         errorModalMessage.textContent = message;
         if (details) {
@@ -1051,21 +1096,24 @@
             errorModalDetails.style.display = 'none';
         }
         errorModalOverlay.classList.add('active');
-        Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
     }
 
     window.hideErrorModal = function() {
+        console.log("Hiding error modal.");
         errorModalOverlay.classList.remove('active');
     }
 
     // --- Withdrawal Logic ---
     function updateWithdrawalView() {
+        console.log("Updating withdrawal view.");
         currentWithdrawBalanceEl.textContent = points.toFixed(0);
         currentWithdrawUsdEl.textContent = balance.toFixed(2);
         updateWithdrawalWarning();
     }
 
     function updateWithdrawalWarning() {
+        console.log("Updating withdrawal warning message.");
         const selectedMethod = paymentMethodSelect.value;
         let minPoints = 0;
         if (selectedMethod === 'faucetpay') {
@@ -1084,8 +1132,10 @@
     paymentMethodSelect.addEventListener('change', updateWithdrawalWarning);
 
     async function requestWithdraw() {
-        if (!isAppReady || !firebaseAuthUid) {
+        console.log("Requesting withdrawal...");
+        if (!isAppReady || !firebaseAuthUid || !db) {
             showNotification("التطبيق غير جاهز. يرجى الانتظار.", 'error');
+            console.warn("Withdrawal skipped: App not ready or Firebase UID/DB missing.");
             return;
         }
 
@@ -1106,25 +1156,25 @@
 
         if (isNaN(amount) || amount <= 0) {
             showNotification("يرجى إدخال مبلغ صالح.", 'error');
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
         if (amount < minRequiredPoints) {
             showNotification(`الحد الأدنى للسحب لـ ${methodNameDisplay} هو ${minRequiredPoints} نقطة.`, 'error');
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
         if (amount > points) {
             showNotification(`رصيد غير كافٍ. لديك ${points.toFixed(0)} نقطة.`, 'error');
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
         if (!walletAddress) {
             showNotification("يرجى إدخال عنوان محفظتك.", 'error');
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
@@ -1147,7 +1197,7 @@
 
             showNotification("تم إرسال طلب السحب الخاص بك بنجاح!", 'success');
             addToHistory('withdraw', `طلب ${amount} نقطة ($${usdAmount.toFixed(2)}) عبر ${methodNameDisplay}`);
-            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
 
             // Clear form fields
             withdrawAmountInput.value = '';
@@ -1156,11 +1206,12 @@
         } catch (error) {
             console.error("خطأ أثناء عملية السحب:", error);
             showErrorModal("فشل السحب", `حدث خطأ أثناء معالجة طلب السحب: ${error.message}`, error.stack);
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         }
     }
 
     function sendWithdrawRequestToAdmin(message, telegramUserIdForAdmin, pointsAmount, usdAmount) {
+        console.log("Sending withdrawal request to admin via Telegram Bot API.");
         // Callback data format: approve_withdraw_<telegram_user_id>_<points>_<usd>
         const callbackData = `approve_withdraw_${telegramUserIdForAdmin}_${pointsAmount}_${usdAmount.toFixed(2)}`;
         
@@ -1189,6 +1240,7 @@
 
     // --- Share & Referral ---
     function updateReferralView() {
+        console.log("Updating referral view.");
         referralPercentageEl.textContent = (REFERRAL_PERCENTAGE * 100).toFixed(0);
         referralLinkInput.value = generateReferralLink();
         totalReferralsEl.textContent = totalReferrals;
@@ -1204,6 +1256,7 @@
     }
 
     window.copyReferralLink = function() {
+        console.log("Copying referral link.");
         if (!isAppReady || !telegramUserInitData) {
             showNotification("التطبيق غير جاهز لنسخ الرابط. يرجى الانتظار.", 'error');
             return;
@@ -1211,11 +1264,12 @@
         referralLinkInput.select();
         document.execCommand('copy');
         showNotification("تم نسخ رابط الإحالة بنجاح!", 'success');
-        Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        if (Telegram.WebApp) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
     }
 
     // This function is for the 'Share' button in the footer nav
     function shareApp() {
+        console.log("Sharing app.");
         if (!telegramUserInitData) {
             showNotification("تعذر الحصول على بيانات المستخدم من Telegram.", 'error');
             return;
@@ -1223,20 +1277,27 @@
         const referralLink = generateReferralLink();
         const text = `🎉 انضم إلى هذا البوت الرائع وابدأ في الكسب! استخدم رابطي للحصول على مكافأة خاصة:`;
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
-        Telegram.WebApp.openTelegramLink(shareUrl);
+        if (Telegram.WebApp) {
+            Telegram.WebApp.openTelegramLink(shareUrl);
+        } else {
+            showNotification("لا يمكن مشاركة التطبيق خارج بيئة Telegram.", 'info');
+        }
     }
 
     // --- New AI-Powered Earning Tips Logic ---
     function updateEarningTipsView() {
+        console.log("Updating earning tips view.");
         tipsDisplayEl.textContent = 'انقر على الزر أدناه للحصول على نصائح مخصصة!';
         tipsLoadingEl.classList.add('hidden');
     }
 
     window.showEarningTips = function() {
+        console.log("Showing earning tips view.");
         showView('earning-tips-view');
     }
 
     window.generateEarningTips = async function() {
+        console.log("Generating earning tips.");
         if (!isAppReady || !firebaseAuthUid) {
             showNotification("التطبيق غير جاهز. يرجى الانتظار.", 'error');
             return;
