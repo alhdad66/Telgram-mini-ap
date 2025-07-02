@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"> <!-- تم تعيين اللغة العربية والاتجاه من اليمين لليسار -->
+<html lang="ar" dir="rtl"> <!-- Language set to Arabic and direction to Right-to-Left -->
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <title>بوت الكسب السهل</title>
+  <title>Easy Earning Bot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     /* Root CSS variables for consistent theming */
@@ -714,7 +714,7 @@
         if (window.currentUserId) {
             displayUserIdElement.textContent = `المعرف: ${window.currentUserId}`;
         } else {
-            displayUserIdElement.textContent = `المعرف: غير متاح`; // Fallback if Firebase User ID not ready
+            displayUserIdElement.textContent = `المعرف: جار التحميل...`; // Fallback if Firebase User ID not ready
         }
         customLog("Display Update: تم تحديث النقاط والرصيد ومعرف المستخدم.");
     }
@@ -797,6 +797,8 @@
         const leaderboardCollectionPath = `/artifacts/${appId}/public/data/leaderboard`;
         const leaderboardRef = collection(window.db, leaderboardCollectionPath);
         
+        customLog("Leaderboard: جاري الاستعلام عن لوحة المتصدرين من المسار: " + leaderboardCollectionPath); // Log the collection path for query
+
         // Create query to get top 100 users by points, ordered descending
         const q = query(leaderboardRef, orderBy('points', 'desc'), limit(100));
 
@@ -805,10 +807,14 @@
             customLog("Leaderboard: تم تلقي تحديث من Firestore.");
             customLog("Leaderboard: Raw snapshot data (number of docs): " + snapshot.size); // Added log
             leaderboardData = []; // Clear previous data
+            if (snapshot.empty) {
+                customLog("Leaderboard: اللقطة فارغة، لا توجد مستندات.");
+            }
             snapshot.forEach(doc => {
+                customLog("Leaderboard: تم العثور على مستند: ID=" + doc.id + ", Data=" + JSON.stringify(doc.data())); // Log each found document
                 leaderboardData.push({ id: doc.id, ...doc.data() });
             });
-            customLog("Leaderboard: Processed leaderboardData array content: " + JSON.stringify(leaderboardData)); // Added log
+            customLog("Leaderboard: Processed leaderboardData array content (length: " + leaderboardData.length + "): " + JSON.stringify(leaderboardData)); // Added log
             renderLeaderboard(); // Re-render leaderboard whenever data changes
         }, (error) => {
             customLog("Leaderboard: خطأ أثناء الاستماع إلى لوحة المتصدرين: " + error.message, 'error');
@@ -1031,14 +1037,15 @@
         const userAvatar = tgUser ? tgUser.photo_url || '' : ''; // Save photo URL if available
 
         try {
-            customLog("Firestore: Attempting to save for userId: " + window.currentUserId + ", points: " + points + ", username: " + userName); // Added log
-            await setDoc(userDocRef, {
+            const dataToSave = {
                 username: userName,
                 points: points, // Use current global 'points' variable
                 avatar: userAvatar,
                 lastUpdated: new Date()
-            }, { merge: true }); // Use merge: true to update existing fields without overwriting the entire document
-            customLog("Firestore: تم حفظ نقاط المستخدم في Firestore بنجاح: " + JSON.stringify({ userId: window.currentUserId, points: points }));
+            };
+            customLog("Firestore: جاري محاولة الحفظ إلى المسار: " + userDocRef.path + ", بالبيانات: " + JSON.stringify(dataToSave)); // Log full path and data
+            await setDoc(userDocRef, dataToSave, { merge: true }); // Use merge: true to update existing fields without overwriting the entire document
+            customLog("Firestore: تم حفظ نقاط المستخدم في Firestore بنجاح: " + JSON.stringify({ userId: window.currentUserId, points: points, path: userDocRef.path }));
         } catch (error) {
             customLog("Firestore: خطأ أثناء حفظ نقاط المستخدم في Firestore: " + error.message, 'error'); // Enhanced error logging
             showMessageModal('خطأ في حفظ البيانات', 'فشل حفظ نقاطك في لوحة المتصدرين. يرجى المحاولة مرة أخرى.');
