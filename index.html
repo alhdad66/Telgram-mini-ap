@@ -267,12 +267,46 @@
     .back-button:hover {
         background: var(--secondary-color);
     }
+
+    /* Loading Overlay Styles */
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        color: white;
+        font-size: 1.2em;
+        text-align: center;
+    }
+    #loading-overlay .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 15px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #loading-overlay.hidden {
+        display: none;
+    }
   </style>
 
   <!-- Firebase SDKs -->
   <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script> <!-- NEW: Firebase Auth SDK -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"></script> 
   <script src='//libtl.com/sdk.js' data-zone='9459352' data-sdk='show_9459352'></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -411,12 +445,19 @@
   <!-- Custom Notification Display -->
   <div id="custom-notification" class="custom-notification"></div>
 
+  <!-- Loading Overlay -->
+  <div id="loading-overlay">
+      <div class="spinner"></div>
+      <p>جاري تهيئة التطبيق...</p>
+  </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"; // NEW: Firebase Auth SDK
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js"; 
 
     // --- Firebase Configuration (Provided by user) ---
+    // Make sure these values are correct for your Firebase project
     const firebaseConfig = {
       apiKey: "AIzaSyCydJckf37-5tcuEui380_B1Z2lQSgg5gc",
       authDomain: "alhdad-c435e.firebaseapp.com",
@@ -426,15 +467,15 @@
       appId: "1:598507430930:web:12dbf6386bd6dbf0da64cb"
     };
 
-    // Use projectId as appId for Firestore paths as per rules
+    // Using projectId as appId for Firestore paths as per rules
     const appId = firebaseConfig.projectId; 
 
     // Global Firebase and Telegram Mini App variables
     let firebaseApp = null;
     let db = null;
-    let auth = null; // NEW: Firebase Auth instance
-    let firebaseAuthUid = null; // NEW: Firebase Auth User ID (will be used for Firestore doc IDs)
-    let telegramUserInitData = null; // Store full Telegram user init data
+    let auth = null; 
+    let firebaseAuthUid = null; // Firebase Auth User ID (will be used for Firestore doc IDs)
+    let telegramUserInitData = null; // Store full Telegram user init data from WebApp.initDataUnsafe.user
 
     let isAppReady = false;
 
@@ -465,6 +506,7 @@
     const leaderboardListEl = document.getElementById('leaderboard-list');
     const historyListEl = document.getElementById('history-list');
     const customNotificationEl = document.getElementById('custom-notification');
+    const loadingOverlayEl = document.getElementById('loading-overlay'); // Loading overlay element
 
     // Withdrawal View Elements
     const currentWithdrawBalanceEl = document.getElementById('current-withdraw-balance');
@@ -491,7 +533,7 @@
     });
 
     async function initApp() {
-        showNotification('جاري تحميل التطبيق...', 'info');
+        showLoadingOverlay('جاري تهيئة التطبيق...');
         try {
             // Initialize Telegram WebApp
             if (window.Telegram && Telegram.WebApp) {
@@ -500,10 +542,11 @@
                 Telegram.WebApp.BackButton.onClick(handleBackButtonClick); 
                 Telegram.WebApp.onEvent('backButtonClicked', handleBackButtonClick); 
                 
-                telegramUserInitData = Telegram.WebApp.initDataUnsafe.user; // Store full user data
+                telegramUserInitData = Telegram.WebApp.initDataUnsafe.user; 
                 if (!telegramUserInitData || !telegramUserInitData.id) {
                     showNotification("معرف مستخدم Telegram غير متاح. قد لا يكون التطبيق يعمل في Telegram.", 'error');
                     isAppReady = false;
+                    hideLoadingOverlay();
                     return;
                 }
                 console.log("Telegram User ID:", telegramUserInitData.id);
@@ -512,7 +555,7 @@
                 // Initialize Firebase App and Services
                 firebaseApp = initializeApp(firebaseConfig);
                 db = getFirestore(firebaseApp);
-                auth = getAuth(firebaseApp); // Initialize Firebase Auth
+                auth = getAuth(firebaseApp); 
                 console.log("Firebase initialized.");
 
                 // Sign in anonymously to get a Firebase UID. This is crucial for Firestore security rules.
@@ -521,35 +564,73 @@
                 console.log("Signed in anonymously with Firebase UID:", firebaseAuthUid);
                 
                 // Load user data from Firestore using the Firebase UID as the document ID
-                await loadUserDataFromFirestore(appId, firebaseAuthUid, telegramUserInitData);
+                // This onSnapshot will keep the local state updated in real-time
+                const userDocRef = doc(db, `artifacts/${appId}/users/${firebaseAuthUid}`);
+                onSnapshot(userDocRef, async (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        points = data.points || 0;
+                        balance = data.balance || 0.00;
+                        historyLog = data.historyLog || [];
+                        referrerTelegramId = data.referrerTelegramId || null; 
+                        totalReferrals = data.totalReferrals || 0;
+                        earnedFromReferrals = data.earnedFromReferrals || 0.00;
 
-                // Process referral parameter from Telegram initData
-                const urlParams = new URLSearchParams(Telegram.WebApp.initData);
-                const startParam = urlParams.get('start_param');
-                if (startParam && startParam.startsWith('ref_')) {
-                    const foundReferrerTelegramId = startParam.substring(4);
-                    // Prevent self-referral and ensure referrer is different from current user
-                    if (foundReferrerTelegramId !== telegramUserInitData.id.toString()) { 
-                        // Check if the current user already has a referrer assigned
-                        const userDocSnap = await getDoc(doc(db, `artifacts/${appId}/users/${firebaseAuthUid}`));
-                        if (userDocSnap.exists() && !userDocSnap.data().referrerTelegramId) {
-                            // Store the referrer's Telegram ID in the current user's document
-                            await updateDoc(doc(db, `artifacts/${appId}/users/${firebaseAuthUid}`), { referrerTelegramId: foundReferrerTelegramId });
-                            console.log(`Referrer Telegram ID ${foundReferrerTelegramId} set for user ${firebaseAuthUid}.`);
+                        console.log("User data loaded/updated from Firestore (onSnapshot):", data);
+                    } else {
+                        console.log("User document not found, creating new one for Firebase UID:", firebaseAuthUid);
+                        points = 0;
+                        balance = 0.00;
+                        historyLog = [];
+                        totalReferrals = 0;
+                        earnedFromReferrals = 0.00;
 
-                            // Find the referrer's Firebase UID using their Telegram ID and increment their totalReferrals
-                            const referrerQuery = query(collection(db, `artifacts/${appId}/users`), where("telegramId", "==", foundReferrerTelegramId));
+                        // Check for referrer from initData only if this is a new user document creation
+                        let initialReferrerTelegramId = null;
+                        const urlParams = new URLSearchParams(Telegram.WebApp.initData);
+                        const startParam = urlParams.get('start_param');
+                        if (startParam && startParam.startsWith('ref_')) {
+                            const foundReferrerId = startParam.substring(4);
+                            if (foundReferrerId !== telegramUserInitData.id.toString()) { // Prevent self-referral
+                                initialReferrerTelegramId = foundReferrerId;
+                                console.log(`Initial referrer Telegram ID ${initialReferrerTelegramId} captured for new user.`);
+                            }
+                        }
+
+                        // Set initial data, including the Telegram ID for lookup purposes
+                        await setDoc(userDocRef, {
+                            telegramId: telegramUserInitData.id.toString(), // Store Telegram ID as a field
+                            username: telegramUserInitData.username || '',
+                            firstName: telegramUserInitData.first_name || '',
+                            points: points,
+                            balance: balance,
+                            historyLog: historyLog,
+                            referrerTelegramId: initialReferrerTelegramId, 
+                            totalReferrals: totalReferrals,
+                            earnedFromReferrals: earnedFromReferrals
+                        });
+                        console.log("New user document created successfully for Firebase UID.");
+
+                        // If a referrer was found and this is a new user, increment referrer's totalReferrals
+                        if (initialReferrerTelegramId) {
+                            const referrerQuery = query(collection(db, `artifacts/${appId}/users`), where("telegramId", "==", initialReferrerTelegramId));
                             const referrerSnapshot = await getDocs(referrerQuery);
                             if (!referrerSnapshot.empty) {
                                 const referrerDoc = referrerSnapshot.docs[0];
                                 await updateDoc(referrerDoc.ref, { totalReferrals: increment(1) });
-                                console.log(`Referrer (Firebase UID: ${referrerDoc.id})'s totalReferrals incremented.`);
+                                console.log(`Referrer (Firebase UID: ${referrerDoc.id})'s totalReferrals incremented for new referral.`);
                             } else {
-                                console.warn(`Referrer with Telegram ID ${foundReferrerTelegramId} not found in Firestore. Cannot increment totalReferrals.`);
+                                console.warn(`Referrer with Telegram ID ${initialReferrerTelegramId} not found in Firestore during new user creation. Cannot increment totalReferrals.`);
                             }
                         }
                     }
-                }
+                    updateUI(); // Always update UI after data changes
+                    hideLoadingOverlay(); // Hide loading overlay once initial data is loaded
+                }, (error) => {
+                    console.error("Error listening to user document in Firestore:", error);
+                    showNotification(`خطأ في تحميل بيانات المستخدم: ${error.message}`, 'error');
+                    hideLoadingOverlay();
+                });
 
                 isAppReady = true;
                 showNotification('تم تحميل التطبيق بنجاح!', 'success');
@@ -567,90 +648,73 @@
                 firebaseAuthUid = userCredential.user.uid;
                 console.log("Signed in anonymously (standalone) with Firebase UID:", firebaseAuthUid);
 
-                await loadUserDataFromFirestore(appId, firebaseAuthUid, telegramUserInitData);
+                // Set up onSnapshot listener for standalone mode
+                const userDocRef = doc(db, `artifacts/${appId}/users/${firebaseAuthUid}`);
+                onSnapshot(userDocRef, async (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        points = data.points || 0;
+                        balance = data.balance || 0.00;
+                        historyLog = data.historyLog || [];
+                        referrerTelegramId = data.referrerTelegramId || null; 
+                        totalReferrals = data.totalReferrals || 0;
+                        earnedFromReferrals = data.earnedFromReferrals || 0.00;
+                        console.log("User data loaded/updated from Firestore (onSnapshot - standalone):", data);
+                    } else {
+                        console.log("User document not found, creating new one for Firebase UID (standalone):", firebaseAuthUid);
+                        points = 0;
+                        balance = 0.00;
+                        historyLog = [];
+                        totalReferrals = 0;
+                        earnedFromReferrals = 0.00;
+                        await setDoc(userDocRef, {
+                            telegramId: telegramUserInitData.id.toString(),
+                            username: telegramUserInitData.username || '',
+                            firstName: telegramUserInitData.first_name || '',
+                            points: points,
+                            balance: balance,
+                            historyLog: historyLog,
+                            referrerTelegramId: null, // No referrer in standalone mock
+                            totalReferrals: totalReferrals,
+                            earnedFromReferrals: earnedFromReferrals
+                        });
+                        console.log("New user document created successfully (standalone).");
+                    }
+                    updateUI();
+                    hideLoadingOverlay();
+                }, (error) => {
+                    console.error("Error listening to user document in Firestore (standalone):", error);
+                    showNotification(`خطأ في تحميل بيانات المستخدم (وضع مستقل): ${error.message}`, 'error');
+                    hideLoadingOverlay();
+                });
+
                 isAppReady = true;
                 showNotification('تم تحميل التطبيق بنجاح (وضع مستقل)!', 'success');
             }
         } catch (error) {
-            console.error("Error initializing app:", error);
+            console.error("Error initializing app (outer catch):", error);
             showNotification(`فشل تهيئة التطبيق: ${error.message}`, 'error');
             isAppReady = false;
+            hideLoadingOverlay();
         } finally {
-            updateUI(); 
-            renderLeaderboard(); 
-            updateWithdrawalWarning(); 
+            // Initial UI update is now handled by the onSnapshot callback
+            // renderLeaderboard(); // Render static leaderboard
+            // updateWithdrawalWarning(); // Update withdrawal warning message
+            // initializeInAppAds(); // This can run independently
         }
 
-        initializeInAppAds();
+        initializeInAppAds(); // Keep ad initialization here
+        renderLeaderboard(); // Keep leaderboard render here
     }
 
-    async function loadUserDataFromFirestore(appId, currentFirebaseUid, currentTelegramUserInitData) {
-        if (!db || !currentFirebaseUid || !appId) {
-            console.warn("Firestore, Firebase UID, or App ID not ready for data load.");
-            return;
-        }
-
-        const userDocRef = doc(db, `artifacts/${appId}/users/${currentFirebaseUid}`);
-
-        onSnapshot(userDocRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                points = data.points || 0;
-                balance = data.balance || 0.00;
-                historyLog = data.historyLog || [];
-                referrerTelegramId = data.referrerTelegramId || null; 
-                totalReferrals = data.totalReferrals || 0;
-                earnedFromReferrals = data.earnedFromReferrals || 0.00;
-
-                console.log("User data loaded/updated from Firestore:", data);
-            } else {
-                console.log("User document not found, creating new one for Firebase UID:", currentFirebaseUid);
-                points = 0;
-                balance = 0.00;
-                historyLog = [];
-                totalReferrals = 0;
-                earnedFromReferrals = 0.00;
-
-                // Set initial data, including the Telegram ID for lookup purposes
-                setDoc(userDocRef, {
-                    telegramId: currentTelegramUserInitData.id.toString(), // Store Telegram ID as a field
-                    username: currentTelegramUserInitData.username || '',
-                    firstName: currentTelegramUserInitData.first_name || '',
-                    points: points,
-                    balance: balance,
-                    historyLog: historyLog,
-                    referrerTelegramId: referrerTelegramId, // Use the referrerId captured from initData if any
-                    totalReferrals: totalReferrals,
-                    earnedFromReferrals: earnedFromReferrals
-                })
-                .then(() => console.log("New user document created successfully for Firebase UID."))
-                .catch(e => console.error("Error creating user document for Firebase UID:", e));
-            }
-            updateUI();
-        }, (error) => {
-            console.error("Error listening to user document in Firestore:", error);
-            showNotification(`خطأ في تحميل بيانات المستخدم: ${error.message}`, 'error');
-        });
+    // --- Loading Overlay Functions ---
+    function showLoadingOverlay(message) {
+        loadingOverlayEl.classList.remove('hidden');
+        loadingOverlayEl.querySelector('p').textContent = message;
     }
 
-    // --- Initialize Automatic Ads ---
-    function initializeInAppAds() {
-        if (typeof show_9459352 === 'function') {
-            show_9459352({
-              type: 'inApp',
-              inAppSettings: {
-                frequency: 2,
-                capping: 0.1,
-                interval: 30,
-                timeout: 5,
-                everyPage: false
-              }
-            });
-            console.log("Automatic In-App Interstitial Ads Initialized.");
-        } else {
-            console.warn("Monetag SDK not ready for In-App Ads. Retrying...");
-            setTimeout(initializeInAppAds, 2000);
-        }
+    function hideLoadingOverlay() {
+        loadingOverlayEl.classList.add('hidden');
     }
 
     // --- View Management ---
@@ -721,6 +785,7 @@
         if (document.getElementById('earning-tips-view').classList.contains('active')) {
             updateEarningTipsView();
         }
+        console.log("UI Updated: Points =", points, "Balance =", balance.toFixed(2), "Referrals =", totalReferrals);
     }
 
     // --- History Logic ---
@@ -788,7 +853,7 @@
 
     // --- Earning Functions ---
     async function grantReward() {
-        if (!db || !firebaseAuthUid) {
+        if (!isAppReady || !firebaseAuthUid) {
             showNotification("التطبيق غير جاهز. يرجى الانتظار.", 'error');
             return;
         }
