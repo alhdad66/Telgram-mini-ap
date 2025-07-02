@@ -299,6 +299,7 @@
     window.analytics = null;
     window.currentUserId = null;
     window.isAuthReady = false; // Flag to indicate if Firebase auth is ready
+    window.appIdForFirestorePath = 'pepe-top'; // Explicitly set the appId for Firestore paths
 
     // Function to log messages to custom debug console and browser console
     function customLog(message, type = 'info') {
@@ -336,9 +337,8 @@
     function initFirebase() {
         customLog("Firebase: Starting Firebase initialization...");
         try {
-            // App ID, used to construct Firestore paths (e.g., /artifacts/{appId}/public/data/...)
-            // We primarily use the projectId from userProvidedFirebaseConfig as appId here to ensure consistency with Firestore pathing
-            const appId = userProvidedFirebaseConfig.projectId || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
+            customLog("Firebase: App ID being used for Firestore paths: " + window.appIdForFirestorePath);
+
             let firebaseConfig = {};
 
             // Priority 1: Firebase config from environment variable (for environments like Canvas)
@@ -353,7 +353,7 @@
             }
 
             // Priority 2: User-provided config (if not provided by environment or invalid)
-            // Check if userProvidedFirebaseConfig actually has values (not just empty strings)
+            // This ensures userProvidedFirebaseConfig is used if environment config is missing or placeholder.
             if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId || firebaseConfig.projectId.includes("YOUR_PLACEHOLDER")) {
                 if (Object.values(userProvidedFirebaseConfig).some(val => val !== "")) {
                     firebaseConfig = userProvidedFirebaseConfig;
@@ -369,8 +369,6 @@
                 }
             }
             
-            customLog("Firebase: App ID being used: " + appId);
-
             // Initialize Firebase app and services (Firestore, Auth, Analytics)
             try {
                 window.firebaseApp = initializeApp(firebaseConfig);
@@ -791,10 +789,8 @@
             return;
         }
 
-        // Define collection path for public data
-        // We use projectId from userProvidedFirebaseConfig as appId here for consistency with Firestore pathing
-        const appId = userProvidedFirebaseConfig.projectId || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
-        const leaderboardCollectionPath = `/artifacts/${appId}/public/data/leaderboard`;
+        // Define collection path for public data using the explicitly set appIdForFirestorePath
+        const leaderboardCollectionPath = `/artifacts/${window.appIdForFirestorePath}/public/data/leaderboard`;
         const leaderboardRef = collection(window.db, leaderboardCollectionPath);
         
         customLog("Leaderboard: جاري الاستعلام عن لوحة المتصدرين من المسار: " + leaderboardCollectionPath); // Log the collection path for query
@@ -1024,15 +1020,24 @@
     }
 
     async function saveUserPointsToFirestore() {
-        customLog("Firestore: جاري حفظ نقاط المستخدم في Firestore.");
-        if (!window.db || !window.currentUserId) {
-            customLog("Firestore: Firestore أو currentUserId غير متاحين. لا يمكن حفظ النقاط في لوحة المتصدرين.", 'error');
+        customLog("Firestore Save: جاري محاولة حفظ نقاط المستخدم في Firestore.");
+        if (!window.db) {
+            customLog("Firestore Save: Firestore DB instance is null. Cannot save points.", 'error');
+            showMessageModal('خطأ في قاعدة البيانات', 'تعذر الاتصال بقاعدة البيانات. يرجى المحاولة مرة أخرى.');
+            return;
+        }
+        if (!window.currentUserId) {
+            customLog("Firestore Save: currentUserId is null. Cannot save points.", 'error');
+            showMessageModal('خطأ في المستخدم', 'تعذر تحديد هوية المستخدم لحفظ النقاط. يرجى إعادة تشغيل التطبيق.');
+            return;
+        }
+        if (!window.appIdForFirestorePath) {
+            customLog("Firestore Save: appIdForFirestorePath is null. Cannot save points.", 'error');
+            showMessageModal('خطأ في إعداد التطبيق', 'معرف التطبيق غير متاح لحفظ البيانات. يرجى التحقق من التكوين.');
             return;
         }
 
-        // We use projectId from userProvidedFirebaseConfig as appId here for consistency with Firestore pathing
-        const appId = userProvidedFirebaseConfig.projectId || (typeof __app_id !== 'undefined' ? __app_id : 'default-app-id');
-        const userDocRef = doc(window.db, `/artifacts/${appId}/public/data/leaderboard/${window.currentUserId}`);
+        const userDocRef = doc(window.db, `/artifacts/${window.appIdForFirestorePath}/public/data/leaderboard/${window.currentUserId}`);
         const userName = tgUser ? tgUser.first_name || 'مجهول' : 'مجهول';
         const userAvatar = tgUser ? tgUser.photo_url || '' : ''; // Save photo URL if available
 
@@ -1043,12 +1048,16 @@
                 avatar: userAvatar,
                 lastUpdated: new Date()
             };
-            customLog("Firestore: جاري محاولة الحفظ إلى المسار: " + userDocRef.path + ", بالبيانات: " + JSON.stringify(dataToSave)); // Log full path and data
+            customLog("Firestore Save: جاري محاولة الحفظ إلى المسار: " + userDocRef.path + ", بالبيانات: " + JSON.stringify(dataToSave));
             await setDoc(userDocRef, dataToSave, { merge: true }); // Use merge: true to update existing fields without overwriting the entire document
-            customLog("Firestore: تم حفظ نقاط المستخدم في Firestore بنجاح: " + JSON.stringify({ userId: window.currentUserId, points: points, path: userDocRef.path }));
+            customLog("Firestore Save: تم حفظ نقاط المستخدم في Firestore بنجاح: " + JSON.stringify({ userId: window.currentUserId, points: points, path: userDocRef.path }));
         } catch (error) {
-            customLog("Firestore: خطأ أثناء حفظ نقاط المستخدم في Firestore: " + error.message, 'error'); // Enhanced error logging
+            customLog("Firestore Save: خطأ فادح أثناء حفظ نقاط المستخدم في Firestore: " + error.message, 'error');
+            customLog("Firestore Save: تفاصيل الخطأ: " + JSON.stringify(error), 'error'); // Log the full error object
             showMessageModal('خطأ في حفظ البيانات', 'فشل حفظ نقاطك في لوحة المتصدرين. يرجى المحاولة مرة أخرى.');
+        } finally {
+            // Ensure loading overlay is hidden even if there's an error
+            hideLoadingOverlay();
         }
     }
 
