@@ -301,6 +301,76 @@
     #loading-overlay.hidden {
         display: none;
     }
+
+    /* New Error Modal Styles */
+    #error-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none; /* Hidden by default */
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+    #error-modal-overlay.active {
+        display: flex;
+    }
+    .error-modal-content {
+        background: var(--card-bg);
+        padding: 25px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 350px;
+        text-align: center;
+        animation: slideIn 0.3s forwards;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        border: 1px solid var(--error-color);
+    }
+    .error-modal-content h3 {
+        color: var(--error-color);
+        margin-top: 0;
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+    .error-modal-content p {
+        color: var(--text-color);
+        font-size: 15px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+    .error-modal-content pre {
+        background-color: #1a1a1d;
+        color: var(--text-muted-color);
+        text-align: left;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        overflow-x: auto;
+        white-space: pre-wrap; /* Ensures long lines wrap */
+        word-wrap: break-word; /* Breaks long words */
+        max-height: 150px; /* Limit height for scrollability */
+        margin-top: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .error-modal-content button {
+        background: var(--error-color);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 10px;
+        border: none;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .error-modal-content button:hover {
+        background-color: #cc3333;
+        transform: translateY(-2px);
+    }
   </style>
 
   <!-- Firebase SDKs -->
@@ -451,6 +521,16 @@
       <p>جاري تهيئة التطبيق...</p>
   </div>
 
+  <!-- Firebase Error Modal -->
+  <div id="error-modal-overlay" class="modal-overlay">
+      <div class="error-modal-content">
+          <h3 id="error-modal-title">خطأ</h3>
+          <p id="error-modal-message">حدث خطأ غير متوقع.</p>
+          <pre id="error-modal-details" style="display:none;"></pre>
+          <button onclick="hideErrorModal()">إغلاق</button>
+      </div>
+  </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
@@ -527,6 +607,12 @@
     const tipsDisplayEl = document.getElementById('tips-display');
     const tipsLoadingEl = document.getElementById('tips-loading');
 
+    // Error Modal Elements
+    const errorModalOverlay = document.getElementById('error-modal-overlay');
+    const errorModalTitle = document.getElementById('error-modal-title');
+    const errorModalMessage = document.getElementById('error-modal-message');
+    const errorModalDetails = document.getElementById('error-modal-details');
+
     // --- Core App Logic ---
     document.addEventListener('DOMContentLoaded', () => {
         initApp();
@@ -544,7 +630,7 @@
                 
                 telegramUserInitData = Telegram.WebApp.initDataUnsafe.user; 
                 if (!telegramUserInitData || !telegramUserInitData.id) {
-                    showNotification("معرف مستخدم Telegram غير متاح. قد لا يكون التطبيق يعمل في Telegram.", 'error');
+                    showErrorModal("خطأ في بيانات المستخدم", "معرف مستخدم Telegram غير متاح. قد لا يكون التطبيق يعمل في Telegram.", "Telegram WebApp initDataUnsafe.user.id is missing.");
                     isAppReady = false;
                     hideLoadingOverlay();
                     return;
@@ -628,7 +714,7 @@
                     hideLoadingOverlay(); // Hide loading overlay once initial data is loaded
                 }, (error) => {
                     console.error("Error listening to user document in Firestore:", error);
-                    showNotification(`خطأ في تحميل بيانات المستخدم: ${error.message}`, 'error');
+                    showErrorModal("خطأ في تحميل بيانات المستخدم", `حدث خطأ أثناء تحميل بياناتك: ${error.message}`, error.stack);
                     hideLoadingOverlay();
                 });
 
@@ -684,7 +770,7 @@
                     hideLoadingOverlay();
                 }, (error) => {
                     console.error("Error listening to user document in Firestore (standalone):", error);
-                    showNotification(`خطأ في تحميل بيانات المستخدم (وضع مستقل): ${error.message}`, 'error');
+                    showErrorModal("خطأ في تحميل بيانات المستخدم (وضع مستقل)", `حدث خطأ أثناء تحميل بياناتك: ${error.message}`, error.stack);
                     hideLoadingOverlay();
                 });
 
@@ -693,7 +779,7 @@
             }
         } catch (error) {
             console.error("Error initializing app (outer catch):", error);
-            showNotification(`فشل تهيئة التطبيق: ${error.message}`, 'error');
+            showErrorModal("فشل تهيئة التطبيق", `حدث خطأ فادح أثناء تهيئة التطبيق: ${error.message}`, error.stack);
             isAppReady = false;
             hideLoadingOverlay();
         } finally {
@@ -806,6 +892,7 @@
             console.log("تم تحديث السجل في Firestore.");
         } catch (error) {
             console.error("خطأ في تحديث السجل في Firestore:", error);
+            showErrorModal("خطأ في تحديث السجل", `فشل تحديث سجل نشاطك: ${error.message}`, error.stack);
         }
     }
 
@@ -897,7 +984,7 @@
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         } catch (error) {
             console.error("خطأ في منح المكافأة أو تحديث Firestore:", error);
-            showNotification(`فشل ربح المكافأة: ${error.message}`, 'error');
+            showErrorModal("خطأ في منح المكافأة", `فشل منح المكافأة أو تحديث بياناتك: ${error.message}`, error.stack);
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         }
     }
@@ -951,6 +1038,24 @@
         notificationTimeout = setTimeout(() => {
             customNotificationEl.classList.remove('show');
         }, duration);
+    }
+
+    // --- New Error Modal Functions ---
+    function showErrorModal(title, message, details = '') {
+        errorModalTitle.textContent = title;
+        errorModalMessage.textContent = message;
+        if (details) {
+            errorModalDetails.textContent = details;
+            errorModalDetails.style.display = 'block';
+        } else {
+            errorModalDetails.style.display = 'none';
+        }
+        errorModalOverlay.classList.add('active');
+        Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+    }
+
+    window.hideErrorModal = function() {
+        errorModalOverlay.classList.remove('active');
     }
 
     // --- Withdrawal Logic ---
@@ -1050,7 +1155,7 @@
 
         } catch (error) {
             console.error("خطأ أثناء عملية السحب:", error);
-            showNotification(`فشل السحب: ${error.message}`, 'error');
+            showErrorModal("فشل السحب", `حدث خطأ أثناء معالجة طلب السحب: ${error.message}`, error.stack);
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         }
     }
