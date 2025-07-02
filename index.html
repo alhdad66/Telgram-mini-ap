@@ -270,8 +270,8 @@
   </style>
 
   <!-- Firebase SDKs -->
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js"></script>
   <script src='//libtl.com/sdk.js' data-zone='9459352' data-sdk='show_9459352'></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -411,13 +411,21 @@
   <div id="custom-notification" class="custom-notification"></div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
-    // --- Firebase Configuration (Replace with your actual config) ---
-    // IMPORTANT: Use __firebase_config and __app_id global variables provided by the Canvas environment.
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'easy-earning-bot-default';
+    // --- Firebase Configuration (Provided by user) ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCydJckf37-5tcuEui380_B1Z2lQSgg5gc",
+      authDomain: "alhdad-c435e.firebaseapp.com",
+      projectId: "alhdad-c435e",
+      storageBucket: "alhdad-c435e.firebasestorage.app",
+      messagingSenderId: "598507430930",
+      appId: "1:598507430930:web:12dbf6386bd6dbf0da64cb"
+    };
+
+    // Extract appId directly from firebaseConfig
+    const appId = firebaseConfig.projectId; // Or firebaseConfig.appId if you prefer that specific ID
 
     // Global Firebase and Telegram Mini App variables
     let firebaseApp = null;
@@ -479,7 +487,7 @@
     });
 
     async function initApp() {
-        showNotification('Loading app...', 'info');
+        showNotification('جاري تحميل التطبيق...', 'info');
         try {
             // Initialize Telegram WebApp
             if (window.Telegram && Telegram.WebApp) {
@@ -495,15 +503,10 @@
                     console.log("Telegram User ID:", telegramUserId);
                     console.log("Telegram Username:", telegramUsername);
 
-                    // Initialize Firebase
-                    if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
-                        showNotification("Firebase config is missing or incomplete. Cannot load user data.", 'error');
-                        isAppReady = false;
-                        return;
-                    }
+                    // Initialize Firebase using the provided config
                     firebaseApp = initializeApp(firebaseConfig);
                     db = getFirestore(firebaseApp);
-                    console.log("Firebase initialized.");
+                    console.log("Firebase initialized with provided config.");
 
                     // Load user data and set up real-time listener
                     await loadUserDataFromFirestore(appId, telegramUserId);
@@ -531,33 +534,28 @@
                     }
 
                     isAppReady = true;
-                    showNotification('App loaded successfully!', 'success');
+                    showNotification('تم تحميل التطبيق بنجاح!', 'success');
                 } else {
-                    showNotification("Telegram User ID not available. App may not be running in Telegram.", 'error');
+                    showNotification("معرف مستخدم Telegram غير متاح. قد لا يكون التطبيق يعمل في Telegram.", 'error');
                     isAppReady = false;
                 }
             } else {
-                showNotification("Telegram WebApp SDK not found. Running in standalone mode.", 'info');
+                showNotification("لم يتم العثور على Telegram WebApp SDK. يعمل في الوضع المستقل.", 'info');
                 // For standalone testing, you might mock telegramUserId
                 telegramUserId = 'test_user_123';
                 telegramUsername = 'testuser';
                 
-                // Initialize Firebase for standalone mode
-                if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
-                    showNotification("Firebase config is missing or incomplete. Cannot load user data.", 'error');
-                    isAppReady = false;
-                    return;
-                }
+                // Initialize Firebase for standalone mode using the provided config
                 firebaseApp = initializeApp(firebaseConfig);
                 db = getFirestore(firebaseApp);
-                console.log("Firebase initialized in standalone mode.");
+                console.log("Firebase initialized in standalone mode with provided config.");
                 await loadUserDataFromFirestore(appId, telegramUserId);
                 isAppReady = true;
-                showNotification('App loaded successfully (standalone)!', 'success');
+                showNotification('تم تحميل التطبيق بنجاح (وضع مستقل)!', 'success');
             }
         } catch (error) {
             console.error("Error initializing app:", error);
-            showNotification(`Failed to initialize app: ${error.message}`, 'error');
+            showNotification(`فشل تهيئة التطبيق: ${error.message}`, 'error');
             isAppReady = false;
         } finally {
             updateUI(); // Initial UI update
@@ -617,7 +615,7 @@
             updateUI();
         }, (error) => {
             console.error("Error listening to user document in Firestore:", error);
-            showNotification(`Error loading user data: ${error.message}`, 'error');
+            showNotification(`خطأ في تحميل بيانات المستخدم: ${error.message}`, 'error');
         });
     }
 
@@ -682,14 +680,14 @@
     // --- Data Display Update ---
     function updateUI() {
         if (!telegramUserId) {
-            usernameEl.textContent = "Loading...";
+            usernameEl.textContent = "جاري التحميل...";
             profilePicDiv.textContent = "EE";
             pointsValueEl.textContent = "0";
             balanceValueEl.textContent = "$0.00";
             return;
         }
 
-        usernameEl.textContent = telegramUsername || 'Telegram User';
+        usernameEl.textContent = telegramUsername || 'مستخدم Telegram';
         if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user && Telegram.WebApp.initDataUnsafe.user.photo_url) {
             profilePicDiv.innerHTML = `<img src="${Telegram.WebApp.initDataUnsafe.user.photo_url}" alt="P">`;
         } else {
@@ -716,7 +714,7 @@
     // --- History Logic ---
     async function addToHistory(type, detail) {
         if (!db || !telegramUserId) {
-            console.error("Firestore or user ID not ready for history update.");
+            console.error("Firestore أو معرف المستخدم غير جاهز لتحديث السجل.");
             return;
         }
         const timestamp = new Date().toISOString();
@@ -729,16 +727,16 @@
         try {
             await updateDoc(userDocRef, { historyLog: updatedHistory });
             historyLog = updatedHistory; // Update local state after successful Firestore update
-            console.log("History updated in Firestore.");
+            console.log("تم تحديث السجل في Firestore.");
         } catch (error) {
-            console.error("Error updating history in Firestore:", error);
+            console.error("خطأ في تحديث السجل في Firestore:", error);
         }
     }
 
     function renderHistory() {
         const list = historyListEl;
         if (historyLog.length === 0) {
-            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">No activity yet.</div><div class="detail">Watch some ads to get started!</div></div></div>`;
+            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا يوجد نشاط بعد.</div><div class="detail">شاهد بعض الإعلانات للبدء!</div></div></div>`;
             return;
         }
         
@@ -751,7 +749,7 @@
                     <div class="history-icon">${icon}</div>
                     <div class="info">
                         <div class="name">${item.detail}</div>
-                        <div class="detail">${new Date(item.timestamp).toLocaleString()}</div>
+                        <div class="detail">${new Date(item.timestamp).toLocaleString('ar-EG')}</div>
                     </div>
                 </div>`;
         }).join('');
@@ -780,7 +778,7 @@
     // --- Earning Functions ---
     async function grantReward() {
         if (!db || !telegramUserId) {
-            showNotification("App not ready. Please wait.", 'error');
+            showNotification("التطبيق غير جاهز. يرجى الانتظار.", 'error');
             return;
         }
 
@@ -810,46 +808,46 @@
                 console.log(`Referrer ${referrerId} earned ${referrerEarnPoints} points ($${referrerEarnUSD.toFixed(2)}) from referral.`);
             }
 
-            showNotification(`Congratulations! You've earned +${pointsToAdd} point.`, 'success');
-            addToHistory('earn', `+${pointsToAdd} Point(s) from Ad`);
+            showNotification(`تهانينا! لقد ربحت +${pointsToAdd} نقطة.`, 'success');
+            addToHistory('earn', `+${pointsToAdd} نقطة من الإعلان`);
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         } catch (error) {
-            console.error("Error granting reward or updating Firestore:", error);
-            showNotification(`Failed to earn reward: ${error.message}`, 'error');
+            console.error("خطأ في منح المكافأة أو تحديث Firestore:", error);
+            showNotification(`فشل ربح المكافأة: ${error.message}`, 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         }
     }
 
     function showRewardedInterstitial() {
         if (!isAppReady) {
-            showNotification("App is not fully loaded yet. Please wait.", 'info');
+            showNotification("التطبيق لم يتم تحميله بالكامل بعد. يرجى الانتظار.", 'info');
             return;
         }
         if (typeof show_9459352 !== 'function') {
-            showNotification('Ad provider is not ready. Please try again.', 'error');
+            showNotification('مزود الإعلانات غير جاهز. يرجى المحاولة مرة أخرى.', 'error');
             return;
         }
-        showNotification('Loading ad...', 'info');
+        showNotification('جاري تحميل الإعلان...', 'info');
         show_9459352().then(grantReward).catch(e => {
-            console.error("Rewarded Interstitial Ad failed:", e);
-            showNotification('Ad could not be shown. Please try again.', 'error');
+            console.error("فشل الإعلان البيني بمكافأة:", e);
+            showNotification('تعذر عرض الإعلان. يرجى المحاولة مرة أخرى.', 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         });
     }
 
     function showRewardedPopup() {
         if (!isAppReady) {
-            showNotification("App is not fully loaded yet. Please wait.", 'info');
+            showNotification("التطبيق لم يتم تحميله بالكامل بعد. يرجى الانتظار.", 'info');
             return;
         }
         if (typeof show_9459352 !== 'function') {
-            showNotification('Ad provider is not ready. Please try again.', 'error');
+            showNotification('مزود الإعلانات غير جاهز. يرجى المحاولة مرة أخرى.', 'error');
             return;
         }
-        showNotification('Loading ad...', 'info');
+        showNotification('جاري تحميل الإعلان...', 'info');
         show_9459352('pop').then(grantReward).catch(e => {
-            console.error("Rewarded Popup Ad failed:", e);
-            showNotification('Ad could not be shown. Please try again.', 'error');
+            console.error("فشل الإعلان المنبثق بمكافأة:", e);
+            showNotification('تعذر عرض الإعلان. يرجى المحاولة مرة أخرى.', 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         });
     }
@@ -887,10 +885,10 @@
             minPoints = MIN_WITHDRAW_POINTS_OTHER_WALLET;
         }
         withdrawWarningMessageEl.innerHTML = `
-            Minimum withdrawal for FaucetPay is ${MIN_WITHDRAW_POINTS_FAUCETPAY} points.
-            Minimum withdrawal for Any Other Wallet is ${MIN_WITHDRAW_POINTS_OTHER_WALLET} points.<br>
-            Your current balance: ${points.toFixed(0)} points ($${balance.toFixed(2)}).<br>
-            Please ensure you enter a correct wallet address for smooth withdrawals.
+            الحد الأدنى للسحب لـ FaucetPay هو ${MIN_WITHDRAW_POINTS_FAUCETPAY} نقطة.<br>
+            الحد الأدنى للسحب لأي محفظة أخرى هو ${MIN_WITHDRAW_POINTS_OTHER_WALLET} نقطة.<br>
+            رصيدك الحالي: ${points.toFixed(0)} نقطة ($${balance.toFixed(2)}).<br>
+            يرجى التأكد من إدخال عنوان محفظة صحيح لعمليات سحب سلسة.
         `;
     }
 
@@ -898,7 +896,7 @@
 
     async function requestWithdraw() {
         if (!isAppReady || !telegramUserId) {
-            showNotification("App not ready. Please wait.", 'error');
+            showNotification("التطبيق غير جاهز. يرجى الانتظار.", 'error');
             return;
         }
 
@@ -914,29 +912,29 @@
             methodNameDisplay = 'FaucetPay';
         } else {
             minRequiredPoints = MIN_WITHDRAW_POINTS_OTHER_WALLET;
-            methodNameDisplay = 'Any Other Wallet';
+            methodNameDisplay = 'أي محفظة أخرى';
         }
 
         if (isNaN(amount) || amount <= 0) {
-            showNotification("Please enter a valid amount.", 'error');
+            showNotification("يرجى إدخال مبلغ صالح.", 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
         if (amount < minRequiredPoints) {
-            showNotification(`Minimum withdrawal for ${methodNameDisplay} is ${minRequiredPoints} points.`, 'error');
+            showNotification(`الحد الأدنى للسحب لـ ${methodNameDisplay} هو ${minRequiredPoints} نقطة.`, 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
         if (amount > points) {
-            showNotification(`Insufficient balance. You have ${points.toFixed(0)} points.`, 'error');
+            showNotification(`رصيد غير كافٍ. لديك ${points.toFixed(0)} نقطة.`, 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
         if (!walletAddress) {
-            showNotification("Please enter your wallet address.", 'error');
+            showNotification("يرجى إدخال عنوان محفظتك.", 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
@@ -950,16 +948,16 @@
                 points: increment(-amount),
                 balance: increment(-usdAmount)
             });
-            console.log(`Deducted ${amount} points ($${usdAmount.toFixed(2)}) from user ${telegramUserId}.`);
+            console.log(`تم خصم ${amount} نقطة ($${usdAmount.toFixed(2)}) من المستخدم ${telegramUserId}.`);
 
             // Send withdrawal request to admin via Telegram Bot API
-            const userInfo = telegramUsername ? `@${telegramUsername} (ID: ${telegramUserId})` : `User ID: ${telegramUserId}`;
-            const messageToAdmin = `💸 *New Withdrawal Request*\n\n👤 *User:* ${userInfo}\n💰 *Amount:* ${amount} points ($${usdAmount.toFixed(2)})\n💳 *Method:* ${methodNameDisplay}\n✉️ *Wallet Address:* \`${walletAddress}\`\n\n_Please process this request._`;
+            const userInfo = telegramUsername ? `@${telegramUsername} (ID: ${telegramUserId})` : `معرف المستخدم: ${telegramUserId}`;
+            const messageToAdmin = `💸 *طلب سحب جديد*\n\n👤 *المستخدم:* ${userInfo}\n💰 *المبلغ:* ${amount} نقطة ($${usdAmount.toFixed(2)})\n💳 *الطريقة:* ${methodNameDisplay}\n✉️ *عنوان المحفظة:* \`${walletAddress}\`\n\n_يرجى معالجة هذا الطلب._`;
 
             sendWithdrawRequestToAdmin(messageToAdmin, telegramUserId, amount, usdAmount);
 
-            showNotification("Your withdrawal request has been sent successfully!", 'success');
-            addToHistory('withdraw', `Requested ${amount} points ($${usdAmount.toFixed(2)}) via ${methodNameDisplay}`);
+            showNotification("تم إرسال طلب السحب الخاص بك بنجاح!", 'success');
+            addToHistory('withdraw', `طلب ${amount} نقطة ($${usdAmount.toFixed(2)}) عبر ${methodNameDisplay}`);
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
 
             // Clear form fields
@@ -967,8 +965,8 @@
             walletAddressInput.value = '';
 
         } catch (error) {
-            console.error("Error during withdrawal process:", error);
-            showNotification(`Withdrawal failed: ${error.message}`, 'error');
+            console.error("خطأ أثناء عملية السحب:", error);
+            showNotification(`فشل السحب: ${error.message}`, 'error');
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         }
     }
@@ -979,7 +977,7 @@
         
         const inlineKeyboard = {
             inline_keyboard: [
-                [{ text: "✅ Approve Withdrawal", callback_data: callbackData }]
+                [{ text: "✅ الموافقة على السحب", callback_data: callbackData }]
             ]
         };
         const replyMarkup = encodeURIComponent(JSON.stringify(inlineKeyboard));
@@ -988,15 +986,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.ok) {
-                    console.log('Telegram Bot API: Message with approval button sent to admin successfully.');
+                    console.log('Telegram Bot API: تم إرسال الرسالة مع زر الموافقة إلى المسؤول بنجاح.');
                 } else {
-                    console.error('Telegram Bot API Error: Failed to send message to Telegram:', data.description || JSON.stringify(data));
-                    showNotification('Failed to notify admin about withdrawal.', 'error');
+                    console.error('خطأ Telegram Bot API: فشل إرسال الرسالة إلى Telegram:', data.description || JSON.stringify(data));
+                    showNotification('فشل إخطار المسؤول بخصوص السحب.', 'error');
                 }
             })
             .catch(error => {
-                console.error('Telegram Bot API Error: Network error during fetch to Telegram API:', error);
-                showNotification('Network error sending withdrawal notification.', 'error');
+                console.error('خطأ Telegram Bot API: خطأ في الشبكة أثناء جلب API Telegram:', error);
+                showNotification('خطأ في الشبكة عند إرسال إشعار السحب.', 'error');
             });
     }
 
@@ -1013,28 +1011,28 @@
         if (telegramUserId) {
             return `https://t.me/${botUsername}?startapp=ref_${telegramUserId}`;
         }
-        return "Loading referral link...";
+        return "جاري تحميل رابط الإحالة...";
     }
 
     window.copyReferralLink = function() {
         if (!isAppReady || !telegramUserId) {
-            showNotification("App not ready to copy link. Please wait.", 'error');
+            showNotification("التطبيق غير جاهز لنسخ الرابط. يرجى الانتظار.", 'error');
             return;
         }
         referralLinkInput.select();
         document.execCommand('copy');
-        showNotification("Referral link copied successfully!", 'success');
+        showNotification("تم نسخ رابط الإحالة بنجاح!", 'success');
         Telegram.WebApp.HapticFeedback.notificationOccurred('success');
     }
 
     // This function is for the 'Share' button in the footer nav
     function shareApp() {
         if (!telegramUserId) {
-            showNotification("Could not get user data from Telegram.", 'error');
+            showNotification("تعذر الحصول على بيانات المستخدم من Telegram.", 'error');
             return;
         }
         const referralLink = generateReferralLink();
-        const text = `🎉 Join this amazing bot and start earning! Use my link to get a special bonus:`;
+        const text = `🎉 انضم إلى هذا البوت الرائع وابدأ في الكسب! استخدم رابطي للحصول على مكافأة خاصة:`;
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
         Telegram.WebApp.openTelegramLink(shareUrl);
     }
@@ -1052,7 +1050,7 @@
 
     window.generateEarningTips = async function() {
         if (!isAppReady || !telegramUserId) {
-            showNotification("App not ready. Please wait.", 'error');
+            showNotification("التطبيق غير جاهز. يرجى الانتظار.", 'error');
             return;
         }
 
