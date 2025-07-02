@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"> <!-- Language set to Arabic and direction to Right-to-Left -->
+<html lang="ar" dir="rtl"> <!-- تم تعيين اللغة العربية والاتجاه من اليمين لليسار -->
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
-  <title>Easy Earning Bot</title>
+  <title>بوت الكسب السهل</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     /* Root CSS variables for consistent theming */
@@ -287,8 +287,8 @@
         projectId: "pepe-top",
         storageBucket: "pepe-top.firebasestorage.app",
         messagingSenderId: "252494273467",
-        appId: "1:252494273467:web:643e49c646eb525421829e", // Updated appId as per user's request
-        measurementId: "G-86L0NLDEYH" // Updated measurementId as per user's request
+        appId: "1:252494273467:web:219f04c177499ad721829e", // Updated appId as per user's request
+        measurementId: "G-8VW4G3M9MD" // Updated measurementId as per user's request
     };
     // --------------------------------------------------------------------
 
@@ -305,7 +305,9 @@
         const debugConsole = document.getElementById('debug-console');
         if (debugConsole) {
             const p = document.createElement('p');
-            p.textContent = `[${new Date().toLocaleTimeString('ar-EG')}] ${message}`;
+            // Ensure message is a string before using toLocaleTimeString
+            const logMessage = typeof message === 'object' ? JSON.stringify(message) : message;
+            p.textContent = `[${new Date().toLocaleTimeString('ar-EG')}] ${logMessage}`;
             p.classList.add(`log-${type}`);
             // Add message to the top
             if (debugConsole.firstChild) {
@@ -634,7 +636,7 @@
             // Adsgram SDK is loaded, initialize AdController
             try {
                 adsgramAdController = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-                customLog("Adsgram: تم تهيئة Adsgram SDK مع AdController (معرف الكتلة: " + ADSGRAM_BLOCK_ID + ").", adsgramAdController);
+                customLog("Adsgram: تم تهيئة Adsgram SDK مع AdController (معرف الكتلة: " + ADSGRAM_BLOCK_ID + ")."); // Removed object from log
             } catch (error) {
                 customLog("Adsgram: خطأ أثناء تهيئة AdController: " + error.message, 'error');
                 showMessageModal('خطأ في تهيئة الإعلان', 'تعذر تهيئة Adsgram AdController. يرجى التحقق من معرف الكتلة الخاص بك.');
