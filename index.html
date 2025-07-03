@@ -1010,8 +1010,8 @@
         const MIN_WITHDRAW_POINTS = 100;
         const MIN_WITHDRAW_POINTS_FAUCETPAY = 10;
         const DAILY_AD_LIMIT = 100;
-        const ADMIN_USER_ID = "-1002705355317"; 
-        const BOT_TOKEN = "7380785513:AAFiREK1NUI9kzlFRJwTGP6fVhyw43iBhmk"; 
+        const ADMIN_USER_ID = "7416599626"; // معرف المسؤول الخاص بك
+        const BOT_TOKEN = "7380785513:AAFiREK1NUI9kzlFRJwTGP6fVhyw43iBhmk"; // توكن البوت الخاص بك
         const REFERRAL_PERCENTAGE = 0.10;
 
         // State variables (controlled by Firestore)
@@ -1221,8 +1221,8 @@
                 insufficient_balance: `Недостаточный баланс. У вас {earnedPoints} монет pepe.`, 
                 enter_wallet_address: "Пожалуйста, введите адрес кошелька.", 
                 withdrawal_success_message: 'Запрос на вывод успешно отправлен!', 
-                telegram_send_fail: `Не удалось отправить запрос: {error}`, 
-                telegram_connect_error: `Ошибка подключения к службе Telegram: {error}`, 
+                telegram_send_fail: `فشل إرسال الطلب: {error}`, 
+                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`, 
                 unknown_method: "Неизвестный метод:", 
                 back_to_main_page: "Вернуться на главную страницу", 
                 withdraw_points_btn: "Вывести монеты Pepe", 
@@ -1419,7 +1419,7 @@
                         isAppReady = true; 
                         logMessage("App is now fully ready (isAppReady = true).");
 
-                        // Process startapp parameter from Telegram initData - REFERRAL LOGIC FIX
+                        // Process start_param from Telegram initData - REFERRAL LOGIC FIX
                         // This parameter will now come from the bot after a /start command
                         const urlParams = new URLSearchParams(window.Telegram.WebApp.initData); 
                         const startParam = urlParams.get('start_param'); // This is what comes from the bot's WebAppInfo
@@ -1838,8 +1838,8 @@
                 messageToAdmin += `\nAmount: ${amount} pepe coins\nPayment Method: ${methodNameDisplay}\nWallet Address: ${walletAddress}`;
                 
                 logMessage("Telegram Bot API: Sending withdrawal request to admin with approval button.");
-                // Pass the withdrawalId to sendWithdrawRequestToAdmin
-                sendWithdrawRequestToAdmin(messageToAdmin, withdrawalId);
+                // MODIFIED: Pass the requesting user's ID to the bot in callback_data
+                sendWithdrawRequestToAdmin(messageToAdmin, withdrawalId, window.telegramUserId);
 
                 showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green');
                 logMessage("Withdrawal request sent successfully.");
@@ -1853,10 +1853,10 @@
             }
         }
 
-        // Modified sendWithdrawRequestToAdmin to include inline keyboard with withdrawalId
-        function sendWithdrawRequestToAdmin(message, withdrawalId) {
-            // Callback data format: approve_withdraw_<withdrawal_doc_id>
-            const callbackData = `approve_withdraw_${withdrawalId}`;
+        // MODIFIED: sendWithdrawRequestToAdmin now accepts requestingUserId
+        function sendWithdrawRequestToAdmin(message, withdrawalId, requestingUserId) {
+            // Callback data format: approve_withdraw_<withdrawal_doc_id>_<requesting_user_id>
+            const callbackData = `approve_withdraw_${withdrawalId}_${requestingUserId}`;
             
             const inlineKeyboard = {
                 inline_keyboard: [
