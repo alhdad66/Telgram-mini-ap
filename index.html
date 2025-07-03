@@ -983,10 +983,14 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        // تم تحديث إصدارات SDK لتكون متسقة (11.10.0)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+        // تم إضافة getAuth و signInAnonymously للمصادقة
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
-        // Firebase configuration
+
+        // Firebase configuration (باستخدام معلومات مشروعك الجديد)
         const firebaseConfig = {
             apiKey: "AIzaSyBBtwHunlKiynbialigKqcmLPPKlxchw58",
             authDomain: "zaap-382a6.firebaseapp.com",
@@ -999,6 +1003,7 @@
         // Global variables for Firebase and Telegram Mini App
         window.firebaseApp = null;
         window.db = null;
+        window.auth = null; // إضافة كائن المصادقة
         window.telegramUserId = null; 
         window.telegramUsername = null; 
         let isAppReady = false; 
@@ -1346,12 +1351,28 @@
                             return;
                         }
                         
-                        const appId = firebaseConfig.projectId; 
                         window.firebaseApp = initializeApp(firebaseConfig);
                         window.db = getFirestore(window.firebaseApp);
-                        logMessage("Firebase initialized.");
+                        window.auth = getAuth(window.firebaseApp); // تهيئة خدمة المصادقة
+                        logMessage("Firebase initialized. Auth service obtained.");
+
+                        // تسجيل الدخول المجهول لضمان وجود request.auth.uid
+                        try {
+                            const userCredential = await signInAnonymously(window.auth);
+                            logMessage("Firebase Auth: Signed in anonymously. UID: " + userCredential.user.uid);
+                            // تأكد أن Firebase UID يتطابق مع Telegram User ID الخاص بك إذا كنت تعتمد على هذا في القواعد
+                            // إذا لم يتطابق، قد تحتاج إلى ربط الحسابات أو استخدام UID من Firebase كمعرف للمستخدم في Firestore
+                            // حالياً، نفترض أن Firebase UID هو نفسه Telegram User ID أو أن القواعد تسمح بالوصول بناءً على UID فقط.
+                        } catch (authError) {
+                            logMessage("Firebase Auth Error: Failed to sign in anonymously: " + authError.message, true);
+                            showAdNotification(translations[currentLanguage].error_loading_user + " (Auth failed)");
+                            isAppReady = false;
+                            updateButtonStates();
+                            return;
+                        }
 
                         // Load user data using Telegram User ID
+                        const appId = firebaseConfig.projectId; 
                         await loadUserDataFromFirestore(appId, window.telegramUserId); 
                         logMessage("User data load initiated and Firestore listener set up.");
 
