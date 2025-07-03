@@ -984,16 +984,16 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
         // Firebase configuration
         const firebaseConfig = {
-          apiKey: "AIzaSyAOf0KsfC9HlOa7z1VdR31DBcYcJAynrnA",
-          authDomain: "adrewardapp-e2755.firebaseapp.com",
-          projectId: "adrewardapp-e2755",
-          storageBucket: "adrewardapp-e2755.firebasestorage.app",
-          messagingSenderId: "978106558327",
-          appId: "1:978106558327:web:b567f8c72beb0113e2a372"
+            apiKey: "AIzaSyBBtwHunlKiynbialigKqcmLPPKlxchw58",
+            authDomain: "zaap-382a6.firebaseapp.com",
+            projectId: "zaap-382a6",
+            storageBucket: "zaap-382a6.firebasestorage.app",
+            messagingSenderId: "414551098575",
+            appId: "1:414551098575:web:d4c3db989f7d86a70823ba"
         };
 
         // Global variables for Firebase and Telegram Mini App
@@ -1164,8 +1164,8 @@
                 insufficient_balance: `Insufficient balance. You have {earnedPoints} Pepe Coins.`, 
                 enter_wallet_address: "Please enter the wallet address.", 
                 withdrawal_success_message: 'Withdrawal request sent successfully!', 
-                telegram_send_fail: `Failed to send request: {error}`, 
-                telegram_connect_error: `Error connecting to Telegram service: {error}`, 
+                telegram_send_fail: `فشل إرسال الطلب: {error}`, 
+                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`, 
                 unknown_method: "Unknown Method:", 
                 back_to_main_page: "Back to Main Page", 
                 withdraw_points_btn: "Withdraw Pepe Coins", 
@@ -1189,63 +1189,6 @@
                 no_withdrawals_yet: "No withdrawal requests yet.",
                 withdrawal_details: "Amount: {amount} | Method: {method} | Address: {address} | Status: {status}",
                 withdrawal_date: "Date: {date}",
-            },
-            ru: {
-                app_title: "⛏️Включи автопросмотр и иди спать 😴, наслаждайся прибылью🤫💵", 
-                earn_per_click_message: "Заработайте 5 монет Pepe за клик🔥", 
-                points_per_tap_message: "Заработайте 1 Pepe за нажатие",
-                min_withdrawal_message_static_general: `Вывод через FaucetPay от ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe только ✅\nВывод на любой другой кошелек от ${MIN_WITHDRAW_POINTS} монет pepe только ✅`, 
-                watched_ads_label: "Просмотрено объявлений", 
-                earned_points_label: "Заработанные монеты Pepe", 
-                daily_limit_label: "Ежедневные просмотры", 
-                progress_to_bonus: "Прогресс к бонусу",
-                ad_type_label: "Межстраничная реклама Adsgram", 
-                taps_to_claim: "нажатий для получения награды",
-                claim_reward_btn: "Получить награду",
-                visit_channel_title: "Посетите наш Telegram-канал", 
-                visit_channel_button: "Посетить канал", 
-                footer_text: "Защищено Firebase • Все транзакции защищены",
-                withdrawal_request_title: "Запрос на вывод", 
-                current_balance_label: "Ваш текущий баланс:", 
-                withdrawal_warning: `Внимание 🙋🏻‍♂️\nМинимальная сумма вывода для FaucetPay составляет ${MIN_WITHDRAW_POINTS_FAUCETPAY} монет pepe.\nМинимальная сумма вывода для любого другого кошелька составляет ${MIN_WITHDRAW_POINTS} монет pepe.\nПожалуйста, убедитесь, что вы ввели правильный адрес кошелька для беспроблемного вывода средств (◍•ᴗ•◍)`, 
-                enter_points_placeholder: "Введите сумму для вывода монет Pepe", 
-                faucetpay_option: "FaucetPay", 
-                other_wallet_option: "Вывод на любой другой кошелек", 
-                wallet_address_placeholder: "Введите адрес кошелька", 
-                withdraw_button: "Вывести", 
-                ad_loading: "Загрузка рекламы... Пожалуйста, подождите",
-                ad_completed_success: `Реклама завершена! +{POINTS_PER_AD} монет Pepe добавлено на ваш счет`, 
-                ad_failed: "Не удалось показать рекламу. Пожалуйста, попробуйте еще раз.",
-                daily_limit_reached: `Вы достигли дневного лимита по рекламе (${DAILY_AD_LIMIT}). Пожалуйста, попробуйте завтра.`, 
-                min_withdraw_message: `Минимальная сумма вывода для {methodName} составляет {minAmount} монет pepe.`, 
-                insufficient_balance: `Недостаточный баланс. У вас {earnedPoints} монет pepe.`, 
-                enter_wallet_address: "Пожалуйста, введите адрес кошелька.", 
-                withdrawal_success_message: 'Запрос на вывод успешно отправлен!', 
-                telegram_send_fail: `فشل إرسال الطلب: {error}`, 
-                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`, 
-                unknown_method: "Неизвестный метод:", 
-                back_to_main_page: "Вернуться на главную страницу", 
-                withdraw_points_btn: "Вывести монеты Pepe", 
-                referral_program_btn: "Реферальная программа",
-                referral_title: "Реферальная программа",
-                referral_description: `Приглашайте друзей и зарабатывайте ${REFERRAL_PERCENTAGE * 100}% от их заработка!`,
-                copy_link_btn: "Копировать ссылку",
-                total_referrals: "Всего рефералов:",
-                earned_from_referrals: "Заработано с рефералов:",
-                link_copied_success: "Реферальная ссылка успешно скопирована!",
-                your_user_id: "ID пользователя:",
-                loading_app: "Загрузка приложения...", 
-                not_mini_app: "Приложение запущено не как мини-приложение Telegram.",
-                error_loading_user: "Ошибка загрузки пользовательских данных.",
-                telegram_id_missing: "Telegram ID отсутствует.", 
-                withdrawal_history_btn: "История вывода",
-                withdrawal_history_title: "История вывода",
-                withdrawal_status_pending: "В ожидании",
-                withdrawal_status_approved: "Одобрено",
-                withdrawal_status_rejected: "Отклонено",
-                no_withdrawals_yet: "Пока нет запросов на вывод.",
-                withdrawal_details: "Сумма: {amount} | Метод: {method} | Адрес: {address} | Статус: {status}",
-                withdrawal_date: "Дата: {date}",
             }
         };
 
@@ -1549,7 +1492,7 @@
                                 await updateDoc(referrerRef, { totalReferrals: increment(1) });
                                 logMessage(`Firestore: Successfully incremented totalReferrals for ${referrerId}.`);
                             } else {
-                                logMessage(`Firestore Warning: Referrer document for ${referrerId} does not exist. Cannot increment totalReferrals.`, true);
+                                logMessage(`Firestore Warning: Referrer document for ${referrerId} does not exist. Cannot increment totalReferrals. (Maybe referrer needs to open app first?).`, true);
                             }
                         }
                     })
