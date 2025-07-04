@@ -1017,7 +1017,7 @@
         const MIN_WITHDRAW_POINTS_FAUCETPAY = 10;
         const DAILY_AD_LIMIT = 100;
         const ADMIN_USER_ID = "7416599626"; // معرف المسؤول الخاص بك
-        const BOT_TOKEN = "7380785513:AAFiREK1NUI9kzlFRJwTGP6fVhyw43iBhmk"; // توكن البوت الخاص بك
+        const BOT_TOKEN = "7380785513:AAHKo14QwkPgIgHcXZQDJF0Mr0OoxpyPl5w"; // توكن البوت الخاص بك (تم تحديثه)
         const REFERRAL_PERCENTAGE = 0.10;
 
         // URL الخاص بـ Replit Bot (الذي يعمل كخادم خلفي للمصادقة)
@@ -1437,7 +1437,7 @@
                                         await updateDoc(userDocRef, { referrerTelegramId: referrerTelegramId }, { merge: true }); // تحديث حقل referrerTelegramId
                                         logMessage(`REFERRAL LOGIC: Successfully set referrerTelegramId ${referrerTelegramId} for user ${window.firebaseUid}.`);
 
-                                        // يجب أن نجد referrerDocRef باستخدام Telegram User ID للمرجع
+                                        // يجب أن نجد referrerDocRef باستخدام Telegram ID للمرجع
                                         const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerTelegramId); 
                                         logMessage("REFERRAL LOGIC: Attempting to increment totalReferrals for referrer Telegram User ID: " + referrerTelegramId);
                                         await updateDoc(referrerRef, { totalReferrals: increment(1) });
