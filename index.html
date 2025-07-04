@@ -1648,7 +1648,7 @@
             try {
                 if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
                     logMessage("Adsgram Init: SDK available. Attempting to initialize and show ad with blockId: 12307");
-                    logMessage("Adsgram Init: Calling Adsgram.init({ blockId: '12307' }).show()...");
+                    logMessage("Adsgram Init: Calling Adsgram.init({ blockId: "12307" }).show()...");
                     await window.Adsgram.init({ blockId: "12307" }).show(); 
                     logMessage("Adsgram Show: Adsgram.show() call completed.");
 
