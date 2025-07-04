@@ -1021,8 +1021,8 @@
         const REFERRAL_PERCENTAGE = 0.10;
 
         // URL الخاص بـ Replit Bot (الذي يعمل كخادم خلفي للمصادقة)
-        // تم تحديث هذا الرابط بالرابط الذي قدمته لي.
-        const REPLIT_BOT_AUTH_URL = "https://d6a929a6-e91e-406d-91c0-2385455413e3-00-uggohc4jobo8.picard.replit.dev/auth"; 
+        // تم تحديث هذا الرابط بالرابط الصحيح الذي قدمته لي.
+        const REPLIT_BOT_AUTH_URL = "https://replit.com/@alhdadbdw690/TelegramPepe/auth"; 
 
         // State variables (controlled by Firestore)
         let watchedAdsCount = 0;
@@ -1701,7 +1701,7 @@
                 if (error && error.message) {
                     errorMessage += `: ${error.message}`;
                 }
-                showAdNotification(errorMessage);
+                    showAdNotification(errorMessage);
             } finally {
                 updateButtonStates(); 
             }
