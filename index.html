@@ -1,2099 +1,1678 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-key="app_title">Premium Ad Reward System</title>
-    
-    <!-- Adsgram SDK -->
-    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title data-key="app_title">Easy Earning Bot</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #2ed914;
+      --primary-hover: #3bff21;
+      --secondary-color: #2a2a2e;
+      --background-color: #1c1c1f;
+      --text-color: #f0f0f0;
+      --text-muted-color: #a0a0a0;
+      --accent-color: #ff8c00;
+      --card-bg: #252528;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; padding: 0; background-color: var(--background-color); color: var(--text-color);
+      font-family: 'Segoe UI', 'Roboto', sans-serif; display: flex; justify-content: center; align-items: center;
+      height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      flex-direction: column; /* Allow content and debug log to stack */
+    }
+    .container {
+      width: 100%; height: 100%; max-width: 400px; background: var(--background-color);
+      display: flex; flex-direction: column; overflow: hidden; position: relative;
+    }
+    main {
+      flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* Space for footer nav */
+    }
+    .view { display: none; animation: fadeIn 0.4s ease-in-out; }
+    .view.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .user-header-card {
+      background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 25px;
+      display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .user-avatar {
+      width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; overflow: hidden;
+      background: linear-gradient(135deg, var(--primary-color), #00a651);
+      display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-info .username { font-size: 18px; font-weight: 700; margin: 0; }
+    .user-info .title { font-size: 14px; color: var(--text-muted-color); margin: 0; }
+    .balance-card {
+      background: linear-gradient(135deg, #00a651, #00753a); border-radius: 16px; padding: 20px;
+      text-align: center; margin-bottom: 25px;
+    }
+    .balance-card .label { font-size: 16px; opacity: 0.8; margin-bottom: 5px; }
+    .balance-card .balance-value { font-size: 36px; font-weight: 800; margin: 0; letter-spacing: 1px; }
+    .balance-card .points-value { font-size: 16px; font-weight: 600; color: var(--accent-color); margin-top: 10px; }
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; padding-left: 5px; border-left: 4px solid var(--primary-color); }
+    .task-card {
+      background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px;
+      display: flex; align-items: center; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .task-card:hover { transform: translateY(-3px); background-color: var(--secondary-color); }
+    .task-icon { font-size: 24px; color: var(--primary-color); margin-right: 20px; width: 30px; text-align: center; }
+    .task-details h3 { margin: 0; font-size: 16px; font-weight: 600; }
+    .task-details p { margin: 3px 0 0; font-size: 13px; color: var(--text-muted-color); }
+    .task-arrow { margin-left: auto; font-size: 18px; color: var(--text-muted-color); }
+    .list-item {
+      display: flex; align-items: center; background: var(--card-bg); padding: 12px 15px;
+      border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .list-item .rank { font-size: 16px; font-weight: 700; color: var(--text-muted-color); width: 30px; }
+    .list-item .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--secondary-color); margin-right: 15px; object-fit: cover; }
+    .list-item .info { flex-grow: 1; }
+    .list-item .info .name { font-weight: 600; font-size: 15px; }
+    .list-item .info .detail { font-size: 13px; color: var(--text-muted-color); }
+    .list-item .score { font-size: 16px; font-weight: 700; color: var(--accent-color); }
+    .history-icon { color: var(--primary-color); margin-right: 15px; font-size: 18px; }
+    .footer-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 400px; margin: 0 auto;
+      display: flex; justify-content: space-around; background: var(--secondary-color);
+      padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .nav-button {
+      display: flex; flex-direction: column; align-items: center; color: var(--text-muted-color);
+      background: none; border: none; font-size: 12px; transition: color 0.2s ease, transform 0.2s ease;
+      cursor: pointer; padding: 5px 10px;
+    }
+    .nav-button .icon { font-size: 22px; margin-bottom: 4px; }
+    .nav-button:hover { color: var(--text-color); }
+    .nav-button.active { color: var(--primary-color); transform: scale(1.1); }
+    .action-button {
+      width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700;
+      margin-top: 15px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .primary-button { background: var(--primary-color); color: #000; }
+    .primary-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 217, 20, 0.3); }
+    .secondary-button { background: var(--secondary-color); color: var(--primary-color); }
+    .secondary-button:hover { background: #3a3a3e; }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+      display: none; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: var(--card-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 320px;
+      text-align: center; animation: slideIn 0.3s;
+    }
+    @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-content h3 { margin-top: 0; font-size: 20px; }
+    .modal-content p { color: var(--text-muted-color); margin-bottom: 25px; }
+    .modal-actions { display: flex; gap: 10px; }
 
-    <!-- Telegram WebApp SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    /* Custom styles for withdrawal form within modal */
+    .withdraw-form-content {
+        text-align: left;
+    }
+    .withdraw-form-content label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: var(--text-muted-color);
+    }
+    .withdraw-form-content input[type="number"],
+    .withdraw-form-content input[type="text"],
+    .withdraw-form-content select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--secondary-color);
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-size: 15px;
+    }
+    .withdraw-form-content input::placeholder {
+        color: var(--text-muted-color);
+    }
+    .withdraw-form-content .warning-message {
+        font-size: 12px;
+        color: var(--accent-color);
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: rgba(255, 140, 0, 0.1);
+        border-radius: 8px;
+        border: 1px solid var(--accent-color);
+    }
+    .withdraw-form-content .current-balance-display {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .withdraw-status {
+        margin-top: 10px;
+        font-size: 14px;
+        text-align: center;
+    }
 
-    <style>
-        :root {
-            /* Changed primary and secondary colors to vibrant green shades */
-            --primary: #00BF63; /* Vibrant Green */
-            --primary-dark: #008C4A; /* Darker shade for shadows */
-            --secondary: #32CD32; /* Lime Green, for a more vibrant accent */
-            --secondary-dark: #28A745; /* Darker shade of secondary */
-            
-            --dark: #121212;
-            --darker: #0a0a0a;
-            --light: #f5f5f5;
-            --gray: #2a2a2a;
-            --card-bg: #1f1f1f;
-            --gold: #ffd700;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, var(--darker), #1a1a2e);
-            color: var(--light);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow-x: hidden;
-            flex-direction: column; /* Allow content and debug log to stack */
-        }
-        
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(0, 191, 99, 0.1) 0%, transparent 20%), /* Adjusted for green */
-                radial-gradient(circle at 90% 80%, rgba(50, 205, 50, 0.1) 0%, transparent 20%); /* Adjusted for green */
-            z-index: -1;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 20px; /* Space for the debug log */
-        }
-        
-        .header {
-            /* Header gradient adjusted for green */
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            padding: 25px 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, 
-                rgba(255,255,255,0.1) 0%,
-                rgba(255,255,255,0) 50%,
-                rgba(255,255,255,0.1) 100%);
-            z-index: 1;
-        }
-        
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 2;
-        }
-        
-        .content {
-            padding: 25px;
-        }
-        
-        .user-info {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-        
-        .user-info p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-        
-        /* Updated .stats to center the single card */
-        .stats {
-            display: flex;
-            justify-content: center; /* Center the single card */
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        /* Enlarged stat-card for earned points */
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px 30px; /* Increased padding */
-            width: 80%; /* Made it wider */
-            max-width: 300px; /* Max width to keep it reasonable */
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            margin-bottom: 20px; /* Space between points card and ad container */
-        }
-        
-        .stat-card h3 {
-            font-size: 18px; /* Larger font for title */
-            margin-bottom: 10px; /* More space */
-            color: #aaa;
-        }
-        
-        .stat-card .value {
-            font-size: 36px; /* Significantly larger font for value */
-            font-weight: 700;
-            color: var(--primary); 
-        }
-        
-        .progress-container {
-            margin: 25px 0;
-            text-align: center;
-        }
-        
-        .progress-label {
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-        }
-        
-        .progress-bar {
-            height: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            /* Progress bar fill adjusted for green */
-            background: linear-gradient(90deg, var(--primary), var(--secondary)); 
-            border-radius: 10px;
-            width: 30%;
-            transition: width 0.5s ease;
-        }
-        
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin: 25px 0;
-        }
-        
-        /* 3D Button Styles - Adjusted for green */
-        .btn-3d {
-            position: relative;
-            padding: 16px 20px;
-            border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            color: white;
-            text-align: center;
-            transition: all 0.2s ease;
-            transform-style: preserve-3d;
-            perspective: 500px;
-            /* Box shadow uses primary-dark for depth */
-            box-shadow: 
-                0 8px 0 var(--primary-dark), 
-                0 15px 20px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            z-index: 1;
-        }
-        
-        .btn-3d::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Gradient background for button surface */
-            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
-            z-index: -1;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-3d::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            /* Shiny effect on hover */
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.2), 
-                transparent);
-            transition: all 0.5s ease;
-            z-index: -1;
-        }
-        
-        .btn-3d:hover {
-            transform: translateY(4px);
-            /* Adjust shadow on hover */
-            box-shadow: 
-                0 4px 0 var(--primary-dark),
-                0 8px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .btn-3d:hover::after {
-            left: 100%;
-        }
-        
-        .btn-3d:active {
-            transform: translateY(8px);
-            /* Flatten shadow on click */
-            box-shadow: 
-                0 0 0 var(--primary-dark),
-                0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        
-        .btn-secondary {
-            /* Secondary button uses secondary-dark for shadow */
-            box-shadow: 
-                0 8px 0 var(--secondary-dark), 
-                0 15px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .btn-secondary::before {
-            /* Secondary button background gradient */
-            background: linear-gradient(45deg, var(--secondary), var(--primary-dark)); 
-        }
-        
-        .btn-blue { /* This class is now essentially the same as btn-3d due to shared primary/secondary colors */
-            box-shadow: 
-                0 8px 0 var(--primary-dark), 
-                0 15px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .btn-blue::before {
-            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
-        }
-        
-        .website-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-        
-        .website-section h3 {
-            color: var(--secondary); 
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 15px;
-            color: #777;
-            font-size: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .firebase-logo {
-            display: inline-block;
-            margin-top: 10px;
-            font-size: 10px;
-            background: rgba(255, 152, 0, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: #ffa726;
-        }
-        
-        .ad-container {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .ad-label {
-            font-size: 12px;
-            color: #aaa;
-            margin-bottom: 10px;
-        }
-        
-        /* Animation for ad watching */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        .pulse {
-            animation: pulse 0.5s ease;
-        }
-        
-        .ad-notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            z-index: 1000;
-            display: none;
-            font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-        
-        /* Responsive design */
-        @media (max-width: 480px) {
-            .container {
-                border-radius: 15px;
-            }
-            
-            .header {
-                padding: 20px 15px;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            .tap-area {
-                width: 180px; /* Adjust size for smaller screens */
-                height: 180px;
-            }
-            .tap-area img {
-                width: 100%; /* Make image fill for smaller screens */
-                height: 100%;
-            }
-            .tap-area h2 {
-                font-size: 36px;
-            }
-            .tap-area p {
-                font-size: 16px;
-            }
-            .stat-card { /* Adjust for smaller screens */
-                width: 95%;
-                padding: 15px 20px;
-            }
-            .stat-card h3 {
-                font-size: 16px;
-            }
-            .stat-card .value {
-                font-size: 30px;
-            }
-        }
-        
-        /* Language Selector Styles - Active button gradient adjusted for green */
-        .language-selector {
-            position: absolute;
-            top: 15px; 
-            right: 15px; 
-            display: flex;
-            gap: 5px;
-            z-index: 999; 
-            background-color: rgba(0, 0, 0, 0.3); 
-            border-radius: 10px; 
-            padding: 5px; 
-            backdrop-filter: blur(5px); 
-        }
-        .language-selector button {
-            width: auto;
-            padding: 5px 10px;
-            font-size: 13px;
-            background-color: rgba(255, 255, 255, 0.1); 
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px; 
-            cursor: pointer;
-            min-width: 30px;
-            transition: all 0.2s ease; 
-        }
-        .language-selector button.active {
-            background: linear-gradient(45deg, var(--primary), var(--secondary)); 
-            border-color: var(--primary); 
-        }
-        .language-selector button:hover:not(.active) {
-            background-color: rgba(255, 255, 255, 0.2); 
-        }
+    /* Referral Section Styles (similar to withdraw form) */
+    .referral-section-content {
+        text-align: left;
+    }
+    .referral-section-content .referral-link-container {
+        display: flex;
+        margin-bottom: 15px;
+        background-color: var(--background-color);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--secondary-color);
+    }
+    .referral-section-content .referral-link-container input {
+        flex-grow: 1;
+        padding: 10px;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        font-size: 14px;
+        outline: none;
+        cursor: text;
+    }
+    .referral-section-content .referral-link-container button {
+        background: var(--primary-color);
+        color: #000;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .referral-section-content .referral-link-container button:hover {
+        background: var(--primary-hover);
+    }
+    .referral-section-content .referral-stats p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: var(--text-muted-color);
+    }
+    .referral-section-content .referral-stats span {
+        font-weight: bold;
+        color: var(--accent-color);
+    }
 
-        /* Withdrawal Section Styles - Adapted to be integrated */
-        .withdraw-section {
-            margin-top: 20px;
-            display: none; /* Hidden by default, shown by JS */
-            padding: 25px; 
-            background-color: rgba(255, 255, 255, 0.05); 
-            border-radius: 15px; 
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .withdraw-section h3 {
-            color: var(--secondary); 
-            margin-bottom: 5px; 
-            font-size: 20px;
-            font-weight: 600;
-        }
-        .withdraw-section .warning-message { 
-            font-size: 13px;
-            color: #FFC107; 
-            margin-bottom: 15px;
-            line-height: 1.4;
-            white-space: pre-wrap; 
-            background: rgba(255, 215, 0, 0.1); /* Light gold background for warning */
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #FFD700;
-        }
-        .withdraw-section input, 
-        .withdraw-section select { 
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0; 
-            border-radius: 10px; 
-            border: 1px solid var(--primary); 
-            background-color: var(--dark); 
-            color: var(--light);
-            font-size: 14px;
-        }
-        .withdraw-section input::placeholder {
-            color: #aaa;
-        }
-        .withdraw-section input:focus, 
-        .withdraw-section select:focus {
-            border-color: var(--gold); 
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
-        }
-        .withdraw-section button {
-            background: linear-gradient(90deg, var(--primary), var(--secondary)); 
-            width: 100%;
-            padding: 14px; 
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 20px; 
-            border-radius: 15px; 
-            cursor: pointer;
-            color: white; 
-            border: none; 
-            box-shadow: 0 8px 0 var(--primary-dark), 0 15px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.2s ease;
-        }
-        .withdraw-section button:hover {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 var(--primary-dark), 0 8px 10px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(90deg, var(--secondary), var(--primary)); 
-        }
-        .withdraw-section button:active {
-            transform: translateY(8px);
-            box-shadow: 
-                0 0 0 var(--primary-dark),
-                0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        .withdraw-section p.current-balance {
-            font-size: 18px;
-            color: var(--gold);
-            margin-bottom: 25px;
-            font-weight: 600;
-        }
+    /* Withdrawal History Section Styles */
+    .withdrawal-history-list {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 5px; /* For scrollbar */
+    }
+    .withdrawal-item {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 10px 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .withdrawal-item p {
+        margin: 3px 0;
+    }
+    .withdrawal-item .status-pending { color: #FFC107; font-weight: bold; }
+    .withdrawal-item .status-approved { color: #00BF63; font-weight: bold; }
+    .withdrawal-item .status-rejected { color: #DC3545; font-weight: bold; }
+    .withdrawal-item .withdrawal-date {
+        color: var(--text-muted-color);
+        font-size: 11px;
+        margin-top: 5px;
+    }
+    .no-withdrawals-message {
+        text-align: center;
+        color: var(--text-muted-color);
+        font-style: italic;
+        padding: 20px;
+    }
 
-        .back-button-container {
-            margin-top: 25px;
-            text-align: center;
-        }
-        .back-button {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
-            padding: 10px 20px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-size: 14px;
-            transition: background-color 0.2s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: inline-block; /* Make it a block for centering */
-        }
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+    /* Language Selector Styles */
+    .language-selector {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        gap: 5px;
+        z-index: 999;
+        background-color: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 5px;
+        backdrop-filter: blur(5px);
+    }
+    .language-selector button {
+        width: auto;
+        padding: 5px 10px;
+        font-size: 13px;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        cursor: pointer;
+        min-width: 30px;
+        transition: all 0.2s ease;
+    }
+    .language-selector button.active {
+        background: linear-gradient(45deg, var(--primary-color), var(--primary-hover));
+        border-color: var(--primary-color);
+    }
+    .language-selector button:hover:not(.active) {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
 
-        /* Hamster Kombat Style Tap Area */
-        .tap-area {
-            background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%);
-            border-radius: 50%; /* Make it circular */
-            margin: 20px auto; /* Center the circular area */
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            position: relative;
-            width: 220px; /* Set fixed width and height for a perfect circle */
-            height: 220px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5); /* Added outer shadow */
-            animation: backgroundPulse 5s infinite alternate;
-            user-select: none; /* Prevent text selection on tap */
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* IE10+ */
-        }
+    /* Debug Log Styles */
+    #debug-log {
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #00FF00; /* Green text for logs */
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        max-height: 150px; /* Reduced height for smaller screen */
+        overflow-y: auto;
+        width: 100%;
+        max-width: 400px; /* Match container width */
+        margin-top: 10px; /* Space from main container */
+        border: 1px solid rgba(0, 255, 0, 0.2);
+        white-space: pre-wrap; /* Preserve line breaks */
+        word-wrap: break-word; /* Break long words */
+    }
 
-        /* Image inside the tap area */
-        .tap-area img {
-            width: 100%; /* Make image fill the circle's width */
-            height: 100%; /* Make image fill the circle's height */
-            object-fit: cover; /* Make image cover the area, cropping if necessary */
-            border-radius: 50%; /* Ensure image itself is circular */
-            position: absolute; /* Position image absolutely within the tap-area */
-            top: 0;
-            left: 0;
-            z-index: 5; /* Place image behind text but above background pulse */
-            transition: transform 0.1s ease;
-        }
+    /* Ad Notification */
+    .ad-notification {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 10px;
+        z-index: 1000;
+        display: none;
+        font-weight: bold;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
 
-        .tap-area.active img {
-            transform: scale(0.95); /* Shrink image on tap */
-        }
+    /* Tapping Game Specific Styles (adapted from previous app) */
+    .tap-area {
+        background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%);
+        border-radius: 50%; /* Make it circular */
+        margin: 20px auto; /* Center the circular area */
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+        position: relative;
+        width: 220px; /* Set fixed width and height for a perfect circle */
+        height: 220px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5); /* Added outer shadow */
+        animation: backgroundPulse 5s infinite alternate;
+        user-select: none; /* Prevent text selection on tap */
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+    }
 
-        @keyframes backgroundPulse {
-            0% { background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%); }
-            100% { background: radial-gradient(circle at center, #3a3a3a 0%, #2a3a3a 100%); }
-        }
+    .tap-area img {
+        width: 100%; /* Make image fill the circle's width */
+        height: 100%; /* Make image fill the circle's height */
+        object-fit: cover; /* Make image cover the area, cropping if necessary */
+        border-radius: 50%; /* Ensure image itself is circular */
+        position: absolute; /* Position image absolutely within the tap-area */
+        top: 0;
+        left: 0;
+        z-index: 5; /* Place image behind text but above background pulse */
+        transition: transform 0.1s ease;
+    }
 
-        .tap-area h2 {
-            font-size: 48px;
-            font-weight: 800;
-            color: var(--gold);
-            margin-bottom: 5px; /* Adjusted margin */
-            text-shadow: 0 0 10px rgba(255,215,0,0.5);
-            transition: transform 0.1s ease;
-            position: relative;
-            z-index: 10; /* Ensure text is above image */
-        }
+    .tap-area.active img {
+        transform: scale(0.95); /* Shrink image on tap */
+    }
 
-        .tap-area p {
-            font-size: 18px;
-            color: #ccc;
-            margin-top: 0; /* Adjusted margin */
-            position: relative;
-            z-index: 10; /* Ensure text is above image */
-        }
+    @keyframes backgroundPulse {
+        0% { background: radial-gradient(circle at center, #2e2e2e 0%, #1a1a1a 100%); }
+        100% { background: radial-gradient(circle at center, #3a3a3a 0%, #2a3a3a 100%); }
+    }
 
-        .tap-feedback {
-            position: absolute;
-            font-size: 40px;
-            font-weight: bold;
-            color: var(--gold);
-            opacity: 0;
-            pointer-events: none;
-            animation: fadeOutUp 1s forwards;
-            text-shadow: 0 0 5px rgba(255,215,0,0.8);
-            z-index: 20;
-        }
+    .tap-area h2 {
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--accent-color); /* Changed to accent-color for gold */
+        margin-bottom: 5px; /* Adjusted margin */
+        text-shadow: 0 0 10px rgba(255,215,0,0.5);
+        transition: transform 0.1s ease;
+        position: relative;
+        z-index: 10; /* Ensure text is above image */
+    }
 
-        @keyframes fadeOutUp {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-50px); opacity: 0; }
-        }
+    .tap-area p {
+        font-size: 18px;
+        color: #ccc;
+        margin-top: 0; /* Adjusted margin */
+        position: relative;
+        z-index: 10; /* Ensure text is above image */
+    }
 
-        .tap-button-container {
-            margin-top: 20px;
-            text-align: center;
-        }
+    .tap-feedback {
+        position: absolute;
+        font-size: 40px;
+        font-weight: bold;
+        color: var(--accent-color); /* Changed to accent-color for gold */
+        opacity: 0;
+        pointer-events: none;
+        animation: fadeOutUp 1s forwards;
+        text-shadow: 0 0 5px rgba(255,215,0,0.8);
+        z-index: 20;
+    }
 
-        .tap-claim-btn {
-            display: none; /* Hidden by default */
-            position: relative;
-            padding: 16px 30px;
-            border: none;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            color: white;
-            background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
-            box-shadow: 
-                0 8px 0 #1e7e34, 
-                0 15px 20px rgba(0, 0, 0, 0.4);
-            transition: all 0.2s ease;
-            transform-style: preserve-3d;
-            perspective: 500px;
-            overflow: hidden;
-            z-index: 1;
-        }
+    @keyframes fadeOutUp {
+        0% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(-50px); opacity: 0; }
+    }
 
-        .tap-claim-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, #28a745, #218838); 
-            z-index: -1;
-            transition: all 0.3s ease;
-        }
-        
-        .tap-claim-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            /* Shiny effect on hover */
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 255, 255, 0.2), 
-                transparent);
-            transition: all 0.5s ease;
-            z-index: -1;
-        }
-        
-        .tap-claim-btn:hover {
-            transform: translateY(4px);
-            box-shadow: 
-                0 4px 0 #1e7e34,
-                0 8px 10px rgba(0, 0, 0, 0.3);
-        }
-        
-        .tap-claim-btn:hover::after {
-            left: 100%;
-        }
-        
-        .tap-claim-btn:active {
-            transform: translateY(8px);
-            box-shadow: 
-                0 0 0 #1e7e34,
-                0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-        .tap-claim-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: 0 8px 0 #1e7e34, 
-                        0 15px 20px rgba(0, 0, 0, 0.4);
-        }
+    .tap-button-container {
+        margin-top: 20px;
+        text-align: center;
+    }
 
-        .points-per-tap-message {
-            font-size: 16px;
-            color: var(--light);
-            margin-top: 15px; /* Spacing below the circle/claim button */
-            font-weight: 500;
-        }
+    .tap-claim-btn {
+        display: none; /* Hidden by default */
+        position: relative;
+        padding: 16px 30px;
+        border: none;
+        border-radius: 15px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        color: white;
+        background: linear-gradient(90deg, #28a745, #218838); /* Green gradient */
+        box-shadow:
+            0 8px 0 #1e7e34,
+            0 15px 20px rgba(0, 0, 0, 0.4);
+        transition: all 0.2s ease;
+        transform-style: preserve-3d;
+        perspective: 500px;
+        overflow: hidden;
+        z-index: 1;
+    }
 
-        /* Referral Section Styles */
-        .referral-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            display: none; /* Hidden by default */
-        }
+    .tap-claim-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #28a745, #218838);
+        z-index: -1;
+        transition: all 0.3s ease;
+    }
 
-        .referral-section h3 {
-            color: var(--secondary);
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
+    .tap-claim-btn::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        /* Shiny effect on hover */
+        background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+        transition: all 0.5s ease;
+        z-index: -1;
+    }
 
-        .referral-link-container {
-            display: flex;
-            margin-bottom: 15px;
-            background-color: var(--dark);
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid var(--primary);
-        }
+    .tap-claim-btn:hover {
+        transform: translateY(4px);
+        box-shadow:
+            0 4px 0 #1e7e34,
+            0 8px 10px rgba(0, 0, 0, 0.3);
+    }
 
-        .referral-link-container input {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border: none;
-            background: transparent;
-            color: var(--light);
-            font-size: 14px;
-            outline: none;
-            cursor: text;
-        }
+    .tap-claim-btn:hover::after {
+        left: 100%;
+    }
 
-        .referral-link-container button {
-            background: var(--primary);
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
+    .tap-claim-btn:active {
+        transform: translateY(8px);
+        box-shadow:
+            0 0 0 #1e7e34,
+            0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    .tap-claim-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 8px 0 #1e7e34,
+                    0 15px 20px rgba(0, 0, 0, 0.4);
+    }
 
-        .referral-link-container button:hover {
-            background: var(--primary-dark);
-        }
+    .points-per-tap-message {
+        font-size: 16px;
+        color: var(--text-color);
+        margin-top: 15px; /* Spacing below the circle/claim button */
+        font-weight: 500;
+        text-align: center;
+    }
 
-        .referral-stats p {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #ccc;
-        }
+  </style>
 
-        .referral-stats span {
-            font-weight: bold;
-            color: var(--gold);
-        }
-
-        /* Withdrawal History Styles */
-        .withdrawal-history-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: none; /* Hidden by default */
-        }
-
-        .withdrawal-history-section h3 {
-            color: var(--secondary);
-            margin-bottom: 15px;
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .withdrawal-history-list {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-        }
-
-        .withdrawal-item {
-            background-color: rgba(255, 255, 255, 0.03);
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            font-size: 13px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .withdrawal-item p {
-            margin: 3px 0;
-        }
-
-        .withdrawal-item .status-pending {
-            color: #FFC107; /* Amber */
-            font-weight: bold;
-        }
-
-        .withdrawal-item .status-approved {
-            color: #00BF63; /* Primary Green */
-            font-weight: bold;
-        }
-
-        .withdrawal-item .status-rejected {
-            color: #DC3545; /* Red */
-            font-weight: bold;
-        }
-
-        .withdrawal-item .withdrawal-date {
-            color: #aaa;
-            font-size: 11px;
-            margin-top: 5px;
-        }
-
-        .no-withdrawals-message {
-            text-align: center;
-            color: #ccc;
-            font-style: italic;
-            padding: 20px;
-        }
-
-
-        /* Debug Log Styles */
-        #debug-log {
-            background-color: rgba(0, 0, 0, 0.7);
-            color: #00FF00; /* Green text for logs */
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 10px;
-            padding: 10px;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            width: 100%;
-            max-width: 500px; /* Match container width */
-            margin-top: 10px; /* Space from main container */
-            border: 1px solid rgba(0, 255, 0, 0.2);
-            white-space: pre-wrap; /* Preserve line breaks */
-            word-wrap: break-word; /* Break long words */
-        }
-    </style>
+  <!-- Adsgram SDK -->
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <div class="ad-notification" id="ad-notification"></div>
-    
-    <div class="container">
-        <!-- Language Selector -->
-        <div class="language-selector">
-            <button data-lang="ar" onclick="setLanguage('ar')">AR</button>
-            <button data-lang="en" onclick="setLanguage('en')">EN</button>
-            <button data-lang="ru" onclick="setLanguage('ru')">RU</button>
-        </div>
-
-        <div class="header">
-            <h1 data-key="app_title">⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵</h1>
-        </div>
-        
-        <div class="content">
-            <div class="user-info">
-                <p data-key="earn_per_click_message">اربح 5 عملات pepe لكل نقرة🔥</p>
-                <p data-key="min_withdrawal_message_static_general">السحب عن طريق FaucetPay من 10 عملات فقط ✅<br>السحب إلى أي محفظة أخرى من 100 عملة فقط ✅</p>
-                 <p class="user-id-display" data-key="your_user_id">معرف المستخدم: <span id="display-user-id">جار التحميل...</span></p>
-            </div>
-            
-            <!-- Moved and Enlarged Earned Points Stat Card -->
-            <div class="stats"> 
-                <div class="stat-card">
-                    <h3 data-key="earned_points_label">عملات Pepe المكتسبة</h3>
-                    <div class="value" id="earned-points">0.00</div>
-                </div>
-            </div>
-            
-            <!-- Removed Watched Ads and Daily Limit Stats here -->
-            
-            <div class="progress-container">
-                <div class="progress-label">
-                    <span data-key="progress_to_bonus">التقدم للمكافأة</span>
-                    <span id="ads-progress">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progress-fill"></div>
-                </div>
-            </div>
-            
-            <div class="ad-container">
-                <div class="ad-label" data-key="ad_type_label">إعلان Adsgram بيني</div> 
-                
-                <!-- New Tap Area -->
-                <div class="tap-area" id="tap-area">
-                    <img src="https://f.top4top.io/p_3464tveeu0.jpeg" alt="Pepe Coin Image" onerror="this.onerror=null; this.src='https://placehold.co/220x220/00BF63/FFFFFF?text=Pepe+Coin';">
-                    <h2 id="taps-remaining">10</h2>
-                    <p data-key="taps_to_claim">نقرة للمطالبة بالمكافأة</p>
-                </div>
-
-                <div class="tap-button-container">
-                    <button class="btn-3d tap-claim-btn" id="claim-reward-btn" onclick="claimReward()" data-key="claim_reward_btn">المطالبة بالمكافأة</button>
-                </div>
-                
-                <!-- New text below the tap area -->
-                <p class="points-per-tap-message" data-key="points_per_tap_message">اربح 1 Pepe لكل نقرة</p>
-
-            </div>
-            
-            <div class="website-section">
-                <h3 data-key="visit_channel_title">قم بزيارة قناتنا على تيليجرام</h3>
-                <button class="btn-3d btn-blue" onclick="window.open('https://t.me/dogsarn', '_blank')" data-key="visit_channel_button">زيارة القناة</button>
-            </div>
-
-            <div class="buttons">
-                <!-- Button to show the integrated withdrawal form -->
-                <button class="btn-3d btn-blue" id="show-withdraw-btn" onclick="showWithdrawForm()" data-key="withdraw_points_btn">سحب عملات Pepe</button>
-                 <!-- Button to show the referral section -->
-                <button class="btn-3d btn-blue" id="show-referral-btn" onclick="showReferralSection()" data-key="referral_program_btn">برنامج الإحالة</button>
-                 <!-- New: Button to show withdrawal history -->
-                 <button class="btn-3d btn-blue" id="show-withdrawal-history-btn" onclick="showWithdrawalHistorySection()" data-key="withdrawal_history_btn">سجل السحوبات</button>
-            </div>
-
-            <!-- Withdraw Section - Now integrated back into the main page -->
-            <div class="withdraw-section" id="withdraw-section">
-                <h3 data-key="withdrawal_request_title">طلب السحب</h3>
-                <p class="current-balance" data-key="current_balance_label">رصيدك الحالي: <span id="current-earned-points">0.00</span> عملة Pepe</p>
-                <p class="warning-message" data-key="withdrawal_warning">تنبيه 🙋🏻‍♂️
-الحد الأدنى للسحب عن طريق FaucetPay هو 10 عملات pepe.
-الحد الأدنى للسحب إلى أي محفظة أخرى هو 100 عملة pepe.
-يرجى التأكد من إدخال عنوان محفظة صحيح لتلقي السحب بدون مشاكل (◍•ᴗ•◍)</p>
-                <input type="number" id="withdraw-amount" data-key-placeholder="enter_points_placeholder" placeholder="أدخل الكمية لسحب عملات Pepe" />
-                <select id="payment-method"> 
-                    <option value="faucetpay" data-key="faucetpay_option">FaucetPay</option>
-                    <option value="other_wallet" data-key="other_wallet_option">السحب إلى أي محفظة أخرى</option>
-                </select>
-                <input type="text" id="wallet-address" data-key-placeholder="wallet_address_placeholder" placeholder="أدخل عنوان المحفظة" /> 
-                <button onclick="withdrawPoints()" data-key="withdraw_button">سحب</button>
-                <p id="withdraw-status"></p>
-
-                <div class="back-button-container">
-                    <!-- Button to hide the withdrawal form -->
-                    <a href="#" class="back-button" onclick="hideWithdrawForm(); return false;" data-key="back_to_main_page">العودة إلى الواجهة الرئيسية</a>
-                </div>
-            </div>
-
-            <!-- Referral Section -->
-            <div class="referral-section" id="referral-section">
-                <h3 data-key="referral_title">برنامج الإحالة</h3>
-                <p data-key="referral_description">ادعُ أصدقائك واكسب 10% من أرباحهم!</p>
-                <div class="referral-link-container">
-                    <input type="text" id="referral-link" readonly />
-                    <button onclick="copyReferralLink()" data-key="copy_link_btn">نسخ الرابط</button>
-                </div>
-                <div class="referral-stats">
-                    <!-- These p elements will be targeted by querySelector to update innerHTML -->
-                    <p data-key="total_referrals">الإحالات الكلية: <span id="total-referrals">0</span></p>
-                    <p data-key="earned_from_referrals">الربح من الإحالات: <span id="earned-from-referrals">0.00</span> Pepe</p>
-                </div>
-                <div class="back-button-container">
-                    <a href="#" class="back-button" onclick="hideReferralSection(); return false;" data-key="back_to_main_page">العودة إلى الواجهة الرئيسية</a>
-                </div>
-            </div>
-
-            <!-- Withdrawal History Section -->
-            <div class="withdrawal-history-section" id="withdrawal-history-section">
-                <h3 data-key="withdrawal_history_title">سجل السحوبات</h3>
-                <div id="withdrawal-history-list" class="withdrawal-history-list">
-                    <!-- Withdrawal items will be loaded here by JavaScript -->
-                    <p class="no-withdrawals-message" data-key="no_withdrawals_yet">لا توجد طلبات سحب حتى الآن.</p>
-                </div>
-                <div class="back-button-container">
-                    <a href="#" class="back-button" onclick="hideWithdrawalHistorySection(); return false;" data-key="back_to_main_page">العودة إلى الواجهة الرئيسية</a>
-                </div>
-            </div>
-
-        </div>
-        
-        <div class="footer">
-            <p data-key="footer_text">مؤمن بواسطة Firebase • جميع المعاملات محمية</p>
-            <div class="firebase-logo">Firebase</div>
-        </div>
+  <div class="ad-notification" id="ad-notification"></div>
+  <div class="container">
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <button data-lang="ar" onclick="setLanguage('ar')">AR</button>
+        <button data-lang="en" onclick="setLanguage('en')">EN</button>
     </div>
 
-    <!-- Debug Log Display -->
-    <div id="debug-log">
-        <h3>سجل التصحيح (Debug Log)</h3>
-        <pre id="log-content"></pre>
-    </div>
+    <main id="main-content">
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        // Updated SDK versions to be consistent (11.10.0)
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, orderBy, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-        // Added getAuth and signInWithCustomToken for custom authentication
-        import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+      <!-- HOME VIEW -->
+      <div id="home-view" class="view active">
+        <div class="user-header-card">
+          <div class="user-avatar" id="profile-pic">EE</div>
+          <div class="user-info">
+            <h2 class="username" id="username">Loading...</h2>
+            <p class="title" data-key="welcome_back">Welcome Back!</p>
+            <p class="user-id-display" data-key="your_user_id">User ID: <span id="display-user-id">Loading...</span></p>
+          </div>
+        </div>
+        <div class="balance-card">
+            <p class="label" data-key="total_balance_label">Total Balance</p>
+            <h1 class="balance-value" id="balance-value">$0.00</h1>
+            <p class="points-value"><i class="fa-solid fa-coins"></i> <span id="points-value">0</span> <span data-key="points_label">Points</span></p>
+        </div>
+        <h2 class="section-title" data-key="quick_actions_title">Quick Actions</h2>
+        <div class="task-card" onclick="showView('tasks-view')">
+            <div class="task-icon"><i class="fa-solid fa-list-check"></i></div>
+            <div class="task-details"><h3><span data-key="view_tasks_title">View Tasks</span></h3><p data-key="view_tasks_desc">Watch ads and complete tasks to earn points.</p></div>
+            <div class="task-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+        <div class="task-card" onclick="openWithdrawModal()">
+            <div class="task-icon"><i class="fa-solid fa-wallet"></i></div>
+            <div class="task-details"><h3><span data-key="withdraw_funds_title">Withdraw Funds</span></h3><p data-key="withdraw_funds_desc">Request to withdraw your available balance.</p></div>
+            <div class="task-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+        <div class="task-card" onclick="showReferralSection()">
+            <div class="task-icon"><i class="fa-solid fa-user-group"></i></div>
+            <div class="task-details"><h3><span data-key="referral_program_title">Referral Program</span></h3><p data-key="referral_program_desc">Invite friends and earn bonuses.</p></div>
+            <div class="task-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+        </div>
+      </div>
 
+      <!-- TASKS VIEW (Now with Tapping Game & Adsgram Ads) -->
+      <div id="tasks-view" class="view">
+        <h2 class="section-title" data-key="earning_tasks_title">Earning Tasks</h2>
 
-        // Firebase configuration (using your project information)
-        const firebaseConfig = {
-            apiKey: "AIzaSyBBtwHunlKiynbialigKqcmLPPKlxchw58",
-            authDomain: "zaap-382a6.firebaseapp.com",
-            projectId: "zaap-382a6",
-            storageBucket: "zaap-382a6.firebasestorage.app",
-            messagingSenderId: "414551098575",
-            appId: "1:414551098575:web:d4c3db989f7d86a70823ba"
-        };
+        <!-- Tapping Game Section -->
+        <div class="task-card">
+            <div class="task-icon"><i class="fa-solid fa-hand-pointer"></i></div>
+            <div class="task-details"><h3><span data-key="tap_game_title">Tap to Earn</span></h3><p data-key="tap_game_desc">Tap the button to earn points!</p></div>
+        </div>
+        <div class="tap-area" id="tap-area">
+            <img src="https://f.top4top.io/p_3464tveeu0.jpeg" alt="Pepe Coin Image" onerror="this.onerror=null; this.src='https://placehold.co/220x220/2ed914/FFFFFF?text=Pepe+Coin';">
+            <h2 id="taps-remaining">10</h2>
+            <p data-key="taps_to_claim">taps to claim reward</p>
+        </div>
+        <div class="tap-button-container">
+            <button class="action-button primary-button tap-claim-btn" id="claim-reward-btn" onclick="claimTapReward()" data-key="claim_reward_btn">Claim Reward</button>
+        </div>
+        <p class="points-per-tap-message" data-key="points_per_tap_message">Earn 1 Pepe per tap</p>
 
-        // Global variables for Firebase and Telegram Mini App
-        window.firebaseApp = null;
-        window.db = null;
-        window.auth = null; 
-        window.telegramUserId = null; 
-        window.telegramUsername = null; 
-        window.firebaseUid = null; // This will now be the same as window.telegramUserId after custom authentication
-        let isAppReady = false; 
+        <!-- Adsgram Interstitial Ad -->
+        <div class="task-card" onclick="showAdsgramInterstitial()">
+            <div class="task-icon"><i class="fa-solid fa-rectangle-ad"></i></div>
+            <div class="task-details"><h3><span data-key="adsgram_interstitial_title">Adsgram Interstitial Ad</span></h3><p data-key="adsgram_interstitial_desc">Watch a full-screen ad to earn rewards.</p></div>
+            <div class="task-arrow"><i class="fa-solid fa-play"></i></div>
+        </div>
 
-        // Constants
-        const POINTS_PER_AD = 1000.00; 
-        const TAPS_REQUIRED = 10;
-        const ADS_FOR_BONUS = 10; 
-        const MIN_WITHDRAW_POINTS = 100;
-        const MIN_WITHDRAW_POINTS_FAUCETPAY = 10;
-        const DAILY_AD_LIMIT = 100;
-        const ADMIN_USER_ID = "7416599626"; // Your Telegram Admin User ID
-        const BOT_TOKEN = "7380785513:AAHKo14QwkPgIgHcXZQDJF0Mr0OoxpyPl5w"; // Your Bot Token (updated)
-        const REFERRAL_PERCENTAGE = 0.10;
+        <!-- Adsgram Popup Ad -->
+        <div class="task-card" onclick="showAdsgramPopup()">
+            <div class="task-icon"><i class="fa-solid fa-window-restore"></i></div>
+            <div class="task-details"><h3><span data-key="adsgram_popup_title">Adsgram Popup Ad</span></h3><p data-key="adsgram_popup_desc">View a popup ad for quick points.</p></div>
+            <div class="task-arrow"><i class="fa-solid fa-play"></i></div>
+        </div>
+      </div>
 
-        // URL for the Replit Bot (which acts as the backend for authentication)
-        // This URL has been updated with the correct one you provided.
-        const REPLIT_BOT_AUTH_URL = "https://f064e5ef-fba2-4627-97f9-cd13bd1a96be-00-3bj6ie00ivxbb.worf.replit.dev/auth"; 
+      <!-- LEADERBOARD VIEW -->
+      <div id="leaderboard-view" class="view">
+        <h2 class="section-title" data-key="top_earners_title">Top Earners</h2>
+        <div id="leaderboard-list"><!-- Leaderboard items will be generated here by JS --></div>
+      </div>
 
-        // State variables (controlled by Firestore)
-        let watchedAdsCount = 0;
-        let earnedPoints = 0.00; 
-        let dailyWatchedAdsCount = 0; 
-        let lastWatchDate = ""; 
-        let tapsCount = 0; 
-        let referrerTelegramId = null; 
-        let totalReferrals = 0; 
-        let earnedFromReferrals = 0.00; 
+      <!-- HISTORY VIEW (for Withdrawal History) -->
+      <div id="history-view" class="view">
+        <h2 class="section-title" data-key="withdrawal_history_title">Withdrawal History</h2>
+        <div id="withdrawal-history-list" class="withdrawal-history-list">
+            <p class="no-withdrawals-message" data-key="no_withdrawals_yet">No withdrawal requests yet.</p>
+        </div>
+      </div>
 
-        // DOM elements (re-initialized if needed after innerHTML updates)
-        const earnedPointsEl = document.getElementById('earned-points');
-        const adsProgressEl = document.getElementById('ads-progress');
-        const progressFillEl = document.getElementById('progress-fill');
-        const adNotificationEl = document.getElementById('ad-notification');
-        
-        const withdrawSectionEl = document.getElementById('withdraw-section');
-        const withdrawStatusEl = document.getElementById('withdraw-status');
-        const currentEarnedPointsEl = document.getElementById('current-earned-points');
+      <!-- Referral Section (integrated as a separate view) -->
+      <div id="referral-view" class="view">
+          <h2 class="section-title" data-key="referral_program_title">Referral Program</h2>
+          <div class="referral-section-content">
+              <p data-key="referral_description">Invite your friends and earn 10% of their earnings!</p>
+              <div class="referral-link-container">
+                  <input type="text" id="referral-link" readonly />
+                  <button onclick="copyReferralLink()" data-key="copy_link_btn">Copy Link</button>
+              </div>
+              <div class="referral-stats">
+                  <p data-key="total_referrals">Total Referrals: <span id="total-referrals">0</span></p>
+                  <p data-key="earned_from_referrals">Earned from Referrals: <span id="earned-from-referrals">0.00</span> <span data-key="points_label">Points</span></p>
+              </div>
+          </div>
+      </div>
 
-        const tapAreaEl = document.getElementById('tap-area'); 
-        const tapsRemainingEl = document.getElementById('taps-remaining'); 
-        const claimRewardBtn = document.getElementById('claim-reward-btn'); 
+    </main>
 
-        const referralSectionEl = document.getElementById('referral-section');
-        const referralLinkInput = document.getElementById('referral-link');
-        // Get parent P elements for referral stats for more robust UI update
-        const totalReferralsParentEl = document.querySelector('p[data-key="total_referrals"]');
-        const earnedFromReferralsParentEl = document.querySelector('p[data-key="earned_from_referrals"]');
-        // Initial references to span elements (will be updated after innerHTML rewrites)
-        let totalReferralsEl = document.getElementById('total-referrals');
-        let earnedFromReferralsEl = document.getElementById('earned-from-referrals');
-
-        // New DOM elements for Withdrawal History
-        const withdrawalHistorySectionEl = document.getElementById('withdrawal-history-section');
-        const withdrawalHistoryListEl = document.getElementById('withdrawal-history-list');
-
-
-        const displayUserIdEl = document.getElementById('display-user-id'); 
-
-        const logContentEl = document.getElementById('log-content'); // Debug Log DOM element
-
-        // Custom log function to display messages on screen and console
-        function logMessage(message, isError = false) {
-            const timestamp = new Date().toLocaleTimeString();
-            const logEntry = document.createElement('div');
-            logEntry.textContent = `[${timestamp}] ${message}`;
-            if (isError) {
-                logEntry.style.color = 'red';
-            }
-            logContentEl.appendChild(logEntry);
-            logContentEl.scrollTop = logContentEl.scrollHeight; // Auto-scroll to bottom
-
-            if (isError) {
-                console.error(message);
-            } else {
-                console.log(message);
-            }
-        }
-
-        // Translation logic
-        const translations = {
-            ar: {
-                app_title: "⛏️شغل المشاهده التلقائيه وادهب لي النوم 😴واستمتع بي الارباح🤫💵",
-                earn_per_click_message: "اربح 5 عملات pepe لكل نقرة🔥", 
-                points_per_tap_message: "اربح 1 Pepe لكل نقرة", 
-                min_withdrawal_message_static_general: `السحب عن طريق FaucetPay من ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات فقط ✅\nالسحب إلى أي محفظة أخرى من ${MIN_WITHDRAW_POINTS} عملة فقط ✅`, 
-                watched_ads_label: "الإعلانات المشاهدة", 
-                earned_points_label: "عملات Pepe المكتسبة", 
-                daily_limit_label: "المشاهدات اليومية", 
-                progress_to_bonus: "التقدم للمكافأة",
-                ad_type_label: "إعلان Adsgram بيني", 
-                taps_to_claim: "نقرة للمطالبة بالمكافأة", 
-                claim_reward_btn: "المطالبة بالمكافأة", 
-                visit_channel_title: "قم بزيارة قناتنا على تيليجرام", 
-                visit_channel_button: "زيارة القناة", 
-                footer_text: "مؤمن بواسطة Firebase • جميع المعاملات محمية",
-                withdrawal_request_title: "طلب السحب", 
-                current_balance_label: "رصيدك الحالي:", 
-                withdrawal_warning: `تنبيه 🙋🏻‍♂️\nالحد الأدنى للسحب عن طريق FaucetPay هو ${MIN_WITHDRAW_POINTS_FAUCETPAY} عملات pepe.\nالحد الأدنى للسحب إلى أي محفظة أخرى هو ${MIN_WITHDRAW_POINTS} عملة pepe.\nيرجى التأكد من إدخال عنوان محفظة صحيح لتلقي السحب بدون مشاكل (◍•ᴗ•◍)`, 
-                enter_points_placeholder: "أدخل الكمية لسحب عملات Pepe", 
-                faucetpay_option: "FaucetPay", 
-                other_wallet_option: "السحب إلى أي محفظة أخرى", 
-                wallet_address_placeholder: "أدخل عنوان المحفظة", 
-                withdraw_button: "سحب", 
-                ad_loading: "جاري تحميل الإعلان... يرجى الانتظار",
-                ad_completed_success: `اكتمل الإعلان! تمت إضافة {POINTS_PER_AD} عملة pepe إلى حسابك`, 
-                ad_failed: "فشل عرض الإعلان. يرجى المحاولة مرة أخرى.",
-                daily_limit_reached: `لقد وصلت للحد الأقصى من المشاهدات اليومية (${DAILY_AD_LIMIT}). يرجى المحاولة غدًا.`, 
-                min_withdraw_message: `الحد الأدنى للسحب عن طريق {methodName} هو {minAmount} عملة pepe.`, 
-                insufficient_balance: `رصيدك غير كافٍ. لديك {earnedPoints} عملة pepe.`, 
-                enter_wallet_address: "يرجى إدخال عنوان المحفظة.", 
-                withdrawal_success_message: 'تم إرسال طلب السحب بنجاح!', 
-                telegram_send_fail: `فشل إرسال الطلب: {error}`, 
-                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`, 
-                unknown_method: "طريقة غير معروفة:", 
-                back_to_main_page: "العودة إلى الواجهة الرئيسية", 
-                withdraw_points_btn: "سحب عملات Pepe", 
-                referral_program_btn: "برنامج الإحالة",
-                referral_title: "برنامج الإحالة",
-                referral_description: `ادعُ أصدقائك واكسب ${REFERRAL_PERCENTAGE * 100}% من أرباحهم!`,
-                copy_link_btn: "نسخ الرابط",
-                total_referrals: "الإحالات الكلية:",
-                earned_from_referrals: "الربح من الإحالات:",
-                link_copied_success: "تم نسخ رابط الإحالة بنجاح!",
-                your_user_id: "معرف المستخدم:",
-                loading_app: "جاري تحميل التطبيق...", 
-                not_mini_app: "لم يتم تشغيل التطبيق كتطبيق تيليجرام مصغر.",
-                error_loading_user: "خطأ في تحميل بيانات المستخدم.",
-                telegram_id_missing: "معرف تيليجرام مفقود.", 
-                withdrawal_history_btn: "سجل السحوبات",
-                withdrawal_history_title: "سجل السحوبات",
-                withdrawal_status_pending: "معلق",
-                withdrawal_status_approved: "تمت الموافقة",
-                withdrawal_status_rejected: "مرفوض",
-                no_withdrawals_yet: "لا توجد طلبات سحب حتى الآن.",
-                withdrawal_details: "المبلغ: {amount} | الطريقة: {method} | العنوان: {address} | الحالة: {status}",
-                withdrawal_date: "التاريخ: {date}",
-            },
-            en: {
-                app_title: "⛏️Enable Auto Watch, Go to Sleep 😴, and Enjoy the Profits🤫💵", 
-                earn_per_click_message: "Earn 5 Pepe coins per click🔥", 
-                points_per_tap_message: "Earn 1 Pepe per tap",
-                min_withdrawal_message_static_general: `Withdrawal via FaucetPay from ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins only ✅\nWithdrawal to Any Other Wallet from ${MIN_WITHDRAW_POINTS} pepe coins only ✅`, 
-                watched_ads_label: "Watched Ads", 
-                earned_points_label: "Earned Pepe Coins", 
-                daily_limit_label: "Daily Views", 
-                progress_to_bonus: "Progress to Bonus",
-                ad_type_label: "Adsgram Interstitial Ad", 
-                taps_to_claim: "taps to claim reward",
-                claim_reward_btn: "Claim Reward",
-                visit_channel_title: "Visit Our Telegram Channel", 
-                visit_channel_button: "Visit Channel", 
-                footer_text: "Secured by Firebase • All transactions are protected",
-                withdrawal_request_title: "Withdrawal Request", 
-                current_balance_label: "Your Current Balance:", 
-                withdrawal_warning: `Warning 🙋🏻‍♂️\nMinimum withdrawal for FaucetPay is ${MIN_WITHDRAW_POINTS_FAUCETPAY} pepe coins.\nMinimum withdrawal for Any Other Wallet is ${MIN_WITHDRAW_POINTS} pepe coins.\nPlease ensure you enter a correct wallet address for smooth withdrawals (◍•ᴗ•◍)`, 
-                enter_points_placeholder: "Enter Amount to Withdraw Pepe Coins", 
-                faucetpay_option: "FaucetPay", 
-                other_wallet_option: "Withdraw to Any Other Wallet", 
-                wallet_address_placeholder: "Enter Wallet Address", 
-                withdraw_button: "Withdraw", 
-                ad_loading: "Loading ad... Please wait",
-                ad_completed_success: `Ad completed! +{POINTS_PER_AD} Pepe Coins added to your account`, 
-                ad_failed: "Failed to show ad. Please try again.",
-                daily_limit_reached: `You have reached the daily ad limit (${DAILY_AD_LIMIT}). Please try again tomorrow.`, 
-                min_withdraw_message: `Minimum withdrawal for {methodName} is {minAmount} pepe coins.`, 
-                insufficient_balance: `Insufficient balance. You have {earnedPoints} Pepe Coins.`, 
-                enter_wallet_address: "Please enter the wallet address.", 
-                withdrawal_success_message: 'Withdrawal request sent successfully!', 
-                telegram_send_fail: `فشل إرسال الطلب: {error}`, 
-                telegram_connect_error: `خطأ في الاتصال بخدمة تيليجرام: {error}`, 
-                unknown_method: "Unknown Method:", 
-                back_to_main_page: "Back to Main Page", 
-                withdraw_points_btn: "Withdraw Pepe Coins", 
-                referral_program_btn: "Referral Program",
-                referral_title: "Referral Program",
-                referral_description: `Invite your friends and earn ${REFERRAL_PERCENTAGE * 100}% of their earnings!`,
-                copy_link_btn: "Copy Link",
-                total_referrals: "Total Referrals:",
-                earned_from_referrals: "Earned from Referrals:",
-                link_copied_success: "Referral link copied successfully!",
-                your_user_id: "User ID:",
-                loading_app: "Loading App...", 
-                not_mini_app: "App not launched as Telegram Mini App.",
-                error_loading_user: "Error loading user data.",
-                telegram_id_missing: "Telegram ID missing.", 
-                withdrawal_history_btn: "Withdrawal History",
-                withdrawal_history_title: "Withdrawal History",
-                withdrawal_status_pending: "Pending",
-                withdrawal_status_approved: "Approved",
-                withdrawal_status_rejected: "Rejected",
-                no_withdrawals_yet: "No withdrawal requests yet.",
-                withdrawal_details: "Amount: {amount} | Method: {method} | Address: {address} | Status: {status}",
-                withdrawal_date: "Date: {date}",
-            }
-        };
-
-        let currentLanguage = localStorage.getItem('appLanguage') || 'ar'; 
-        let currentSection = 'main'; 
-
-        function getTodayDate() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0'); 
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-        
-        function formatTimestamp(timestamp) {
-            if (!timestamp) return '';
-            let date;
-            if (timestamp.toDate) { // Firestore Timestamp object
-                date = timestamp.toDate();
-            } else if (typeof timestamp === 'number') { // JavaScript timestamp
-                date = new Date(timestamp);
-            } else { // Assume it's an ISO string or similar
-                date = new Date(timestamp);
-            }
-
-            if (isNaN(date.getTime())) {
-                logMessage("Invalid date format for timestamp: " + timestamp, true);
-                return '';
-            }
-
-            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            return date.toLocaleDateString(currentLanguage, options);
-        }
-
-
-        window.setLanguage = function(lang) {
-            currentLanguage = lang;
-            localStorage.setItem('appLanguage', lang);
-            document.documentElement.lang = lang; 
-
-            document.querySelectorAll('.language-selector button').forEach(button => {
-                if (button.dataset.lang === lang) {
-                    button.classList.add('active');
-                } else {
-                    button.classList.remove('active');
-                }
-            });
-
-            document.querySelectorAll('[data-key]').forEach(element => {
-                const key = element.dataset.key;
-                if (translations[lang] && translations[lang][key]) {
-                    if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) {
-                        element.placeholder = translations[lang][key];
-                    } else if (key === 'ad_completed_success') {
-                        element.textContent = translations[lang][key].replace('{POINTS_PER_AD}', POINTS_PER_AD.toFixed(2));
-                    } else if (key === 'daily_limit_reached') { 
-                        element.textContent = translations[lang][key].replace(`(${DAILY_AD_LIMIT})`, `(${DAILY_AD_LIMIT})`); 
-                    } else if (key === 'insufficient_balance') {
-                        element.textContent = translations[lang][key].replace('{earnedPoints}', earnedPoints.toFixed(2));
-                    }
-                    else {
-                        element.textContent = translations[lang][key];
-                    }
-                }
-            });
-
-            document.querySelectorAll('[data-key-placeholder]').forEach(element => {
-                const placeholderKey = element.dataset.keyPlaceholder;
-                if (translations[lang] && translations[lang][placeholderKey]) {
-                    element.placeholder = translations[lang][placeholderKey];
-                }
-            });
-
-            document.querySelectorAll('#payment-method option').forEach(option => {
-                const key = option.dataset.key;
-                if (translations[lang] && translations[lang][key]) {
-                    option.textContent = translations[lang][key];
-                }
-            });
-
-            earnedPointsEl.textContent = earnedPoints.toFixed(2); 
-            adsProgressEl.textContent = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
-            progressFillEl.style.width = `${Math.round((watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100)}%`; 
-            showAdNotification(''); 
-            withdrawStatusEl.textContent = ''; 
-            if (withdrawSectionEl.style.display === 'block') { 
-                currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
-            }
+    <nav class="footer-nav">
+      <button class="nav-button active" onclick="showView('home-view')"><i class="icon fa-solid fa-house"></i><span data-key="nav_home">Home</span></button>
+      <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-list-check"></i><span data-key="nav_tasks">Tasks</span></button>
+      <button class="nav-button" onclick="showView('leaderboard-view')"><i class="icon fa-solid fa-trophy"></i><span data-key="nav_leaders">Leaders</span></button>
+      <button class="nav-button" onclick="showView('history-view')"><i class="icon fa-solid fa-clock-rotate-left"></i><span data-key="nav_history">History</span></button>
+      <button class="nav-button" onclick="shareApp()"><i class="icon fa-solid fa-share-nodes"></i><span data-key="nav_share">Share</span></button>
+    </nav>
+  </div>
+  
+  <!-- WITHDRAWAL MODAL -->
+  <div class="modal-overlay" id="withdraw-modal">
+    <div class="modal-content">
+        <h3 data-key="withdrawal_request_title">Withdrawal Request</h3>
+        <div class="withdraw-form-content">
+            <p class="current-balance-display" data-key="current_balance_label">Your Current Balance: <span id="current-earned-points">0</span> <span data-key="points_label">Points</span></p>
+            <p class="warning-message" data-key="withdrawal_warning">Warning: Minimum withdrawal is $5.00. Ensure correct wallet address.</p>
             
-            tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
+            <label for="withdraw-amount" data-key="amount_label">Amount to Withdraw:</label>
+            <input type="number" id="withdraw-amount" data-key-placeholder="enter_points_placeholder" placeholder="Enter amount to withdraw in points" />
+            
+            <label for="payment-method" data-key="payment_method_label">Payment Method:</label>
+            <select id="payment-method">
+                <option value="faucetpay" data-key="faucetpay_option">FaucetPay</option>
+                <option value="other_wallet" data-key="other_wallet_option">Other Wallet</option>
+            </select>
+            
+            <label for="wallet-address" data-key="wallet_address_label">Wallet Address:</label>
+            <input type="text" id="wallet-address" data-key-placeholder="wallet_address_placeholder" placeholder="Enter wallet address" />
+            
+            <p id="withdraw-status" class="withdraw-status"></p>
+        </div>
+        <div class="modal-actions">
+            <button class="action-button secondary-button" onclick="closeWithdrawModal()" data-key="cancel_button">Cancel</button>
+            <button class="action-button primary-button" onclick="requestWithdraw()" data-key="withdraw_button">Withdraw</button>
+        </div>
+    </div>
+  </div>
 
-            updateReferralUI(); // Call updateReferralUI here as well
-            // No need to call loadWithdrawalHistory here, it's called on showWithdrawalHistorySection()
+  <!-- Debug Log Display -->
+  <div id="debug-log">
+      <h3>Debug Log</h3>
+      <pre id="log-content"></pre>
+  </div>
 
-            if (window.telegramUserId) {
-                displayUserIdEl.textContent = window.telegramUserId;
-            } else if (!isAppReady) {
-                displayUserIdEl.textContent = translations[currentLanguage].loading_app;
-            } else { 
-                 displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
-            }
-        };
+<!-- Firebase SDKs -->
+<script type="module">
+    // Firebase SDK imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
-        async function initApp() {
-            logMessage("initApp: Starting app initialization.");
-            displayUserIdEl.textContent = translations[currentLanguage].loading_app; 
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyBBtwHunlKiynbialigKqcmLPPKlxchw58",
+        authDomain: "zaap-382a6.firebaseapp.com",
+        projectId: "zaap-382a6",
+        storageBucket: "zaap-382a6.firebase-storage.app",
+        messagingSenderId: "414551098575",
+        appId: "1:414551098575:web:d4c3db989f7d86a70823ba"
+    };
 
-            setTimeout(async () => {
-                try {
-                    logMessage("Telegram.WebApp object check: window.Telegram exists: " + (typeof window.Telegram !== 'undefined'));
-                    logMessage("Telegram.WebApp object check: window.Telegram.WebApp exists: " + (typeof window.Telegram.WebApp.initData !== 'undefined'));
-                    
-                    if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-                        window.Telegram.WebApp.ready();
-                        window.Telegram.WebApp.expand();
-                        document.body.style.backgroundColor = window.Telegram.WebApp.themeParams.bg_color || '#1a1a2e';
-                        document.body.style.color = window.Telegram.WebApp.themeParams.text_color || '#f5f5f5';
-                        logMessage("Telegram.WebApp initialized and expanded.");
+    // Global variables for Firebase and Telegram Mini App
+    window.firebaseApp = null;
+    window.db = null;
+    window.auth = null;
+    window.telegramUserId = null;
+    window.telegramUsername = null;
+    window.firebaseUid = null; // This will be the anonymous Firebase UID
+    let isAppReady = false;
 
-                        logMessage("Full Telegram.WebApp.initData: " + window.Telegram.WebApp.initData);
-                        try {
-                            const parsedInitData = new URLSearchParams(window.Telegram.WebApp.initData);
-                            logMessage("Parsed initData parameters:");
-                            for (const [key, value] of parsedInitData.entries()) {
-                                logMessage(`  Param: ${key}, Value: ${value}`);
-                            }
-                        } catch (parseError) {
-                            logMessage("Error parsing Telegram.WebApp.initData: " + parseError.message, true);
-                        }
-                        
-                        logMessage("Telegram.WebApp.initDataUnsafe: " + JSON.stringify(window.Telegram.WebApp.initDataUnsafe));
-                        logMessage("Telegram.WebApp.initDataUnsafe.user: " + (window.Telegram.WebApp.initDataUnsafe ? JSON.stringify(window.Telegram.WebApp.initDataUnsafe.user) : 'undefined/null user object'));
+    // Constants (adjusted for Pepe coins and new UI)
+    const POINTS_PER_ADSGRAM_INTERSTITIAL = 5; // Pepe points for interstitial ad
+    const POINTS_PER_ADSGRAM_POPUP = 2; // Pepe points for popup ad
+    const POINTS_PER_TAP_GAME_TAP = 1; // Pepe points per single tap
+    const TAPS_REQUIRED_FOR_CLAIM = 10; // Taps needed to claim reward
+    const POINTS_PER_TAP_GAME_CLAIM = 10; // Pepe points for claiming tap game reward (10 taps * 1 point/tap)
 
-                        if (window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user && window.Telegram.WebApp.initDataUnsafe.user.id) {
-                            window.telegramUserId = window.Telegram.WebApp.initDataUnsafe.user.id.toString();
-                            window.telegramUsername = window.Telegram.WebApp.initDataUnsafe.user.username || ''; 
-                            logMessage("SUCCESS: Telegram User ID obtained: " + window.telegramUserId);
-                            logMessage("SUCCESS: Telegram Username obtained: " + (window.telegramUsername || 'N/A (No username set)'));
+    const ADS_FOR_BONUS = 10; // Number of ads/claims for bonus
+    const BONUS_POINTS = 1; // Bonus points awarded
 
-                            displayUserIdEl.textContent = window.telegramUserId; 
-                        } else {
-                            logMessage("FAILURE: Telegram User ID NOT available. initDataUnsafe.user.id is missing.", true);
-                            displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing; 
-                            isAppReady = false; 
-                            updateButtonStates(); 
-                            return; 
-                        }
+    const USD_PER_PEPE = 0.05; // Conversion: 1 Pepe = $0.05
+    const MIN_WITHDRAW_USD = 5.00; // Minimum withdrawal in USD (matches new UI)
+    const MIN_WITHDRAW_POINTS_FAUCETPAY = 10; // Minimum Pepe for FaucetPay
+    const MIN_WITHDRAW_POINTS_OTHER = 100; // Minimum Pepe for other wallets
 
-                        // Initialize Firebase
-                        if (Object.keys(firebaseConfig).length === 0 || !firebaseConfig.projectId) {
-                            logMessage("Firebase config is missing or incomplete.", true);
-                            showAdNotification(translations[currentLanguage].error_loading_user + " (Firebase config missing)");
-                            isAppReady = false;
-                            updateButtonStates();
-                            return;
-                        }
-                        
-                        window.firebaseApp = initializeApp(firebaseConfig);
-                        window.db = getFirestore(window.firebaseApp);
-                        window.auth = getAuth(window.firebaseApp); // Initialize authentication service
-                        logMessage("Firebase initialized. Auth service obtained.");
+    const ADMIN_USER_ID = "7416599626"; // Your Telegram Admin User ID
+    const BOT_TOKEN = "7380785513:AAHKo14QwkPgIgHcXZQDJF0Mr0OoxpyPl5w"; // Your Bot Token (for admin notifications)
+    const REFERRAL_PERCENTAGE = 0.10; // 10% of referrer's earnings
 
-                        // ====================================================================
-                        // NEW: Custom Authentication Flow
-                        // ====================================================================
-                        try {
-                            logMessage("Attempting custom authentication via Replit bot...");
-                            const response = await fetch(REPLIT_BOT_AUTH_URL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ initData: window.Telegram.WebApp.initData })
-                            });
+    // State variables (controlled by Firestore)
+    let earnedPoints = 0; // Stored as integer Pepe coins
+    let watchedAdsCount = 0; // Total ads/claims watched for bonus calculation
+    let dailyWatchedAdsCount = 0; // Daily count (if daily limits are re-introduced)
+    let lastWatchDate = ""; // For daily limits if implemented
+    let tapsCount = 0; // Current taps for the tapping game
+    let totalReferrals = 0;
+    let earnedFromReferrals = 0; // Stored as integer Pepe coins
 
-                            if (!response.ok) {
-                                const errorData = await response.json();
-                                throw new Error(`Authentication failed: ${errorData.error || response.statusText}`);
-                            }
+    // DOM elements
+    const usernameEl = document.getElementById('username');
+    const profilePicDiv = document.getElementById('profile-pic');
+    const displayUserIdEl = document.getElementById('display-user-id');
+    const balanceValueEl = document.getElementById('balance-value');
+    const pointsValueEl = document.getElementById('points-value');
+    const withdrawModalEl = document.getElementById('withdraw-modal');
+    const currentEarnedPointsEl = document.getElementById('current-earned-points');
+    const withdrawStatusEl = document.getElementById('withdraw-status');
+    const referralLinkInput = document.getElementById('referral-link');
+    const totalReferralsSpan = document.getElementById('total-referrals');
+    const earnedFromReferralsSpan = document.getElementById('earned-from-referrals');
+    const withdrawalHistoryListEl = document.getElementById('withdrawal-history-list');
+    const adNotificationEl = document.getElementById('ad-notification');
+    const logContentEl = document.getElementById('log-content');
 
-                            const data = await response.json();
-                            const customToken = data.customToken;
-                            logMessage("Received custom token from Replit bot. Attempting Firebase sign-in...");
+    // Tapping game specific elements
+    const tapAreaEl = document.getElementById('tap-area');
+    const tapsRemainingEl = document.getElementById('taps-remaining');
+    const claimRewardBtn = document.getElementById('claim-reward-btn');
 
-                            const userCredential = await signInWithCustomToken(window.auth, customToken);
-                            window.firebaseUid = userCredential.user.uid; // Firebase UID will now be Telegram User ID
-                            logMessage("Firebase Auth: Signed in with custom token. Firebase UID (Telegram ID): " + window.firebaseUid);
+    // --- Translation Logic ---
+    const translations = {
+        ar: {
+            app_title: "بوت الربح السهل",
+            welcome_back: "مرحباً بعودتك!",
+            your_user_id: "معرف المستخدم:",
+            total_balance_label: "الرصيد الكلي",
+            points_label: "نقطة",
+            quick_actions_title: "إجراءات سريعة",
+            view_tasks_title: "عرض المهام",
+            view_tasks_desc: "شاهد الإعلانات وأكمل المهام لكسب النقاط.",
+            withdraw_funds_title: "سحب الأموال",
+            withdraw_funds_desc: "اطلب سحب رصيدك المتاح.",
+            referral_program_title: "برنامج الإحالة",
+            referral_program_desc: "ادعُ الأصدقاء واكسب مكافآت.",
+            earning_tasks_title: "مهام الكسب",
+            tap_game_title: "انقر لتربح",
+            tap_game_desc: "انقر على الزر لكسب النقاط!",
+            taps_to_claim: "نقرة للمطالبة بالمكافأة",
+            claim_reward_btn: "المطالبة بالمكافأة",
+            points_per_tap_message: "اربح 1 نقطة Pepe لكل نقرة",
+            adsgram_interstitial_title: "إعلان Adsgram بيني",
+            adsgram_interstitial_desc: `شاهد إعلانًا بملء الشاشة لربح ${POINTS_PER_ADSGRAM_INTERSTITIAL} نقاط Pepe.`,
+            adsgram_popup_title: "إعلان Adsgram منبثق",
+            adsgram_popup_desc: `شاهد إعلانًا منبثقًا لربح ${POINTS_PER_ADSGRAM_POPUP} نقاط Pepe.`,
+            top_earners_title: "أفضل الكاسبين",
+            withdrawal_history_title: "سجل السحوبات",
+            no_withdrawals_yet: "لا توجد طلبات سحب حتى الآن.",
+            nav_home: "الرئيسية",
+            nav_tasks: "المهام",
+            nav_leaders: "القادة",
+            nav_history: "السجل",
+            nav_share: "مشاركة",
+            withdrawal_request_title: "طلب السحب",
+            current_balance_label: "رصيدك الحالي:",
+            withdrawal_warning: `تنبيه: الحد الأدنى للسحب هو ${MIN_WITHDRAW_POINTS_FAUCETPAY} نقطة لـ FaucetPay و ${MIN_WITHDRAW_POINTS_OTHER} نقطة للمحفظة الأخرى. يرجى التأكد من عنوان المحفظة الصحيح.`,
+            amount_label: "المبلغ المراد سحبه:",
+            enter_points_placeholder: "أدخل المبلغ المراد سحبه بالنقاط",
+            payment_method_label: "طريقة الدفع:",
+            faucetpay_option: "FaucetPay",
+            other_wallet_option: "محفظة أخرى",
+            wallet_address_label: "عنوان المحفظة:",
+            wallet_address_placeholder: "أدخل عنوان المحفظة",
+            cancel_button: "إلغاء",
+            withdraw_button: "سحب",
+            referral_description: `ادعُ أصدقائك واكسب ${REFERRAL_PERCENTAGE * 100}% من أرباحهم!`,
+            copy_link_btn: "نسخ الرابط",
+            total_referrals: "الإحالات الكلية:",
+            earned_from_referrals: "الربح من الإحالات:",
+            ad_loading: "جاري تحميل الإعلان...",
+            ad_completed_success: `تهانينا! لقد ربحت +{POINTS_EARNED} نقطة. رصيدك الجديد هو {NEW_BALANCE_USD}$.`,
+            ad_failed: "فشل عرض الإعلان. يرجى المحاولة مرة أخرى.",
+            min_withdraw_alert: `الحد الأدنى للسحب هو {MIN_POINTS} نقطة. رصيدك الحالي {CURRENT_POINTS} نقطة.`,
+            insufficient_balance_alert: `رصيد غير كافٍ. لديك {CURRENT_POINTS} نقطة.`,
+            enter_wallet_address_alert: "يرجى إدخال عنوان المحفظة.",
+            withdrawal_success_message: "تم إرسال طلب السحب بنجاح!",
+            link_copied_success: "تم نسخ رابط الإحالة بنجاح!",
+            loading_app: "جاري تحميل التطبيق...",
+            not_mini_app: "لم يتم تشغيل التطبيق كتطبيق تيليجرام مصغر.",
+            error_loading_user: "خطأ في تحميل بيانات المستخدم.",
+            telegram_id_missing: "معرف تيليجرام مفقود.",
+            withdrawal_status_pending: "معلق",
+            withdrawal_status_approved: "تمت الموافقة",
+            withdrawal_status_rejected: "مرفوض",
+            withdrawal_details: "المبلغ: {amount} | الطريقة: {method} | العنوان: {address} | الحالة: {status}",
+            withdrawal_date: "التاريخ: {date}",
+            daily_limit_reached: "لقد وصلت للحد الأقصى من المشاهدات اليومية. يرجى المحاولة غدًا.",
+        },
+        en: {
+            app_title: "Easy Earning Bot",
+            welcome_back: "Welcome Back!",
+            your_user_id: "User ID:",
+            total_balance_label: "Total Balance",
+            points_label: "Points",
+            quick_actions_title: "Quick Actions",
+            view_tasks_title: "View Tasks",
+            view_tasks_desc: "Watch ads and complete tasks to earn points.",
+            withdraw_funds_title: "Withdraw Funds",
+            withdraw_funds_desc: "Request to withdraw your available balance.",
+            referral_program_title: "Referral Program",
+            referral_program_desc: "Invite friends and earn bonuses.",
+            earning_tasks_title: "Earning Tasks",
+            tap_game_title: "Tap to Earn",
+            tap_game_desc: "Tap the button to earn points!",
+            taps_to_claim: "taps to claim reward",
+            claim_reward_btn: "Claim Reward",
+            points_per_tap_message: "Earn 1 Pepe Point per tap",
+            adsgram_interstitial_title: "Adsgram Interstitial Ad",
+            adsgram_interstitial_desc: `Watch a full-screen ad to earn ${POINTS_PER_ADSGRAM_INTERSTITIAL} Pepe points.`,
+            adsgram_popup_title: "Adsgram Popup Ad",
+            adsgram_popup_desc: `View a popup ad to earn ${POINTS_PER_ADSGRAM_POPUP} Pepe points.`,
+            top_earners_title: "Top Earners",
+            withdrawal_history_title: "Withdrawal History",
+            no_withdrawals_yet: "No withdrawal requests yet.",
+            nav_home: "Home",
+            nav_tasks: "Tasks",
+            nav_leaders: "Leaders",
+            nav_history: "History",
+            nav_share: "Share",
+            withdrawal_request_title: "Withdrawal Request",
+            current_balance_label: "Your Current Balance:",
+            withdrawal_warning: `Warning: Minimum withdrawal is ${MIN_WITHDRAW_POINTS_FAUCETPAY} points for FaucetPay and ${MIN_WITHDRAW_POINTS_OTHER} points for Other Wallet. Please ensure correct wallet address.`,
+            amount_label: "Amount to Withdraw:",
+            enter_points_placeholder: "Enter amount to withdraw in points",
+            payment_method_label: "Payment Method:",
+            faucetpay_option: "FaucetPay",
+            other_wallet_option: "Other Wallet",
+            wallet_address_label: "Wallet Address:",
+            wallet_address_placeholder: "Enter wallet address",
+            cancel_button: "Cancel",
+            withdraw_button: "Withdraw",
+            referral_description: `Invite your friends and earn ${REFERRAL_PERCENTAGE * 100}% of their earnings!`,
+            copy_link_btn: "Copy Link",
+            total_referrals: "Total Referrals:",
+            earned_from_referrals: "Earned from Referrals:",
+            ad_loading: "Loading ad...",
+            ad_completed_success: `Congratulations! You've earned +{POINTS_EARNED} points. Your new balance is ${'{NEW_BALANCE_USD}'}$.`,
+            ad_failed: "Failed to show ad. Please try again.",
+            min_withdraw_alert: `Minimum withdrawal is {MIN_POINTS} points. Your current balance is {CURRENT_POINTS} points.`,
+            insufficient_balance_alert: `Insufficient balance. You have {CURRENT_POINTS} points.`,
+            enter_wallet_address_alert: "Please enter the wallet address.",
+            withdrawal_success_message: "Your withdrawal request has been sent successfully!",
+            link_copied_success: "Referral link copied successfully!",
+            loading_app: "Loading App...",
+            not_mini_app: "App not launched as Telegram Mini App.",
+            error_loading_user: "Error loading user data.",
+            telegram_id_missing: "Telegram ID missing.",
+            withdrawal_status_pending: "Pending",
+            withdrawal_status_approved: "Approved",
+            withdrawal_status_rejected: "Rejected",
+            withdrawal_details: "Amount: {amount} | Method: {method} | Address: {address} | Status: {status}",
+            withdrawal_date: "Date: {date}",
+            daily_limit_reached: "You have reached the daily ad limit. Please try again tomorrow.",
+        }
+    };
 
-                            // Verify that Firebase UID is indeed the Telegram User ID
-                            if (window.firebaseUid !== window.telegramUserId) {
-                                logMessage("WARNING: Firebase UID does not match Telegram User ID after custom auth. This should not happen.", true);
-                            }
+    let currentLanguage = localStorage.getItem('appLanguage') || 'en'; // Default to English
+    let currentViewId = 'home-view';
 
-                        } catch (authError) {
-                            logMessage("Firebase Custom Auth Error: " + authError.message, true);
-                            showAdNotification(translations[currentLanguage].error_loading_user + " (Custom Auth failed)");
-                            isAppReady = false;
-                            updateButtonStates();
-                            return;
-                        }
+    // Custom log function
+    function logMessage(message, isError = false) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.textContent = `[${timestamp}] ${message}`;
+        if (isError) {
+            logEntry.style.color = 'red';
+        }
+        logContentEl.appendChild(logEntry);
+        logContentEl.scrollTop = logContentEl.scrollHeight;
+        if (isError) {
+            console.error(message);
+        } else {
+            console.log(message);
+        }
+    }
 
-                        // Load user data using Telegram User ID (which is now Firebase UID)
-                        const appId = firebaseConfig.projectId; 
-                        await loadUserDataFromFirestore(appId, window.firebaseUid); // <--- Use Firebase UID (which is Telegram User ID) here
-                        logMessage("User data load initiated and Firestore listener set up.");
+    // --- App Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        initApp();
+    });
 
-                        // Handle Back Button in Telegram Mini App
-                        window.Telegram.WebApp.onEvent('backButtonClicked', handleBackButtonClick);
-                        updateBackButtonVisibility(); 
+    async function initApp() {
+        logMessage("initApp: Starting app initialization.");
+        displayUserIdEl.textContent = translations[currentLanguage].loading_app;
 
-                        isAppReady = true; 
-                        logMessage("App is now fully ready (isAppReady = true).");
+        try {
+            if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initData) {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
+                // Set theme colors
+                document.body.style.backgroundColor = Telegram.WebApp.themeParams.bg_color || '#1c1c1f';
+                document.body.style.color = Telegram.WebApp.themeParams.text_color || '#f0f0f0';
 
-                        // Process start_param from Telegram initData - REFERRAL LOGIC FIX
-                        const urlParams = new URLSearchParams(window.Telegram.WebApp.initData); 
-                        const startParam = urlParams.get('start_param'); 
-                        logMessage("REFERRAL LOGIC: start_param from WebApp.initData: " + (startParam || 'Not found')); 
+                const tgUser = Telegram.WebApp.initDataUnsafe.user;
+                if (tgUser && tgUser.id) {
+                    window.telegramUserId = tgUser.id.toString();
+                    window.telegramUsername = tgUser.username || '';
+                    usernameEl.textContent = tgUser.first_name || 'Telegram User';
+                    displayUserIdEl.textContent = window.telegramUserId;
 
-                        if (startParam && startParam.startsWith('ref_')) {
-                            const foundReferrerTelegramId = startParam.substring(4); 
-                            logMessage("REFERRAL LOGIC: Extracted referrerTelegramId from start_param: " + foundReferrerTelegramId);
-                            logMessage("REFERRAL LOGIC: Current user Telegram User ID (Firebase UID): " + window.firebaseUid);
-                            
-                            if (foundReferrerTelegramId !== window.firebaseUid) { // Compare with Firebase UID (which is Telegram ID)
-                                logMessage("REFERRAL LOGIC: Referrer Telegram ID is different from current user Telegram ID. Proceeding to check/set referrer and increment counts.");
-                                referrerTelegramId = foundReferrerTelegramId; // Store it globally for Firestore listener
-                                
-                                // Use Firebase UID for the document
-                                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); 
-                                
-                                const userDocSnap = await getDoc(userDocRef);
-
-                                if (userDocSnap.exists()) {
-                                    if (!userDocSnap.data().referrerTelegramId) { // Check for referrerTelegramId field
-                                        logMessage(`REFERRAL LOGIC: User ${window.firebaseUid} exists but has no referrer. Setting referrerTelegramId: ${referrerTelegramId}`);
-                                        await updateDoc(userDocRef, { referrerTelegramId: referrerTelegramId }, { merge: true }); // Update referrerTelegramId field
-                                        logMessage(`REFERRAL LOGIC: Successfully set referrerTelegramId ${referrerTelegramId} for user ${window.firebaseUid}.`);
-
-                                        // We need to find referrerDocRef using the referrer's Telegram ID
-                                        const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerTelegramId); 
-                                        logMessage("REFERRAL LOGIC: Attempting to increment totalReferrals for referrer Telegram User ID: " + referrerTelegramId);
-                                        await updateDoc(referrerRef, { totalReferrals: increment(1) });
-                                        logMessage(`REFERRAL LOGIC: Successfully incremented totalReferrals for ${referrerTelegramId}.`);
-                                    } else {
-                                        logMessage(`REFERRAL LOGIC: User ${window.firebaseUid} already has referrerTelegramId: ${userDocSnap.data().referrerTelegramId}. Skipping new referrer assignment and totalReferrals increment.`);
-                                    }
-                                } else {
-                                    // User document doesn't exist, referrerId will be set upon doc creation
-                                    logMessage(`REFERRAL LOGIC: User document for ${window.firebaseUid} doesn't exist yet. ReferrerTelegramId ${referrerTelegramId} will be set upon doc creation.`);
-                                }
-                            } else {
-                                logMessage("REFERRAL LOGIC: Current user Telegram ID is the same as referrer ID. Self-referral attempt detected and ignored for stat increment.");
-                            }
-                        } else {
-                            logMessage("REFERRAL LOGIC: No valid 'ref_' start_param found in initData.");
-                        }
-
+                    if (tgUser.photo_url) {
+                        profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
                     } else {
-                        logMessage("FAILURE: Telegram WebApp SDK not found or not ready. App not running as a Mini App.", true);
-                        showAdNotification(translations[currentLanguage].not_mini_app);
-                        displayUserIdEl.textContent = translations[currentLanguage].not_mini_app;
-                        isAppReady = false;
+                        profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
                     }
-
-                } catch (error) {
-                    logMessage("FATAL ERROR during app initialization (caught by setTimeout): " + error.message, true);
-                    showAdNotification(translations[currentLanguage].error_loading_user);
-                    displayUserIdEl.textContent = translations[currentLanguage].error_loading_user; 
-                    isAppReady = false; 
-                } finally {
-                    updateButtonStates(); 
-                    setLanguage(currentLanguage); 
-                }
-            }, 100); 
-        }
-
-        async function loadUserDataFromFirestore(appId, firebaseUid) { // Now receives firebaseUid
-            logMessage("loadUserDataFromFirestore: Attempting to load data for user Firebase UID (Telegram ID): " + firebaseUid);
-            if (!window.db || !firebaseUid || !appId) {
-                logMessage("loadUserDataFromFirestore: Firestore, Firebase UID, or App ID not ready. Skipping data load.", true);
-                return;
-            }
-
-            const userDocRef = doc(window.db, `artifacts/${appId}/users`, firebaseUid); // <--- Use Firebase UID here
-
-            onSnapshot(userDocRef, (docSnap) => {
-                logMessage("Firestore onSnapshot: Data received for user Firebase UID (Telegram ID): " + firebaseUid);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    earnedPoints = data.earnedPoints || 0.00;
-                    watchedAdsCount = data.watchedAdsCount || 0;
-                    dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
-                    lastWatchDate = data.lastWatchDate || "";
-                    // We now use referrerTelegramId
-                    if (!referrerTelegramId && data.referrerTelegramId) { 
-                        referrerTelegramId = data.referrerTelegramId; 
-                        logMessage(`Firestore onSnapshot: Referrer Telegram ID ${referrerTelegramId} loaded from doc for user ${firebaseUid}.`);
-                    }
-                    totalReferrals = data.totalReferrals || 0;
-                    earnedFromReferrals = data.earnedFromReferrals || 0.00;
-
-                    logMessage(`CURRENT ACCOUNT (Firebase UID/Telegram ID: ${firebaseUid}) DATA: Main Balance (earnedPoints): ${earnedPoints.toFixed(2)}, Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
-
-                    const todayDate = getTodayDate();
-                    if (lastWatchDate !== todayDate) {
-                        dailyWatchedAdsCount = 0;
-                        logMessage("Firestore onSnapshot: New day detected, resetting daily count.");
-                        updateDoc(userDocRef, { dailyWatchedAdsCount: 0, lastWatchDate: todayDate })
-                            .then(() => logMessage("Firestore: Daily count reset for new day successfully."))
-                            .catch(e => logMessage("Firestore Error: resetting daily count: " + e.message, true));
-                    }
-                    logMessage("User data loaded/updated from Firestore via onSnapshot: " + JSON.stringify(data));
+                    logMessage("SUCCESS: Telegram User ID obtained: " + window.telegramUserId);
                 } else {
-                    logMessage("Firestore onSnapshot: User document not found, creating new one for user Firebase UID (Telegram ID): " + firebaseUid);
-                    earnedPoints = 0.00;
-                    watchedAdsCount = 0;
-                    dailyWatchedAdsCount = 0;
-                    lastWatchDate = getTodayDate();
-                    totalReferrals = 0;
-                    earnedFromReferrals = 0.00;
-                    
-                    setDoc(userDocRef, {
-                        telegramUserId: window.telegramUserId, // Store Telegram User ID as a field
-                        username: window.telegramUsername || 'N/A', // Store username
-                        earnedPoints: earnedPoints,
-                        watchedAdsCount: watchedAdsCount,
-                        dailyWatchedAdsCount: dailyWatchedAdsCount,
-                        lastWatchDate: lastWatchDate,
-                        referrerTelegramId: referrerTelegramId, // Store referrer ID (Telegram ID)
-                        totalReferrals: totalReferrals,
-                        earnedFromReferrals: earnedFromReferrals
-                    })
-                    .then(async () => {
-                        logMessage("Firestore: New user document created successfully. Now checking to increment referrer's count.");
-                        if (referrerTelegramId) {
-                            // Find the referrer by their Telegram ID to get their Firebase UID
-                            const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerTelegramId); 
-                            logMessage(`Firestore: Attempting to increment totalReferrals for referrer Telegram User ID (Firebase UID): ${referrerTelegramId}.`);
-                            await updateDoc(referrerRef, { totalReferrals: increment(1) });
-                            logMessage(`Firestore: Successfully incremented totalReferrals for ${referrerTelegramId}.`);
-                        }
-                    })
-                    .catch(e => logMessage("Firestore Error: creating user document: " + e.message, true));
+                    logMessage("FAILURE: Telegram User ID NOT available. initDataUnsafe.user.id is missing.", true);
+                    displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
+                    isAppReady = false;
+                    updateButtonStates();
+                    return;
                 }
-                updateUI(); 
-                updateTapUI();
-                updateReferralUI();
-                updateButtonStates(); 
-            }, (error) => {
-                logMessage("Firestore Error: listening to user document in Firestore: " + error.message, true);
-                showAdNotification(translations[currentLanguage].error_loading_user);
-            });
-        }
-        
-        function updateUI() {
-            earnedPointsEl.textContent = earnedPoints.toFixed(2); 
-            
-            const progress = (watchedAdsCount % ADS_FOR_BONUS) / ADS_FOR_BONUS * 100;
-            adsProgressEl.textContent = `${Math.round(progress)}%`;
-            progressFillEl.style.width = `${progress}%`;
-            
-            earnedPointsEl.classList.remove('pulse');
-            void earnedPointsEl.offsetWidth; 
-            earnedPointsEl.classList.add('pulse');
 
-            updateButtonStates(); 
-        }
+                // Initialize Firebase
+                window.firebaseApp = initializeApp(firebaseConfig);
+                window.db = getFirestore(window.firebaseApp);
+                window.auth = getAuth(window.firebaseApp);
+                logMessage("Firebase initialized. Auth service obtained.");
 
-        function updateTapUI() {
-            tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
-            if (tapsCount >= TAPS_REQUIRED) {
-                claimRewardBtn.style.display = 'block'; 
-                tapsRemainingEl.style.display = 'none'; 
-                tapAreaEl.querySelector('p').style.display = 'none'; 
+                // Anonymous Authentication
+                const userCredential = await signInAnonymously(window.auth);
+                window.firebaseUid = userCredential.user.uid;
+                logMessage("Firebase Auth: Signed in anonymously. Firebase UID: " + window.firebaseUid);
+
+                // Load user data from Firestore
+                const appId = firebaseConfig.projectId;
+                await loadUserDataFromFirestore(appId, window.firebaseUid);
+                logMessage("User data load initiated and Firestore listener set up.");
+
+                // Process start_param for referral logic
+                const urlParams = new URLSearchParams(Telegram.WebApp.initData);
+                const startParam = urlParams.get('start_param');
+                if (startParam && startParam.startsWith('ref_')) {
+                    const foundReferrerTelegramId = startParam.substring(4);
+                    if (foundReferrerTelegramId !== window.telegramUserId) {
+                        logMessage(`Referral: Referrer ID ${foundReferrerTelegramId} detected for user ${window.telegramUserId}.`);
+                        // This will be handled in loadUserDataFromFirestore on doc creation/update
+                    } else {
+                        logMessage("Referral: Self-referral attempt detected and ignored.");
+                    }
+                }
+
+                // Handle Telegram Back Button
+                Telegram.WebApp.onEvent('backButtonClicked', handleBackButtonClick);
+                updateBackButtonVisibility();
+
+                isAppReady = true;
+                logMessage("App is now fully ready (isAppReady = true).");
+
             } else {
-                claimRewardBtn.style.display = 'none'; 
-                tapsRemainingEl.style.display = 'block'; 
-                tapAreaEl.querySelector('p').style.display = 'block'; 
+                logMessage("FAILURE: Telegram WebApp SDK not found or not ready. App not running as a Mini App.", true);
+                showAdNotification(translations[currentLanguage].not_mini_app);
+                displayUserIdEl.textContent = translations[currentLanguage].not_mini_app;
+                isAppReady = false;
             }
+        } catch (error) {
+            logMessage("FATAL ERROR during app initialization: " + error.message, true);
+            showAdNotification(translations[currentLanguage].error_loading_user);
+            displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
+            isAppReady = false;
+        } finally {
+            updateButtonStates();
+            setLanguage(currentLanguage); // Apply initial language and update UI
+            // No specific Adsgram initialization function needed, as it's called directly in ad functions
+        }
+    }
+
+    // --- Firebase Data Management ---
+    async function loadUserDataFromFirestore(appId, firebaseUid) {
+        logMessage("loadUserDataFromFirestore: Attempting to load data for user Firebase UID: " + firebaseUid);
+        if (!window.db || !firebaseUid || !appId) {
+            logMessage("loadUserDataFromFirestore: Firestore, Firebase UID, or App ID not ready. Skipping data load.", true);
+            return;
         }
 
-        function updateButtonStates() {
-            const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            const disableButtons = !isAppReady || limitReached || !window.firebaseUid; // Now depend on firebaseUid after authentication
-            claimRewardBtn.disabled = disableButtons; 
-            tapAreaEl.style.pointerEvents = disableButtons ? 'none' : 'auto';
+        const userDocRef = doc(window.db, `artifacts/${appId}/users`, firebaseUid);
 
-            document.getElementById('show-withdraw-btn').disabled = disableButtons;
-            document.getElementById('show-referral-btn').disabled = disableButtons;
-            document.getElementById('show-withdrawal-history-btn').disabled = disableButtons; 
+        onSnapshot(userDocRef, async (docSnap) => { // Made async to allow await inside
+            logMessage("Firestore onSnapshot: Data received for user Firebase UID: " + firebaseUid);
+            const urlParams = new URLSearchParams(Telegram.WebApp.initData);
+            const startParam = urlParams.get('start_param');
+            let initialReferrerTelegramId = null;
+            if (startParam && startParam.startsWith('ref_')) {
+                initialReferrerTelegramId = startParam.substring(4);
+                if (initialReferrerTelegramId === window.telegramUserId) {
+                    initialReferrerTelegramId = null; // Self-referral
+                }
+            }
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                earnedPoints = data.earnedPoints || 0;
+                watchedAdsCount = data.watchedAdsCount || 0; // Re-introduced
+                dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0; // Re-introduced
+                totalReferrals = data.totalReferrals || 0;
+                earnedFromReferrals = data.earnedFromReferrals || 0;
+                lastWatchDate = data.lastWatchDate || "";
+
+                // If user doesn't have a referrer yet and came via a referral link
+                if (initialReferrerTelegramId && !data.referrerTelegramId) {
+                    logMessage(`Firestore onSnapshot: User ${firebaseUid} has no referrer, setting from URL param: ${initialReferrerTelegramId}`);
+                    await updateDoc(userDocRef, { referrerTelegramId: initialReferrerTelegramId }, { merge: true });
+                    logMessage(`Firestore: Successfully set referrerTelegramId ${initialReferrerTelegramId} for user ${firebaseUid}.`);
+
+                    // Increment referrer's totalReferrals count
+                    const referrerQuery = query(collection(window.db, `artifacts/${appId}/users`), where("telegramUserId", "==", initialReferrerTelegramId));
+                    const referrerSnapshot = await getDocs(referrerQuery);
+                    if (!referrerSnapshot.empty) {
+                        const referrerDoc = referrerSnapshot.docs[0];
+                        const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerDoc.id);
+                        logMessage(`Firestore: Attempting to increment totalReferrals for referrer Firebase UID: ${referrerDoc.id}.`);
+                        await updateDoc(referrerRef, { totalReferrals: increment(1) });
+                        logMessage(`Firestore: Successfully incremented totalReferrals for ${referrerDoc.id}.`);
+                    } else {
+                        logMessage(`Firestore: Referrer document not found for Telegram ID: ${initialReferrerTelegramId}. Cannot increment totalReferrals.`);
+                    }
+                } else if (data.referrerTelegramId) {
+                    logMessage(`Firestore onSnapshot: User ${firebaseUid} already has referrer: ${data.referrerTelegramId}`);
+                }
+
+                const todayDate = getTodayDate();
+                if (lastWatchDate !== todayDate) {
+                    dailyWatchedAdsCount = 0; // Reset daily count
+                    await updateDoc(userDocRef, { dailyWatchedAdsCount: 0, lastWatchDate: todayDate });
+                    logMessage("Firestore onSnapshot: New day detected, resetting daily count.");
+                }
+                logMessage("User data loaded/updated from Firestore via onSnapshot: " + JSON.stringify(data));
+            } else {
+                logMessage("Firestore onSnapshot: User document not found, creating new one for user Firebase UID: " + firebaseUid);
+                earnedPoints = 0;
+                watchedAdsCount = 0;
+                dailyWatchedAdsCount = 0;
+                totalReferrals = 0;
+                earnedFromReferrals = 0;
+                lastWatchDate = getTodayDate();
+
+                await setDoc(userDocRef, {
+                    firebaseUid: window.firebaseUid,
+                    telegramUserId: window.telegramUserId,
+                    username: window.telegramUsername || 'N/A',
+                    earnedPoints: earnedPoints,
+                    watchedAdsCount: watchedAdsCount,
+                    dailyWatchedAdsCount: dailyWatchedAdsCount,
+                    lastWatchDate: lastWatchDate,
+                    totalReferrals: totalReferrals,
+                    earnedFromReferrals: earnedFromReferrals,
+                    referrerTelegramId: initialReferrerTelegramId // Set referrer if present
+                });
+                logMessage("Firestore: New user document created successfully.");
+
+                if (initialReferrerTelegramId) {
+                    // Increment referrer's totalReferrals count after current user's doc is created
+                    const referrerQuery = query(collection(window.db, `artifacts/${appId}/users`), where("telegramUserId", "==", initialReferrerTelegramId));
+                    const referrerSnapshot = await getDocs(referrerQuery);
+                    if (!referrerSnapshot.empty) {
+                        const referrerDoc = referrerSnapshot.docs[0];
+                        const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerDoc.id);
+                        logMessage(`Firestore: Attempting to increment totalReferrals for referrer Firebase UID: ${referrerDoc.id} (new user referral).`);
+                        await updateDoc(referrerRef, { totalReferrals: increment(1) });
+                        logMessage(`Firestore: Successfully incremented totalReferrals for ${referrerDoc.id}.`);
+                    } else {
+                        logMessage(`Firestore: Referrer document not found for Telegram ID: ${initialReferrerTelegramId}. Cannot increment totalReferrals.`);
+                    }
+                }
+            }
+            updateDisplay();
+            updateReferralUI();
+            updateButtonStates();
+            updateTapUI(); // Update tap game UI
+            if (currentViewId === 'history-view') {
+                loadWithdrawalHistory(); // Reload history if on history view
+            }
+        }, (error) => {
+            logMessage("Firestore Error: listening to user document in Firestore: " + error.message, true);
+            showAdNotification(translations[currentLanguage].error_loading_user);
+        });
+    }
+
+    // --- UI Update Functions ---
+    function updateDisplay() {
+        const balanceUSD = earnedPoints * USD_PER_PEPE;
+        pointsValueEl.textContent = earnedPoints;
+        balanceValueEl.textContent = `$${balanceUSD.toFixed(2)}`;
+        currentEarnedPointsEl.textContent = earnedPoints; // For withdrawal modal
+        logMessage(`Display updated. Points: ${earnedPoints}, Balance: $${balanceUSD.toFixed(2)}`);
+    }
+
+    function updateReferralUI() {
+        const botUsername = "ididkd46_bot"; // Your bot's username
+        const referralLink = window.telegramUserId ? `https://t.me/${botUsername}?start=ref_${window.telegramUserId}` : translations[currentLanguage].loading_app;
+        referralLinkInput.value = referralLink;
+
+        totalReferralsSpan.textContent = totalReferrals;
+        earnedFromReferralsSpan.textContent = earnedFromReferrals.toFixed(2); // Display earned points from referrals
+        logMessage(`Referral UI updated. Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
+    }
+
+    function updateButtonStates() {
+        // Disable buttons if app not ready or no Firebase UID
+        const disable = !isAppReady || !window.firebaseUid;
+        document.querySelectorAll('.task-card').forEach(card => {
+            card.style.pointerEvents = disable ? 'none' : 'auto';
+            card.style.opacity = disable ? '0.6' : '1';
+        });
+        document.querySelectorAll('.action-button').forEach(btn => {
+             btn.disabled = disable;
+             btn.style.opacity = disable ? '0.6' : '1';
+        });
+        document.getElementById('withdraw-modal').querySelectorAll('input, select, button').forEach(el => {
+            el.disabled = disable;
+        });
+        // Tapping game specific buttons
+        claimRewardBtn.disabled = disable || (tapsCount < TAPS_REQUIRED_FOR_CLAIM);
+        tapAreaEl.style.pointerEvents = disable ? 'none' : 'auto'; // Disable tapping if app not ready
+        logMessage(`Button states updated. Disabled: ${disable}`);
+    }
+
+    function updateTapUI() {
+        tapsRemainingEl.textContent = TAPS_REQUIRED_FOR_CLAIM - tapsCount;
+        if (tapsCount >= TAPS_REQUIRED_FOR_CLAIM) {
+            claimRewardBtn.style.display = 'block';
+            tapsRemainingEl.style.display = 'none';
+            tapAreaEl.querySelector('p').style.display = 'none';
+        } else {
+            claimRewardBtn.style.display = 'block'; // Always show claim button, but disable it if taps not met
+            tapsRemainingEl.style.display = 'block';
+            tapAreaEl.querySelector('p').style.display = 'block';
         }
+        updateButtonStates(); // Re-evaluate button state based on tapsCount
+    }
+
+    // --- View Management ---
+    function showView(viewId) {
+        document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        currentViewId = viewId; // Update current view tracking
+
+        document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`.nav-button[onclick="showView('${viewId}')"]`);
+        if(activeBtn) activeBtn.classList.add('active');
+
+        // Specific actions for views
+        if (viewId === 'history-view') {
+            loadWithdrawalHistory();
+        } else if (viewId === 'leaderboard-view') {
+            renderLeaderboard(); // Static for now
+        }
+        updateBackButtonVisibility();
+        logMessage(`Switched to view: ${viewId}`);
+    }
+
+    // --- Adsgram Ad Integration ---
+    async function grantReward(pointsToGrant) {
+        logMessage(`Granting reward: ${pointsToGrant} points.`);
+        const appId = firebaseConfig.projectId;
+        const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid);
+
+        try {
+            let totalPointsEarned = pointsToGrant;
+
+            // Increment watchedAdsCount for bonus calculation
+            let newWatchedAdsCount = watchedAdsCount + 1;
+            let newDailyWatchedAdsCount = dailyWatchedAdsCount + 1;
+
+            if (newWatchedAdsCount % ADS_FOR_BONUS === 0) {
+                totalPointsEarned += BONUS_POINTS;
+                logMessage("Bonus points added for completing ADS_FOR_BONUS cycle.");
+            }
+
+            await updateDoc(userDocRef, {
+                earnedPoints: increment(totalPointsEarned),
+                watchedAdsCount: newWatchedAdsCount,
+                dailyWatchedAdsCount: newDailyWatchedAdsCount,
+                lastWatchDate: getTodayDate() // Update last watch date
+            });
+            logMessage(`Firestore Update: User ${window.firebaseUid} earned ${totalPointsEarned} points.`);
+
+            // Handle referral earnings
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists() && userDocSnap.data().referrerTelegramId) {
+                const referrerTelegramId = userDocSnap.data().referrerTelegramId;
+                const referrerEarn = pointsToGrant * REFERRAL_PERCENTAGE; // Referral based on base points, not including bonus
+
+                const referrerQuery = query(collection(window.db, `artifacts/${appId}/users`), where("telegramUserId", "==", referrerTelegramId));
+                const referrerSnapshot = await getDocs(referrerQuery);
+
+                if (!referrerSnapshot.empty) {
+                    const referrerDoc = referrerSnapshot.docs[0];
+                    const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerDoc.id);
+                    await updateDoc(referrerRef, {
+                        earnedFromReferrals: increment(referrerEarn),
+                        earnedPoints: increment(referrerEarn)
+                    });
+                    logMessage(`Firestore Update: Referrer ${referrerDoc.id} earned ${referrerEarn.toFixed(2)} points from referral.`);
+                } else {
+                    logMessage(`Referral: Referrer document not found for Telegram ID: ${referrerTelegramId}. Cannot update earnings.`, true);
+                }
+            }
+
+            const newBalanceUSD = (earnedPoints + totalPointsEarned) * USD_PER_PEPE;
+            showAdNotification(translations[currentLanguage].ad_completed_success
+                .replace('{POINTS_EARNED}', totalPointsEarned)
+                .replace('{NEW_BALANCE_USD}', newBalanceUSD.toFixed(2)));
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        } catch (error) {
+            logMessage("Error granting reward or updating Firestore: " + error.message, true);
+            showAdNotification(translations[currentLanguage].ad_failed);
+            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        }
+    }
+
+    // Tapping Game Logic
+    tapAreaEl.addEventListener('click', async (event) => {
+        if (!isAppReady || !window.firebaseUid) {
+            showAdNotification(translations[currentLanguage].loading_app);
+            logMessage("Tap area click blocked: App not ready or Firebase UID missing.");
+            return;
+        }
+        // Check daily limit (if re-introduced)
+        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
+        //     logMessage("Tap area click blocked: Daily limit reached.");
+        //     return;
+        // }
+
+        if (tapsCount < TAPS_REQUIRED_FOR_CLAIM) {
+            tapsCount++;
+            updateTapUI();
+            logMessage(`Tap registered. Taps count: ${tapsCount}/${TAPS_REQUIRED_FOR_CLAIM}`);
+
+            const feedback = document.createElement('div');
+            feedback.classList.add('tap-feedback');
+            feedback.textContent = `+${POINTS_PER_TAP_GAME_TAP}`; // Show points per tap
+            feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`;
+            feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`;
+            tapAreaEl.appendChild(feedback);
+
+            tapAreaEl.classList.add('active');
+            setTimeout(() => {
+                feedback.remove();
+                tapAreaEl.classList.remove('active');
+            }, 1000);
+        }
+    });
+
+    window.claimTapReward = async function() {
+        if (!isAppReady || !window.firebaseUid) {
+            showAdNotification(translations[currentLanguage].loading_app);
+            logMessage("Claim tap reward blocked: App not ready or Firebase UID missing.");
+            return;
+        }
+        if (tapsCount < TAPS_REQUIRED_FOR_CLAIM) {
+            showAdNotification(`You need ${TAPS_REQUIRED_FOR_CLAIM - tapsCount} more taps to claim.`);
+            logMessage("Claim tap reward blocked: Not enough taps.");
+            return;
+        }
+        // Check daily limit (if re-introduced)
+        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
+        //     logMessage("Claim tap reward blocked: Daily limit reached.");
+        //     return;
+        // }
+
+        tapsCount = 0; // Reset taps after claiming
+        await grantReward(POINTS_PER_TAP_GAME_CLAIM); // Grant points for the claim
+        updateTapUI(); // Update UI after reset
+    };
+
+
+    window.showAdsgramInterstitial = function() {
+        if (!isAppReady || !window.firebaseUid) {
+            showAdNotification(translations[currentLanguage].loading_app);
+            return;
+        }
+        // Check daily limit (if re-introduced)
+        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
+        //     return;
+        // }
+        showAdNotification(translations[currentLanguage].ad_loading);
+        if (typeof window.Adsgram === 'undefined' || typeof window.Adsgram.init !== 'function') {
+            logMessage('Adsgram SDK not ready for Interstitial.', true);
+            showAdNotification(translations[currentLanguage].ad_failed);
+            return;
+        }
+        window.Adsgram.init({ blockId: "12307" }).show()
+            .then(() => grantReward(POINTS_PER_ADSGRAM_INTERSTITIAL))
+            .catch(e => {
+                logMessage('Adsgram Interstitial Ad failed: ' + e.message, true);
+                showAdNotification(translations[currentLanguage].ad_failed);
+                Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            });
+    };
+
+    window.showAdsgramPopup = function() {
+        if (!isAppReady || !window.firebaseUid) {
+            showAdNotification(translations[currentLanguage].loading_app);
+            return;
+        }
+        // Check daily limit (if re-introduced)
+        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
+        //     return;
+        // }
+        showAdNotification(translations[currentLanguage].ad_loading);
+        if (typeof window.Adsgram === 'undefined' || typeof window.Adsgram.init !== 'function') {
+            logMessage('Adsgram SDK not ready for Popup.', true);
+            showAdNotification(translations[currentLanguage].ad_failed);
+            return;
+        }
+        window.Adsgram.init({ blockId: "12307" }).show() // Adsgram might not have specific 'popup' type for init. Using default.
+            .then(() => grantReward(POINTS_PER_ADSGRAM_POPUP)) // Grant specific points for popup
+            .catch(e => {
+                logMessage('Adsgram Popup Ad failed: ' + e.message, true);
+                showAdNotification(translations[currentLanguage].ad_failed);
+                Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            });
+    };
+
+    function showAdNotification(message) {
+        adNotificationEl.textContent = message;
+        adNotificationEl.style.display = 'block';
+        logMessage(`Ad Notification: ${message}`);
+        setTimeout(() => {
+            adNotificationEl.style.display = 'none';
+        }, 3000);
+    }
+
+    // --- Withdrawal Logic ---
+    window.openWithdrawModal = function() {
+        if (!isAppReady || !window.firebaseUid) {
+            showAdNotification(translations[currentLanguage].loading_app);
+            return;
+        }
+        // Check minimum withdrawal in points
+        const minPointsForWithdrawal = document.getElementById('payment-method').value === 'faucetpay' ? MIN_WITHDRAW_POINTS_FAUCETPAY : MIN_WITHDRAW_POINTS_OTHER;
+        if (earnedPoints < minPointsForWithdrawal) {
+            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            const msg = translations[currentLanguage].min_withdraw_alert
+                .replace('{MIN_POINTS}', minPointsForWithdrawal)
+                .replace('{CURRENT_POINTS}', earnedPoints);
+            showTemporaryMessage(msg, 'red');
+            logMessage(`Withdrawal blocked: Minimum not met. Current: ${earnedPoints} points`, true);
+            return;
+        }
+        document.getElementById('withdraw-amount').value = earnedPoints; // Pre-fill with current points
+        document.getElementById('wallet-address').value = ''; // Clear previous address
+        document.getElementById('payment-method').value = 'faucetpay'; // Default to FaucetPay
+        withdrawStatusEl.textContent = ''; // Clear previous status
+        withdrawModalEl.classList.add('active');
+        logMessage("Withdrawal modal opened.");
+    };
+
+    window.closeWithdrawModal = function() {
+        withdrawModalEl.classList.remove('active');
+        logMessage("Withdrawal modal closed.");
+    };
+
+    window.requestWithdraw = async function() {
+        if (!isAppReady || !window.firebaseUid) {
+            showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
+            return;
+        }
+
+        const amountPoints = parseInt(document.getElementById('withdraw-amount').value);
+        const paymentMethod = document.getElementById('payment-method').value;
+        const walletAddress = document.getElementById('wallet-address').value.trim();
+
+        let minRequiredPoints;
+        let minWarningMessageKey;
+
+        if (paymentMethod === 'faucetpay') {
+            minRequiredPoints = MIN_WITHDRAW_POINTS_FAUCETPAY;
+        } else {
+            minRequiredPoints = MIN_WITHDRAW_POINTS_OTHER;
+        }
+
+        if (isNaN(amountPoints) || amountPoints <= 0 || amountPoints < minRequiredPoints) {
+            const msg = translations[currentLanguage].min_withdraw_alert
+                .replace('{MIN_POINTS}', minRequiredPoints)
+                .replace('{CURRENT_POINTS}', amountPoints);
+            showTemporaryMessage(msg, 'red');
+            logMessage(`Withdrawal failed: Amount ${amountPoints} is less than min ${minRequiredPoints} for ${paymentMethod}.`, true);
+            return;
+        }
+
+        if (amountPoints > earnedPoints) {
+            const msg = translations[currentLanguage].insufficient_balance_alert.replace('{CURRENT_POINTS}', earnedPoints);
+            showTemporaryMessage(msg, 'red');
+            logMessage(`Withdrawal failed: Insufficient balance. Tried to withdraw ${amountPoints}, current: ${earnedPoints}.`, true);
+            return;
+        }
+
+        if (!walletAddress) {
+            showTemporaryMessage(translations[currentLanguage].enter_wallet_address_alert, 'red');
+            logMessage("Withdrawal failed: Wallet address is empty.", true);
+            return;
+        }
+
+        try {
+            const appId = firebaseConfig.projectId;
+            const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid);
+
+            await runTransaction(window.db, async (transaction) => {
+                const sfDoc = await transaction.get(userDocRef);
+                if (!sfDoc.exists) {
+                    throw "User document does not exist!";
+                }
+                const currentEarnedPoints = sfDoc.data().earnedPoints || 0;
+                if (currentEarnedPoints < amountPoints) {
+                    throw translations[currentLanguage].insufficient_balance_alert.replace('{CURRENT_POINTS}', currentEarnedPoints);
+                }
+                transaction.update(userDocRef, { earnedPoints: increment(-amountPoints) });
+            });
+            logMessage(`Firestore Update: Points deducted successfully for user Firebase UID: ${window.firebaseUid}.`);
+
+            // Create a new withdrawal request document in Firestore
+            const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
+            const newWithdrawalDocRef = await addDoc(withdrawalsCollectionRef, {
+                firebaseUid: window.firebaseUid,
+                telegramUserId: window.telegramUserId,
+                username: window.telegramUsername || 'N/A',
+                amountPoints: amountPoints, // Store in points
+                amountUSD: (amountPoints * USD_PER_PEPE).toFixed(2), // Store USD equivalent
+                paymentMethod: paymentMethod,
+                walletAddress: walletAddress,
+                status: 'pending',
+                timestamp: serverTimestamp()
+            });
+            const withdrawalId = newWithdrawalDocRef.id;
+            logMessage(`Firestore: New withdrawal request created with ID: ${withdrawalId}`);
+
+            showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green');
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            logMessage("Withdrawal request sent successfully.");
+
+            // Clear form fields
+            document.getElementById('withdraw-amount').value = '';
+            document.getElementById('wallet-address').value = '';
+            closeWithdrawModal(); // Close modal on success
+
+        } catch (error) {
+            logMessage("Withdrawal Error: Failed to update Firestore: " + error.message, true);
+            showTemporaryMessage(error.message || "Withdrawal failed. Please try again.", 'red');
+            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        }
+    };
+
+    let messageTimeout;
+    function showTemporaryMessage(msg, color) {
+        withdrawStatusEl.textContent = msg;
+        withdrawStatusEl.style.color = color;
+        clearTimeout(messageTimeout);
+        messageTimeout = setTimeout(() => {
+            withdrawStatusEl.textContent = '';
+        }, 5000);
+        logMessage(`Temporary Message: ${msg} (Color: ${color})`);
+    }
+
+    // --- Share & Referral ---
+    window.shareApp = function() {
+        if (!window.telegramUserId) {
+            showAdNotification(translations[currentLanguage].telegram_id_missing);
+            return;
+        }
+        const botUsername = "ididkd46_bot"; // Your bot's username
+        const referralLink = `https://t.me/${botUsername}?start=ref_${window.telegramUserId}`;
+        const text = translations[currentLanguage].referral_description; // Use translation for share text
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
+        Telegram.WebApp.openTelegramLink(shareUrl);
+        logMessage("Share app link opened.");
+    };
+
+    window.copyReferralLink = function() {
+        if (!isAppReady || !window.firebaseUid) {
+            showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
+            return;
+        }
+        referralLinkInput.select();
+        document.execCommand('copy');
+        showTemporaryMessage(translations[currentLanguage].link_copied_success, 'green');
+        logMessage("Referral link copied.");
+    };
+
+    window.showReferralSection = function() {
+        showView('referral-view');
+    };
+
+    // --- Leaderboard Logic (Static for now) ---
+    function renderLeaderboard() {
+        // This leaderboard is static. For a dynamic leaderboard,
+        // you would fetch user data from Firestore, sort it by earnedPoints, and display.
+        const leaderboardData = [
+            { name: "CryptoKing", score: 2540, avatar: "https://i.pravatar.cc/150?img=1" },
+            { name: "Elena", score: 2210, avatar: "https://i.pravatar.cc/150?img=2" },
+            { name: "ProMiner", score: 1980, avatar: "https://i.pravatar.cc/150?img=3" },
+            { name: "Aisha", score: 1750, avatar: "https://i.pravatar.cc/150?img=4" },
+            { name: "BotMaster", score: 1530, avatar: "https://i.pravatar.cc/150?img=5" },
+        ];
         
-        tapAreaEl.addEventListener('click', async (event) => {
-            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                showAdNotification(translations[currentLanguage].loading_app); 
-                logMessage("Tap area click blocked: App not ready or Firebase UID missing.");
+        document.getElementById('leaderboard-list').innerHTML = leaderboardData.map((user, index) => `
+            <div class="list-item">
+                <div class="rank">#${index + 1}</div>
+                <img src="${user.avatar}" class="avatar" alt="Avatar">
+                <div class="info"><div class="name">${user.name}</div></div>
+                <div class="score">${user.score} <span data-key="points_label">Points</span></div>
+            </div>
+        `).join('');
+        setLanguage(currentLanguage); // Apply language to newly rendered elements
+    }
+
+    // --- Withdrawal History Logic ---
+    let unsubscribeFromWithdrawals = null;
+
+    function loadWithdrawalHistory() {
+        if (unsubscribeFromWithdrawals) {
+            unsubscribeFromWithdrawals();
+            logMessage("Unsubscribed from previous withdrawal history listener.");
+        }
+
+        if (!window.db || !window.firebaseUid) {
+            logMessage("Cannot load withdrawal history: Firestore or Firebase UID not available.", true);
+            return;
+        }
+
+        const appId = firebaseConfig.projectId;
+        const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
+        const q = query(withdrawalsCollectionRef, where("firebaseUid", "==", window.firebaseUid));
+
+        logMessage(`Setting up Firestore listener for withdrawal history for user Firebase UID: ${window.firebaseUid}`);
+        unsubscribeFromWithdrawals = onSnapshot(q, (snapshot) => {
+            logMessage("Firestore onSnapshot: Withdrawal history data received.");
+            withdrawalHistoryListEl.innerHTML = '';
+            const withdrawals = [];
+            snapshot.forEach(doc => {
+                withdrawals.push({ id: doc.id, ...doc.data() });
+            });
+
+            if (withdrawals.length === 0) {
+                withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" data-key="no_withdrawals_yet">${translations[currentLanguage].no_withdrawals_yet}</p>`;
+                logMessage("No withdrawal requests found for this user.");
+                setLanguage(currentLanguage); // Apply language to the "no withdrawals" message
                 return;
             }
-            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-                showAdNotification(translations[currentLanguage].daily_limit_reached);
-                logMessage("Tap area click blocked: Daily limit reached.");
-                return; 
-            }
 
-            if (tapsCount < TAPS_REQUIRED) {
-                tapsCount++;
-                tapsRemainingEl.textContent = TAPS_REQUIRED - tapsCount;
-                logMessage(`Tap registered. Taps count: ${tapsCount}/${TAPS_REQUIRED}`);
+            withdrawals.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+
+            withdrawals.forEach(item => {
+                const withdrawalItemDiv = document.createElement('div');
+                withdrawalItemDiv.classList.add('withdrawal-item');
+
+                let statusClass = '';
+                let statusText = '';
+
+                switch (item.status) {
+                    case 'pending':
+                        statusClass = 'status-pending';
+                        statusText = translations[currentLanguage].withdrawal_status_pending;
+                        break;
+                    case 'approved':
+                        statusClass = 'status-approved';
+                        statusText = translations[currentLanguage].withdrawal_status_approved;
+                        break;
+                    case 'rejected':
+                        statusClass = 'status-rejected';
+                        statusText = translations[currentLanguage].withdrawal_status_rejected;
+                        break;
+                    default:
+                        statusClass = '';
+                        statusText = item.status;
+                }
                 
-                const feedback = document.createElement('div');
-                feedback.classList.add('tap-feedback');
-                feedback.textContent = `+1`;
-                feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`;
-                feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`;
-                tapAreaEl.appendChild(feedback);
+                const paymentMethodDisplay = translations[currentLanguage][`${item.paymentMethod}_option`] || item.paymentMethod;
 
-                tapAreaEl.classList.add('active');
-                setTimeout(() => {
-                    feedback.remove();
-                    tapAreaEl.classList.remove('active'); 
-                }, 1000);
+                const detailsHtml = `
+                    <p><strong>${translations[currentLanguage].withdrawal_details
+                        .replace('{amount}', item.amountPoints) // Display points for withdrawal
+                        .replace('{method}', paymentMethodDisplay)
+                        .replace('{address}', item.walletAddress)
+                        .replace('{status}', `<span class="${statusClass}">${statusText}</span>`)}
+                    </p>
+                    <p class="withdrawal-date">${translations[currentLanguage].withdrawal_date.replace('{date}', formatTimestamp(item.timestamp))}</p>
+                `;
+                withdrawalItemDiv.innerHTML = detailsHtml;
+                withdrawalHistoryListEl.appendChild(withdrawalItemDiv);
+            });
+            setLanguage(currentLanguage); // Apply language to newly rendered elements
+            logMessage(`Displayed ${withdrawals.length} withdrawal requests.`);
+        }, (error) => {
+            logMessage("Firestore Error: fetching withdrawal history: " + error.message, true);
+            withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" style="color:red;">Error loading history: ${error.message}</p>`;
+        });
+    }
 
-                if (tapsCount >= TAPS_REQUIRED) {
-                    updateTapUI();
-                    logMessage("Taps count reached. Claim reward button should be visible.");
+    // --- Utility Functions ---
+    function getTodayDate() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatTimestamp(timestamp) {
+        if (!timestamp) return '';
+        let date;
+        if (timestamp.toDate) { // Firestore Timestamp object
+            date = timestamp.toDate();
+        } else if (typeof timestamp === 'number') { // JavaScript timestamp
+            date = new Date(timestamp);
+        } else { // Assume it's an ISO string or similar
+            date = new Date(timestamp);
+        }
+
+        if (isNaN(date.getTime())) {
+            logMessage("Invalid date format for timestamp: " + timestamp, true);
+            return '';
+        }
+
+        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return date.toLocaleDateString(currentLanguage, options);
+    }
+
+    // --- Telegram WebApp Back Button ---
+    function updateBackButtonVisibility() {
+        if (typeof Telegram !== 'undefined' && Telegram.WebApp && Telegram.WebApp.BackButton) {
+            if (currentViewId !== 'home-view') {
+                Telegram.WebApp.BackButton.show();
+                logMessage("Telegram BackButton shown.");
+            } else {
+                Telegram.WebApp.BackButton.hide();
+                logMessage("Telegram BackButton hidden.");
+            }
+        }
+    }
+
+    function handleBackButtonClick() {
+        logMessage("Telegram BackButton clicked.");
+        if (currentViewId === 'tasks-view' || currentViewId === 'leaderboard-view' || currentViewId === 'history-view' || currentViewId === 'referral-view') {
+            showView('home-view');
+        }
+    }
+
+    // --- Language Selector ---
+    window.setLanguage = function(lang) {
+        currentLanguage = lang;
+        localStorage.setItem('appLanguage', lang);
+        document.documentElement.lang = lang;
+
+        document.querySelectorAll('.language-selector button').forEach(button => {
+            if (button.dataset.lang === lang) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+
+        document.querySelectorAll('[data-key]').forEach(element => {
+            const key = element.dataset.key;
+            if (translations[lang] && translations[lang][key]) {
+                if (element.tagName === 'INPUT' && element.hasAttribute('data-key-placeholder')) {
+                    element.placeholder = translations[lang][key];
+                } else {
+                    element.textContent = translations[lang][key];
                 }
             }
         });
 
-        window.claimReward = async function() {
-            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                showAdNotification(translations[currentLanguage].loading_app); 
-                logMessage("Claim reward blocked: App not ready or Firebase UID missing.");
-                return;
+        document.querySelectorAll('[data-key-placeholder]').forEach(element => {
+            const placeholderKey = element.dataset.keyPlaceholder;
+            if (translations[lang] && translations[lang][placeholderKey]) {
+                element.placeholder = translations[lang][placeholderKey];
             }
-            if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-                showAdNotification(translations[currentLanguage].daily_limit_reached);
-                logMessage("Claim reward blocked: Daily limit reached.");
-                return; 
+        });
+
+        document.querySelectorAll('#payment-method option').forEach(option => {
+            const key = option.dataset.key;
+            if (translations[lang] && translations[lang][key]) {
+                option.textContent = translations[lang][key];
             }
+        });
 
-            showAdNotification(translations[currentLanguage].ad_loading);
-            claimRewardBtn.disabled = true; 
-            tapAreaEl.style.pointerEvents = 'none'; 
-            logMessage("Attempting to claim reward. Ad loading...");
-            
-            try {
-                if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
-                    logMessage("Adsgram Init: SDK available. Attempting to initialize and show ad with blockId: 12307");
-                    // Corrected line: Use escaped quotes or single quotes for the string literal
-                    logMessage("Adsgram Init: Calling Adsgram.init({ blockId: \"12307\" }).show()...");
-                    await window.Adsgram.init({ blockId: "12307" }).show(); 
-                    logMessage("Adsgram Show: Adsgram.show() call completed.");
-
-                    const appId = firebaseConfig.projectId; 
-                    const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); // <--- Use Firebase UID here
-                    
-                    let pointsToAdd = POINTS_PER_AD;
-                    let newDailyWatchedAdsCount = dailyWatchedAdsCount + 1;
-                    let newWatchedAdsCount = watchedAdsCount + 1;
-
-                    if (newWatchedAdsCount % ADS_FOR_BONUS === 0) {
-                        pointsToAdd += 1.00; 
-                        logMessage("Bonus points added for completing ADS_FOR_BONUS cycle.");
-                    }
-
-                    logMessage(`Firestore Update: Updating user ${window.firebaseUid} with points: ${pointsToAdd.toFixed(2)}, watchedAdsCount: ${newWatchedAdsCount}, dailyWatchedAdsCount: ${newDailyWatchedAdsCount}`);
-                    await updateDoc(userDocRef, {
-                        earnedPoints: increment(pointsToAdd),
-                        watchedAdsCount: increment(1),
-                        dailyWatchedAdsCount: newDailyWatchedAdsCount,
-                        lastWatchDate: getTodayDate()
-                    });
-                    logMessage(`Firestore Update: User ${window.firebaseUid} updated successfully. New earnedPoints: ${earnedPoints + pointsToAdd}.`);
-
-                    if (referrerTelegramId && referrerTelegramId !== window.firebaseUid) { // Compare with Firebase UID
-                        const referrerEarn = POINTS_PER_AD * REFERRAL_PERCENTAGE; 
-                        
-                        // Find the referrer by their Telegram ID to get their Firebase UID
-                        const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerTelegramId); 
-                        logMessage(`Firestore Update: Attempting to increment earnedFromReferrals AND earnedPoints for referrer Telegram User ID (Firebase UID): ${referrerTelegramId} by ${referrerEarn.toFixed(2)}.`);
-                        await updateDoc(referrerRef, {
-                            earnedFromReferrals: increment(referrerEarn),
-                            earnedPoints: increment(referrerEarn) 
-                        });
-                        logMessage(`Firestore Update: Referrer ${referrerTelegramId} earnedFromReferrals AND earnedPoints updated successfully.`);
-                    }
-
-                    showAdNotification(translations[currentLanguage].ad_completed_success.replace('{POINTS_PER_AD}', pointsToAdd.toFixed(2)));
-                    
-                    tapsCount = 0;
-                    updateTapUI();
-                } else {
-                    logMessage("Adsgram Error: SDK not available or functions missing. Check script tag and network.", true);
-                    showAdNotification(translations[currentLanguage].ad_failed);
-                }
-
-            } catch (error) {
-                logMessage("Ad Display/Firestore Error: Caught error during claimReward: " + error.message, true);
-                let errorMessage = translations[currentLanguage].ad_failed;
-                if (error && error.message) {
-                    errorMessage += `: ${error.message}`;
-                }
-                    showAdNotification(errorMessage);
-            } finally {
-                updateButtonStates(); 
-            }
+        updateDisplay(); // Update dynamic values
+        updateReferralUI(); // Update referral UI with new language
+        renderLeaderboard(); // Re-render leaderboard to apply language
+        if (currentViewId === 'history-view') {
+            loadWithdrawalHistory(); // Re-render history to apply language
         }
-        
-        function showAdNotification(message) {
-            adNotificationEl.textContent = message;
-            adNotificationEl.style.display = 'block';
-            logMessage(`Ad Notification: ${message}`);
-            
-            setTimeout(() => {
-                adNotificationEl.style.display = 'none';
-            }, 3000);
-        }
+    };
+</script>
 
-        window.showWithdrawForm = function() {
-            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                showAdNotification(translations[currentLanguage].loading_app);
-                logMessage("Show withdraw form blocked: App not ready or Firebase UID missing.");
-                return;
-            }
-            hideAllSections();
-            withdrawSectionEl.style.display = 'block';
-            currentEarnedPointsEl.textContent = earnedPoints.toFixed(2);
-            currentSection = 'withdraw';
-            updateBackButtonVisibility();
-            logMessage("Withdrawal form displayed.");
-        }
-
-        window.hideWithdrawForm = function() {
-            withdrawSectionEl.style.display = 'none';
-            withdrawStatusEl.textContent = ''; 
-            showMainContent(); 
-            currentSection = 'main';
-            updateBackButtonVisibility();
-            logMessage("Withdrawal form hidden.");
-        }
-
-        window.withdrawPoints = async function() {
-            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
-                logMessage("Withdrawal blocked: App not ready or Firebase UID missing.", true);
-                return;
-            }
-
-            const amount = parseFloat(document.getElementById('withdraw-amount').value);
-            const paymentMethod = document.getElementById('payment-method').value; 
-            const walletAddress = document.getElementById('wallet-address').value; 
-
-            let minRequiredPoints;
-            let methodNameDisplay; // For display purposes
-
-            if (paymentMethod === 'faucetpay') {
-                minRequiredPoints = MIN_WITHDRAW_POINTS_FAUCETPAY;
-                methodNameDisplay = translations[currentLanguage].faucetpay_option;
-            } else { 
-                minRequiredPoints = MIN_WITHDRAW_POINTS;
-                methodNameDisplay = translations[currentLanguage].other_wallet_option;
-            }
-
-            if (isNaN(amount) || amount < minRequiredPoints) {
-                let message = translations[currentLanguage].min_withdraw_message
-                    .replace('{methodName}', methodNameDisplay)
-                    .replace('{minAmount}', minRequiredPoints);
-                showTemporaryMessage(message, 'red');
-                logMessage(`Withdrawal failed: Amount ${amount} is less than min ${minRequiredPoints} or not a number.`, true);
-                return;
-            }
-
-            if (amount > earnedPoints) {
-                let message = translations[currentLanguage].insufficient_balance.replace('{earnedPoints}', earnedPoints.toFixed(2));
-                showTemporaryMessage(message, 'red');
-                logMessage(`Withdrawal failed: Insufficient balance. Tried to withdraw ${amount}, current: ${earnedPoints}.`, true);
-                return;
-            }
-
-            if (!walletAddress.trim()) { 
-                showTemporaryMessage(translations[currentLanguage].enter_wallet_address, 'red');
-                logMessage("Withdrawal failed: Wallet address is empty.", true);
-                return;
-            }
-
-            try {
-                const appId = firebaseConfig.projectId; 
-                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); // <--- Use Firebase UID here
-                
-                // Use a transaction for safe point deduction
-                await runTransaction(window.db, async (transaction) => {
-                    const sfDoc = await transaction.get(userDocRef);
-                    if (!sfDoc.exists) {
-                        throw "User document does not exist!";
-                    }
-                    const currentEarnedPoints = sfDoc.data().earnedPoints || 0;
-                    if (currentEarnedPoints < amount) {
-                        throw translations[currentLanguage].insufficient_balance.replace('{earnedPoints}', currentEarnedPoints.toFixed(2));
-                    }
-                    transaction.update(userDocRef, { earnedPoints: increment(-amount) });
-                });
-                logMessage(`Firestore Update: Points deducted successfully for user Firebase UID (Telegram ID): ${window.firebaseUid}.`);
-
-                // Create a new withdrawal request document in Firestore
-                const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
-                const newWithdrawalDocRef = await addDoc(withdrawalsCollectionRef, {
-                    firebaseUid: window.firebaseUid, // NEW FIELD: Firebase UID (which is Telegram ID)
-                    telegramUserId: window.telegramUserId, // Keep this for bot notification
-                    username: window.telegramUsername || 'N/A', // Store username for admin convenience
-                    amount: amount,
-                    paymentMethod: paymentMethod, // Store raw value
-                    walletAddress: walletAddress,
-                    status: 'pending', // Initial status
-                    timestamp: serverTimestamp() // Use serverTimestamp
-                });
-                const withdrawalId = newWithdrawalDocRef.id;
-                logMessage(`Firestore: New withdrawal request created with ID: ${withdrawalId}`);
-
-
-                let messageToAdmin = `New Withdrawal Request:\nUser ID: ${window.telegramUserId}`; // Show Telegram ID to admin
-                if (window.telegramUsername) {
-                    messageToAdmin += `\nUsername: @${window.telegramUsername}`;
-                }
-                messageToAdmin += `\nAmount: ${amount} pepe coins\nPayment Method: ${methodNameDisplay}\nWallet Address: ${walletAddress}`;
-                
-                logMessage("Telegram Bot API: Sending withdrawal request to admin with approval button.");
-                // MODIFIED: Pass the requesting user's ID to the bot in callback_data
-                sendWithdrawRequestToAdmin(messageToAdmin, withdrawalId, window.telegramUserId);
-
-                showTemporaryMessage(translations[currentLanguage].withdrawal_success_message, 'green');
-                logMessage("Withdrawal request sent successfully.");
-
-                document.getElementById('withdraw-amount').value = '';
-                document.getElementById('wallet-address').value = '';
-
-            } catch (error) {
-                logMessage("Withdrawal Error: Failed to update Firestore or send Telegram message: " + error.message, true);
-                showTemporaryMessage(error.message || "Withdrawal failed. Please try again.", 'red');
-            }
-        }
-
-        // MODIFIED: sendWithdrawRequestToAdmin now accepts requestingUserId
-        function sendWithdrawRequestToAdmin(message, withdrawalId, requestingUserId) {
-            // Callback data format: approve_withdraw_<withdrawal_doc_id>_<requesting_user_id>
-            const callbackData = `approve_withdraw_${withdrawalId}_${requestingUserId}`;
-            
-            const inlineKeyboard = {
-                inline_keyboard: [
-                    [{ text: "✅ الموافقة على السحب", callback_data: callbackData }]
-                ]
-            };
-            const replyMarkup = encodeURIComponent(JSON.stringify(inlineKeyboard));
-
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_USER_ID}&text=${encodeURIComponent(message)}&reply_markup=${replyMarkup}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.ok) {
-                        logMessage('Telegram Bot API: Message with approval button sent to admin successfully.');
-                    } else {
-                        logMessage('Telegram Bot API Error: Failed to send message to Telegram: ' + (data.description || JSON.stringify(data)), true);
-                        let errorMessage = translations[currentLanguage].telegram_send_fail.replace('{error}', data.description || JSON.stringify(data));
-                        showTemporaryMessage(errorMessage, 'red');
-                    }
-                })
-                .catch(error => {
-                    logMessage('Telegram Bot API Error: Network error during fetch to Telegram API: ' + error.message, true);
-                    let errorMessage = translations[currentLanguage].telegram_connect_error.replace('{error}', error.message);
-                    showTemporaryMessage(errorMessage, 'red');
-                });
-        }
-
-        let messageTimeout;
-        function showTemporaryMessage(msg, color) {
-            withdrawStatusEl.textContent = msg;
-            withdrawStatusEl.style.color = color;
-            clearTimeout(messageTimeout);
-            messageTimeout = setTimeout(() => {
-                withdrawStatusEl.textContent = '';
-            }, 5000); 
-            logMessage(`Temporary Message: ${msg} (Color: ${color})`);
-        }
-
-        // MODIFIED: Generate referral link to go to the bot first
-        function generateReferralLink() {
-            const botUsername = "ididkd46_bot"; // Your bot's username (e.g., "YourCoolBot")
-            if (window.telegramUserId) {
-                // This link will direct the user to the bot's /start command with a parameter
-                return `https://t.me/${botUsername}?start=ref_${window.telegramUserId}`;
-            }
-            return translations[currentLanguage].loading_app; 
-        }
-
-        window.showReferralSection = function() {
-            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                showAdNotification(translations[currentLanguage].loading_app);
-                logMessage("Show referral section blocked: App not ready or Firebase UID missing.");
-                return;
-            }
-            hideAllSections();
-            referralSectionEl.style.display = 'block';
-            updateReferralUI(); // Ensure UI is updated when section is shown
-            currentSection = 'referral';
-            updateBackButtonVisibility();
-            logMessage("Referral section displayed.");
-        }
-
-        window.hideReferralSection = function() {
-            referralSectionEl.style.display = 'none';
-            showMainContent(); 
-            currentSection = 'main';
-            updateBackButtonVisibility();
-            logMessage("Referral section hidden.");
-        }
-
-        function updateReferralUI() {
-            referralLinkInput.value = generateReferralLink();
-
-            // Reconstruct the inner HTML of the parent p elements to force re-render
-            totalReferralsParentEl.innerHTML = `${translations[currentLanguage].total_referrals} <span id="total-referrals">${totalReferrals}</span>`;
-            earnedFromReferralsParentEl.innerHTML = `${translations[currentLanguage].earned_from_referrals} <span id="earned-from-referrals">${earnedFromReferrals.toFixed(2)}</span> Pepe`;
-
-            // Re-get references to the span elements after their parent's innerHTML was rewritten
-            // This is crucial because rewriting innerHTML destroys and recreates the spans
-            totalReferralsEl = document.getElementById('total-referrals');
-            earnedFromReferralsEl = document.getElementById('earned-from-referrals');
-
-            logMessage(`Referral UI updated. Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
-        }
-
-        window.copyReferralLink = function() {
-            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
-                logMessage("Copy referral link blocked: App not ready or Firebase UID missing.");
-                return;
-            }
-            referralLinkInput.select();
-            document.execCommand('copy'); 
-            showTemporaryMessage(translations[currentLanguage].link_copied_success, 'green');
-            logMessage("Referral link copied.");
-        }
-
-        // New functions for Withdrawal History section
-        window.showWithdrawalHistorySection = function() {
-            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                showAdNotification(translations[currentLanguage].loading_app);
-                logMessage("Show withdrawal history blocked: App not ready or Firebase UID missing.");
-                return;
-            }
-            hideAllSections();
-            withdrawalHistorySectionEl.style.display = 'block';
-            currentSection = 'withdrawal_history';
-            updateBackButtonVisibility();
-            loadWithdrawalHistory(); // Load history when section is shown
-            logMessage("Withdrawal history section displayed.");
-        };
-
-        window.hideWithdrawalHistorySection = function() {
-            withdrawalHistorySectionEl.style.display = 'none';
-            showMainContent();
-            currentSection = 'main';
-            updateBackButtonVisibility();
-            logMessage("Withdrawal history section hidden.");
-        };
-
-        let unsubscribeFromWithdrawals = null; // To store the unsubscribe function
-
-        function loadWithdrawalHistory() {
-            if (unsubscribeFromWithdrawals) {
-                unsubscribeFromWithdrawals(); // Unsubscribe from previous listener if any
-                logMessage("Unsubscribed from previous withdrawal history listener.");
-            }
-
-            if (!window.db || !window.firebaseUid) { // Now depend on firebaseUid after authentication
-                logMessage("Cannot load withdrawal history: Firestore or Firebase UID not available.", true);
-                return;
-            }
-
-            const appId = firebaseConfig.projectId;
-            const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
-            // Query for withdrawals using Firebase UID
-            const q = query(withdrawalsCollectionRef, where("firebaseUid", "==", window.firebaseUid)); // <--- Use Firebase UID here
-
-            logMessage(`Setting up Firestore listener for withdrawal history for user Firebase UID (Telegram ID): ${window.firebaseUid}`);
-            unsubscribeFromWithdrawals = onSnapshot(q, (snapshot) => {
-                logMessage("Firestore onSnapshot: Withdrawal history data received.");
-                withdrawalHistoryListEl.innerHTML = ''; // Clear previous entries
-                const withdrawals = [];
-                snapshot.forEach(doc => {
-                    withdrawals.push({ id: doc.id, ...doc.data() });
-                });
-
-                if (withdrawals.length === 0) {
-                    withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" data-key="no_withdrawals_yet">${translations[currentLanguage].no_withdrawals_yet}</p>`;
-                    logMessage("No withdrawal requests found for this user.");
-                    return;
-                }
-
-                // Sort withdrawals by timestamp descending (newest first)
-                withdrawals.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-
-                withdrawals.forEach(item => {
-                    const withdrawalItemDiv = document.createElement('div');
-                    withdrawalItemDiv.classList.add('withdrawal-item');
-
-                    let statusClass = '';
-                    let statusText = '';
-
-                    switch (item.status) {
-                        case 'pending':
-                            statusClass = 'status-pending';
-                            statusText = translations[currentLanguage].withdrawal_status_pending;
-                            break;
-                        case 'approved':
-                            statusClass = 'status-approved';
-                            statusText = translations[currentLanguage].withdrawal_status_approved;
-                            break;
-                        case 'rejected': // For future implementation
-                            statusClass = 'status-rejected';
-                            statusText = translations[currentLanguage].withdrawal_status_rejected;
-                            break;
-                        default:
-                            statusClass = '';
-                            statusText = item.status;
-                    }
-                    
-                    const paymentMethodDisplay = translations[currentLanguage][`${item.paymentMethod}_option`] || item.paymentMethod;
-
-                    const detailsHtml = `
-                        <p><strong>${translations[currentLanguage].withdrawal_details
-                            .replace('{amount}', item.amount.toFixed(2))
-                            .replace('{method}', paymentMethodDisplay)
-                            .replace('{address}', item.walletAddress)
-                            .replace('{status}', `<span class="${statusClass}">${statusText}</span>`)}
-                        </p>
-                        <p class="withdrawal-date">${translations[currentLanguage].withdrawal_date.replace('{date}', formatTimestamp(item.timestamp))}</p>
-                    `;
-                    withdrawalItemDiv.innerHTML = detailsHtml;
-                    withdrawalHistoryListEl.appendChild(withdrawalItemDiv);
-                });
-                logMessage(`Displayed ${withdrawals.length} withdrawal requests.`);
-            }, (error) => {
-                logMessage("Firestore Error: fetching withdrawal history: " + error.message, true);
-                withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" style="color:red;">Error loading history: ${error.message}</p>`;
-            });
-        }
-
-
-        function hideAllSections() {
-            withdrawSectionEl.style.display = 'none';
-            referralSectionEl.style.display = 'none';
-            withdrawalHistorySectionEl.style.display = 'none'; // Hide new section
-
-            document.querySelector('.ad-container').style.display = 'none';
-            document.querySelector('.website-section').style.display = 'none';
-            document.querySelector('.buttons').style.display = 'none';
-            logMessage("All auxiliary sections hidden.");
-        }
-
-        function showMainContent() {
-            document.querySelector('.ad-container').style.display = 'block';
-            document.querySelector('.website-section').style.display = 'block';
-            document.querySelector('.buttons').style.display = 'flex';
-            logMessage("Main content displayed.");
-        }
-
-        function updateBackButtonVisibility() {
-            if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
-                if (currentSection !== 'main') {
-                    window.Telegram.WebApp.BackButton.show();
-                    logMessage("Telegram BackButton shown.");
-                } else {
-                    window.Telegram.WebApp.BackButton.hide();
-                    logMessage("Telegram BackButton hidden.");
-                }
-            }
-        }
-
-        function handleBackButtonClick() {
-            logMessage("Telegram BackButton clicked.");
-            if (currentSection === 'withdraw') {
-                hideWithdrawForm();
-            } else if (currentSection === 'referral') {
-                hideReferralSection();
-            } else if (currentSection === 'withdrawal_history') {
-                hideWithdrawalHistorySection();
-            }
-        }
-
-        window.onload = async function() {
-            logMessage("Window loaded. Starting app initialization sequence.");
-            setLanguage(currentLanguage); 
-            updateButtonStates(); 
-            await initApp(); 
-        };
-    </script>
 </body>
 </html>
