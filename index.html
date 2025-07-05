@@ -983,14 +983,14 @@
 
     <!-- Firebase SDKs -->
     <script type="module">
-        // تم تحديث إصدارات SDK لتكون متسقة (11.10.0)
+        // Updated SDK versions to be consistent (11.10.0)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, orderBy, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-        // تم إضافة getAuth و signInWithCustomToken للمصادقة المخصصة
+        // Added getAuth and signInWithCustomToken for custom authentication
         import { getAuth, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 
 
-        // Firebase configuration (باستخدام معلومات مشروعك الجديد)
+        // Firebase configuration (using your project information)
         const firebaseConfig = {
             apiKey: "AIzaSyBBtwHunlKiynbialigKqcmLPPKlxchw58",
             authDomain: "zaap-382a6.firebaseapp.com",
@@ -1006,7 +1006,7 @@
         window.auth = null; 
         window.telegramUserId = null; 
         window.telegramUsername = null; 
-        window.firebaseUid = null; // هذا سيكون الآن هو نفسه window.telegramUserId بعد المصادقة المخصصة
+        window.firebaseUid = null; // This will now be the same as window.telegramUserId after custom authentication
         let isAppReady = false; 
 
         // Constants
@@ -1016,12 +1016,12 @@
         const MIN_WITHDRAW_POINTS = 100;
         const MIN_WITHDRAW_POINTS_FAUCETPAY = 10;
         const DAILY_AD_LIMIT = 100;
-        const ADMIN_USER_ID = "7416599626"; // معرف المسؤول الخاص بك
-        const BOT_TOKEN = "7380785513:AAHKo14QwkPgIgHcXZQDJF0Mr0OoxpyPl5w"; // توكن البوت الخاص بك (تم تحديثه)
+        const ADMIN_USER_ID = "7416599626"; // Your Telegram Admin User ID
+        const BOT_TOKEN = "7380785513:AAHKo14QwkPgIgHcXZQDJF0Mr0OoxpyPl5w"; // Your Bot Token (updated)
         const REFERRAL_PERCENTAGE = 0.10;
 
-        // URL الخاص بـ Replit Bot (الذي يعمل كخادم خلفي للمصادقة)
-        // تم تحديث هذا الرابط بالرابط الصحيح الذي قدمته لي.
+        // URL for the Replit Bot (which acts as the backend for authentication)
+        // This URL has been updated with the correct one you provided.
         const REPLIT_BOT_AUTH_URL = "https://f064e5ef-fba2-4627-97f9-cd13bd1a96be-00-3bj6ie00ivxbb.worf.replit.dev/auth"; 
 
         // State variables (controlled by Firestore)
@@ -1358,7 +1358,7 @@
                         
                         window.firebaseApp = initializeApp(firebaseConfig);
                         window.db = getFirestore(window.firebaseApp);
-                        window.auth = getAuth(window.firebaseApp); // تهيئة خدمة المصادقة
+                        window.auth = getAuth(window.firebaseApp); // Initialize authentication service
                         logMessage("Firebase initialized. Auth service obtained.");
 
                         // ====================================================================
@@ -1402,7 +1402,7 @@
 
                         // Load user data using Telegram User ID (which is now Firebase UID)
                         const appId = firebaseConfig.projectId; 
-                        await loadUserDataFromFirestore(appId, window.firebaseUid); // <--- استخدام Firebase UID (وهو Telegram User ID) هنا
+                        await loadUserDataFromFirestore(appId, window.firebaseUid); // <--- Use Firebase UID (which is Telegram User ID) here
                         logMessage("User data load initiated and Firestore listener set up.");
 
                         // Handle Back Button in Telegram Mini App
@@ -1422,22 +1422,22 @@
                             logMessage("REFERRAL LOGIC: Extracted referrerTelegramId from start_param: " + foundReferrerTelegramId);
                             logMessage("REFERRAL LOGIC: Current user Telegram User ID (Firebase UID): " + window.firebaseUid);
                             
-                            if (foundReferrerTelegramId !== window.firebaseUid) { // المقارنة مع Firebase UID (الذي هو Telegram ID)
+                            if (foundReferrerTelegramId !== window.firebaseUid) { // Compare with Firebase UID (which is Telegram ID)
                                 logMessage("REFERRAL LOGIC: Referrer Telegram ID is different from current user Telegram ID. Proceeding to check/set referrer and increment counts.");
                                 referrerTelegramId = foundReferrerTelegramId; // Store it globally for Firestore listener
                                 
-                                // استخدام Firebase UID للمستند
+                                // Use Firebase UID for the document
                                 const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); 
                                 
                                 const userDocSnap = await getDoc(userDocRef);
 
                                 if (userDocSnap.exists()) {
-                                    if (!userDocSnap.data().referrerTelegramId) { // التحقق من حقل referrerTelegramId
+                                    if (!userDocSnap.data().referrerTelegramId) { // Check for referrerTelegramId field
                                         logMessage(`REFERRAL LOGIC: User ${window.firebaseUid} exists but has no referrer. Setting referrerTelegramId: ${referrerTelegramId}`);
-                                        await updateDoc(userDocRef, { referrerTelegramId: referrerTelegramId }, { merge: true }); // تحديث حقل referrerTelegramId
+                                        await updateDoc(userDocRef, { referrerTelegramId: referrerTelegramId }, { merge: true }); // Update referrerTelegramId field
                                         logMessage(`REFERRAL LOGIC: Successfully set referrerTelegramId ${referrerTelegramId} for user ${window.firebaseUid}.`);
 
-                                        // يجب أن نجد referrerDocRef باستخدام Telegram ID للمرجع
+                                        // We need to find referrerDocRef using the referrer's Telegram ID
                                         const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerTelegramId); 
                                         logMessage("REFERRAL LOGIC: Attempting to increment totalReferrals for referrer Telegram User ID: " + referrerTelegramId);
                                         await updateDoc(referrerRef, { totalReferrals: increment(1) });
@@ -1475,14 +1475,14 @@
             }, 100); 
         }
 
-        async function loadUserDataFromFirestore(appId, firebaseUid) { // الآن تستقبل firebaseUid
+        async function loadUserDataFromFirestore(appId, firebaseUid) { // Now receives firebaseUid
             logMessage("loadUserDataFromFirestore: Attempting to load data for user Firebase UID (Telegram ID): " + firebaseUid);
             if (!window.db || !firebaseUid || !appId) {
                 logMessage("loadUserDataFromFirestore: Firestore, Firebase UID, or App ID not ready. Skipping data load.", true);
                 return;
             }
 
-            const userDocRef = doc(window.db, `artifacts/${appId}/users`, firebaseUid); // <--- استخدام Firebase UID هنا
+            const userDocRef = doc(window.db, `artifacts/${appId}/users`, firebaseUid); // <--- Use Firebase UID here
 
             onSnapshot(userDocRef, (docSnap) => {
                 logMessage("Firestore onSnapshot: Data received for user Firebase UID (Telegram ID): " + firebaseUid);
@@ -1492,7 +1492,7 @@
                     watchedAdsCount = data.watchedAdsCount || 0;
                     dailyWatchedAdsCount = data.dailyWatchedAdsCount || 0;
                     lastWatchDate = data.lastWatchDate || "";
-                    // نستخدم referrerTelegramId الآن
+                    // We now use referrerTelegramId
                     if (!referrerTelegramId && data.referrerTelegramId) { 
                         referrerTelegramId = data.referrerTelegramId; 
                         logMessage(`Firestore onSnapshot: Referrer Telegram ID ${referrerTelegramId} loaded from doc for user ${firebaseUid}.`);
@@ -1521,22 +1521,22 @@
                     earnedFromReferrals = 0.00;
                     
                     setDoc(userDocRef, {
-                        telegramUserId: window.telegramUserId, // تخزين Telegram User ID كحقل
-                        username: window.telegramUsername || 'N/A', // تخزين اسم المستخدم
+                        telegramUserId: window.telegramUserId, // Store Telegram User ID as a field
+                        username: window.telegramUsername || 'N/A', // Store username
                         earnedPoints: earnedPoints,
                         watchedAdsCount: watchedAdsCount,
                         dailyWatchedAdsCount: dailyWatchedAdsCount,
                         lastWatchDate: lastWatchDate,
-                        referrerTelegramId: referrerTelegramId, // تخزين معرف المرجع (Telegram ID)
+                        referrerTelegramId: referrerTelegramId, // Store referrer ID (Telegram ID)
                         totalReferrals: totalReferrals,
                         earnedFromReferrals: earnedFromReferrals
                     })
                     .then(async () => {
                         logMessage("Firestore: New user document created successfully. Now checking to increment referrer's count.");
                         if (referrerTelegramId) {
-                            // البحث عن المرجع بواسطة Telegram ID الخاص به للحصول على Firebase UID الخاص به
+                            // Find the referrer by their Telegram ID to get their Firebase UID
                             const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerTelegramId); 
-                            logMessage(`Firestore: Attempting to increment totalReferrals for referrer Telegram User ID: ${referrerTelegramId}.`);
+                            logMessage(`Firestore: Attempting to increment totalReferrals for referrer Telegram User ID (Firebase UID): ${referrerTelegramId}.`);
                             await updateDoc(referrerRef, { totalReferrals: increment(1) });
                             logMessage(`Firestore: Successfully incremented totalReferrals for ${referrerTelegramId}.`);
                         }
@@ -1582,7 +1582,7 @@
 
         function updateButtonStates() {
             const limitReached = dailyWatchedAdsCount >= DAILY_AD_LIMIT;
-            const disableButtons = !isAppReady || limitReached || !window.firebaseUid; // الآن نعتمد على firebaseUid بعد المصادقة
+            const disableButtons = !isAppReady || limitReached || !window.firebaseUid; // Now depend on firebaseUid after authentication
             claimRewardBtn.disabled = disableButtons; 
             tapAreaEl.style.pointerEvents = disableButtons ? 'none' : 'auto';
 
@@ -1592,7 +1592,7 @@
         }
         
         tapAreaEl.addEventListener('click', async (event) => {
-            if (!isAppReady || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 showAdNotification(translations[currentLanguage].loading_app); 
                 logMessage("Tap area click blocked: App not ready or Firebase UID missing.");
                 return;
@@ -1629,7 +1629,7 @@
         });
 
         window.claimReward = async function() {
-            if (!isAppReady || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 showAdNotification(translations[currentLanguage].loading_app); 
                 logMessage("Claim reward blocked: App not ready or Firebase UID missing.");
                 return;
@@ -1648,12 +1648,13 @@
             try {
                 if (typeof window.Adsgram !== 'undefined' && typeof window.Adsgram.init === 'function') {
                     logMessage("Adsgram Init: SDK available. Attempting to initialize and show ad with blockId: 12307");
-                    logMessage("Adsgram Init: Calling Adsgram.init({ blockId: "12307" }).show()...");
+                    // Corrected line: Use escaped quotes or single quotes for the string literal
+                    logMessage("Adsgram Init: Calling Adsgram.init({ blockId: \"12307\" }).show()...");
                     await window.Adsgram.init({ blockId: "12307" }).show(); 
                     logMessage("Adsgram Show: Adsgram.show() call completed.");
 
                     const appId = firebaseConfig.projectId; 
-                    const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); // <--- استخدام Firebase UID هنا
+                    const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); // <--- Use Firebase UID here
                     
                     let pointsToAdd = POINTS_PER_AD;
                     let newDailyWatchedAdsCount = dailyWatchedAdsCount + 1;
@@ -1673,10 +1674,10 @@
                     });
                     logMessage(`Firestore Update: User ${window.firebaseUid} updated successfully. New earnedPoints: ${earnedPoints + pointsToAdd}.`);
 
-                    if (referrerTelegramId && referrerTelegramId !== window.firebaseUid) { // المقارنة مع Firebase UID
+                    if (referrerTelegramId && referrerTelegramId !== window.firebaseUid) { // Compare with Firebase UID
                         const referrerEarn = POINTS_PER_AD * REFERRAL_PERCENTAGE; 
                         
-                        // البحث عن المرجع بواسطة Telegram ID الخاص به للحصول على Firebase UID الخاص به
+                        // Find the referrer by their Telegram ID to get their Firebase UID
                         const referrerRef = doc(window.db, `artifacts/${appId}/users`, referrerTelegramId); 
                         logMessage(`Firestore Update: Attempting to increment earnedFromReferrals AND earnedPoints for referrer Telegram User ID (Firebase UID): ${referrerTelegramId} by ${referrerEarn.toFixed(2)}.`);
                         await updateDoc(referrerRef, {
@@ -1718,7 +1719,7 @@
         }
 
         window.showWithdrawForm = function() {
-            if (!isAppReady || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 showAdNotification(translations[currentLanguage].loading_app);
                 logMessage("Show withdraw form blocked: App not ready or Firebase UID missing.");
                 return;
@@ -1741,7 +1742,7 @@
         }
 
         window.withdrawPoints = async function() {
-            if (!isAppReady || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
                 logMessage("Withdrawal blocked: App not ready or Firebase UID missing.", true);
                 return;
@@ -1786,7 +1787,7 @@
 
             try {
                 const appId = firebaseConfig.projectId; 
-                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); // <--- استخدام Firebase UID هنا
+                const userDocRef = doc(window.db, `artifacts/${appId}/users`, window.firebaseUid); // <--- Use Firebase UID here
                 
                 // Use a transaction for safe point deduction
                 await runTransaction(window.db, async (transaction) => {
@@ -1812,13 +1813,13 @@
                     paymentMethod: paymentMethod, // Store raw value
                     walletAddress: walletAddress,
                     status: 'pending', // Initial status
-                    timestamp: serverTimestamp() // استخدام serverTimestamp
+                    timestamp: serverTimestamp() // Use serverTimestamp
                 });
                 const withdrawalId = newWithdrawalDocRef.id;
                 logMessage(`Firestore: New withdrawal request created with ID: ${withdrawalId}`);
 
 
-                let messageToAdmin = `New Withdrawal Request:\nUser ID: ${window.telegramUserId}`; // إظهار Telegram ID للمسؤول
+                let messageToAdmin = `New Withdrawal Request:\nUser ID: ${window.telegramUserId}`; // Show Telegram ID to admin
                 if (window.telegramUsername) {
                     messageToAdmin += `\nUsername: @${window.telegramUsername}`;
                 }
@@ -1892,7 +1893,7 @@
         }
 
         window.showReferralSection = function() {
-            if (!isAppReady || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 showAdNotification(translations[currentLanguage].loading_app);
                 logMessage("Show referral section blocked: App not ready or Firebase UID missing.");
                 return;
@@ -1929,7 +1930,7 @@
         }
 
         window.copyReferralLink = function() {
-            if (!isAppReady || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
                 logMessage("Copy referral link blocked: App not ready or Firebase UID missing.");
                 return;
@@ -1942,7 +1943,7 @@
 
         // New functions for Withdrawal History section
         window.showWithdrawalHistorySection = function() {
-            if (!isAppReady || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!isAppReady || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 showAdNotification(translations[currentLanguage].loading_app);
                 logMessage("Show withdrawal history blocked: App not ready or Firebase UID missing.");
                 return;
@@ -1971,15 +1972,15 @@
                 logMessage("Unsubscribed from previous withdrawal history listener.");
             }
 
-            if (!window.db || !window.firebaseUid) { // الآن نعتمد على firebaseUid بعد المصادقة
+            if (!window.db || !window.firebaseUid) { // Now depend on firebaseUid after authentication
                 logMessage("Cannot load withdrawal history: Firestore or Firebase UID not available.", true);
                 return;
             }
 
             const appId = firebaseConfig.projectId;
             const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
-            // استعلام عن السحوبات باستخدام Firebase UID
-            const q = query(withdrawalsCollectionRef, where("firebaseUid", "==", window.firebaseUid)); // <--- استخدام Firebase UID هنا
+            // Query for withdrawals using Firebase UID
+            const q = query(withdrawalsCollectionRef, where("firebaseUid", "==", window.firebaseUid)); // <--- Use Firebase UID here
 
             logMessage(`Setting up Firestore listener for withdrawal history for user Firebase UID (Telegram ID): ${window.firebaseUid}`);
             unsubscribeFromWithdrawals = onSnapshot(q, (snapshot) => {
