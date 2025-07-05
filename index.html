@@ -534,7 +534,7 @@
         <div class="tap-button-container">
             <button class="action-button primary-button tap-claim-btn" id="claim-reward-btn" onclick="claimTapReward()" data-key="claim_reward_btn">Claim Reward</button>
         </div>
-        <p class="points-per-tap-message" data-key="points_per_tap_message">Earn 1 Pepe per tap</p>
+        <p class="points-per-tap-message" data-key="points_per_tap_message">Earn 1 Pepe Point per tap</p>
 
         <!-- Adsgram Interstitial Ad -->
         <div class="task-card" onclick="showAdsgramInterstitial()">
@@ -609,8 +609,8 @@
                 <option value="other_wallet" data-key="other_wallet_option">Other Wallet</option>
             </select>
             
-            <label for="wallet-address" data-key="wallet_address_label">Wallet Address:</label>
-            <input type="text" id="wallet-address" data-key-placeholder="wallet_address_placeholder" placeholder="Enter wallet address" />
+            <label for="wallet-address" data-key-placeholder="wallet_address_placeholder" data-key="wallet_address_label">Wallet Address:</label>
+            <input type="text" id="wallet-address" placeholder="Enter wallet address" />
             
             <p id="withdraw-status" class="withdraw-status"></p>
         </div>
@@ -946,7 +946,6 @@
         } finally {
             updateButtonStates();
             setLanguage(currentLanguage); // Apply initial language and update UI
-            // No specific Adsgram initialization function needed, as it's called directly in ad functions
         }
     }
 
@@ -1091,25 +1090,36 @@
              btn.disabled = disable;
              btn.style.opacity = disable ? '0.6' : '1';
         });
-        document.getElementById('withdraw-modal').querySelectorAll('input, select, button').forEach(el => {
-            el.disabled = disable;
-        });
+        // Ensure withdraw modal elements are handled
+        if (withdrawModalEl) {
+            withdrawModalEl.querySelectorAll('input, select, button').forEach(el => {
+                el.disabled = disable;
+            });
+        }
         // Tapping game specific buttons
-        claimRewardBtn.disabled = disable || (tapsCount < TAPS_REQUIRED_FOR_CLAIM);
-        tapAreaEl.style.pointerEvents = disable ? 'none' : 'auto'; // Disable tapping if app not ready
+        if (claimRewardBtn) { // Check if element exists
+            claimRewardBtn.disabled = disable || (tapsCount < TAPS_REQUIRED_FOR_CLAIM);
+        }
+        if (tapAreaEl) { // Check if element exists
+            tapAreaEl.style.pointerEvents = disable ? 'none' : 'auto'; // Disable tapping if app not ready
+        }
         logMessage(`Button states updated. Disabled: ${disable}`);
     }
 
     function updateTapUI() {
-        tapsRemainingEl.textContent = TAPS_REQUIRED_FOR_CLAIM - tapsCount;
-        if (tapsCount >= TAPS_REQUIRED_FOR_CLAIM) {
-            claimRewardBtn.style.display = 'block';
-            tapsRemainingEl.style.display = 'none';
-            tapAreaEl.querySelector('p').style.display = 'none';
-        } else {
-            claimRewardBtn.style.display = 'block'; // Always show claim button, but disable it if taps not met
-            tapsRemainingEl.style.display = 'block';
-            tapAreaEl.querySelector('p').style.display = 'block';
+        if (tapsRemainingEl) { // Check if element exists
+            tapsRemainingEl.textContent = TAPS_REQUIRED_FOR_CLAIM - tapsCount;
+        }
+        if (claimRewardBtn && tapsRemainingEl && tapAreaEl && tapAreaEl.querySelector('p')) {
+            if (tapsCount >= TAPS_REQUIRED_FOR_CLAIM) {
+                claimRewardBtn.style.display = 'block';
+                tapsRemainingEl.style.display = 'none';
+                tapAreaEl.querySelector('p').style.display = 'none';
+            } else {
+                claimRewardBtn.style.display = 'block'; // Always show claim button, but disable it if taps not met
+                tapsRemainingEl.style.display = 'block';
+                tapAreaEl.querySelector('p').style.display = 'block';
+            }
         }
         updateButtonStates(); // Re-evaluate button state based on tapsCount
     }
@@ -1195,38 +1205,41 @@
     }
 
     // Tapping Game Logic
-    tapAreaEl.addEventListener('click', async (event) => {
-        if (!isAppReady || !window.firebaseUid) {
-            showAdNotification(translations[currentLanguage].loading_app);
-            logMessage("Tap area click blocked: App not ready or Firebase UID missing.");
-            return;
-        }
-        // Check daily limit (if re-introduced)
-        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
-        //     logMessage("Tap area click blocked: Daily limit reached.");
-        //     return;
-        // }
+    if (tapAreaEl) { // Check if element exists before adding listener
+        tapAreaEl.addEventListener('click', async (event) => {
+            if (!isAppReady || !window.firebaseUid) {
+                showAdNotification(translations[currentLanguage].loading_app);
+                logMessage("Tap area click blocked: App not ready or Firebase UID missing.");
+                return;
+            }
+            // Check daily limit (if re-introduced)
+            // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
+            //     showAdNotification(translations[currentLanguage].daily_limit_reached);
+            //     logMessage("Tap area click blocked: Daily limit reached.");
+            //     return;
+            // }
 
-        if (tapsCount < TAPS_REQUIRED_FOR_CLAIM) {
-            tapsCount++;
-            updateTapUI();
-            logMessage(`Tap registered. Taps count: ${tapsCount}/${TAPS_REQUIRED_FOR_CLAIM}`);
+            if (tapsCount < TAPS_REQUIRED_FOR_CLAIM) {
+                tapsCount++;
+                updateTapUI();
+                logMessage(`Tap registered. Taps count: ${tapsCount}/${TAPS_REQUIRED_FOR_CLAIM}`);
 
-            const feedback = document.createElement('div');
-            feedback.classList.add('tap-feedback');
-            feedback.textContent = `+${POINTS_PER_TAP_GAME_TAP}`; // Show points per tap
-            feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`;
-            feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`;
-            tapAreaEl.appendChild(feedback);
+                const feedback = document.createElement('div');
+                feedback.classList.add('tap-feedback');
+                feedback.textContent = `+${POINTS_PER_TAP_GAME_TAP}`; // Show points per tap
+                feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`;
+                feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`;
+                tapAreaEl.appendChild(feedback);
 
-            tapAreaEl.classList.add('active');
-            setTimeout(() => {
-                feedback.remove();
-                tapAreaEl.classList.remove('active');
-            }, 1000);
-        }
-    });
+                tapAreaEl.classList.add('active');
+                setTimeout(() => {
+                    feedback.remove();
+                    tapAreaEl.classList.remove('active');
+                }, 1000);
+            }
+        });
+    }
+
 
     window.claimTapReward = async function() {
         if (!isAppReady || !window.firebaseUid) {
@@ -1264,7 +1277,7 @@
         // }
         showAdNotification(translations[currentLanguage].ad_loading);
         if (typeof window.Adsgram === 'undefined' || typeof window.Adsgram.init !== 'function') {
-            logMessage('Adsgram SDK not ready for Interstitial.', true);
+            logMessage('Adsgram SDK not ready for Interstitial. Please check the SDK script and network.', true);
             showAdNotification(translations[currentLanguage].ad_failed);
             return;
         }
@@ -1289,11 +1302,13 @@
         // }
         showAdNotification(translations[currentLanguage].ad_loading);
         if (typeof window.Adsgram === 'undefined' || typeof window.Adsgram.init !== 'function') {
-            logMessage('Adsgram SDK not ready for Popup.', true);
+            logMessage('Adsgram SDK not ready for Popup. Please check the SDK script and network.', true);
             showAdNotification(translations[currentLanguage].ad_failed);
             return;
         }
-        window.Adsgram.init({ blockId: "12307" }).show() // Adsgram might not have specific 'popup' type for init. Using default.
+        // Adsgram might not have specific 'popup' type for init. Using default.
+        // If Adsgram has a specific method for popups, it should be used here.
+        window.Adsgram.init({ blockId: "12307" }).show() 
             .then(() => grantReward(POINTS_PER_ADSGRAM_POPUP)) // Grant specific points for popup
             .catch(e => {
                 logMessage('Adsgram Popup Ad failed: ' + e.message, true);
@@ -1433,13 +1448,15 @@
 
     let messageTimeout;
     function showTemporaryMessage(msg, color) {
-        withdrawStatusEl.textContent = msg;
-        withdrawStatusEl.style.color = color;
-        clearTimeout(messageTimeout);
-        messageTimeout = setTimeout(() => {
-            withdrawStatusEl.textContent = '';
-        }, 5000);
-        logMessage(`Temporary Message: ${msg} (Color: ${color})`);
+        if (withdrawStatusEl) { // Check if element exists
+            withdrawStatusEl.textContent = msg;
+            withdrawStatusEl.style.color = color;
+            clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                withdrawStatusEl.textContent = '';
+            }, 5000);
+            logMessage(`Temporary Message: ${msg} (Color: ${color})`);
+        }
     }
 
     // --- Share & Referral ---
@@ -1461,10 +1478,12 @@
             showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
             return;
         }
-        referralLinkInput.select();
-        document.execCommand('copy');
-        showTemporaryMessage(translations[currentLanguage].link_copied_success, 'green');
-        logMessage("Referral link copied.");
+        if (referralLinkInput) { // Check if element exists
+            referralLinkInput.select();
+            document.execCommand('copy');
+            showTemporaryMessage(translations[currentLanguage].link_copied_success, 'green');
+            logMessage("Referral link copied.");
+        }
     };
 
     window.showReferralSection = function() {
@@ -1483,15 +1502,18 @@
             { name: "BotMaster", score: 1530, avatar: "https://i.pravatar.cc/150?img=5" },
         ];
         
-        document.getElementById('leaderboard-list').innerHTML = leaderboardData.map((user, index) => `
-            <div class="list-item">
-                <div class="rank">#${index + 1}</div>
-                <img src="${user.avatar}" class="avatar" alt="Avatar">
-                <div class="info"><div class="name">${user.name}</div></div>
-                <div class="score">${user.score} <span data-key="points_label">Points</span></div>
-            </div>
-        `).join('');
-        setLanguage(currentLanguage); // Apply language to newly rendered elements
+        const leaderboardListEl = document.getElementById('leaderboard-list');
+        if (leaderboardListEl) { // Check if element exists
+            leaderboardListEl.innerHTML = leaderboardData.map((user, index) => `
+                <div class="list-item">
+                    <div class="rank">#${index + 1}</div>
+                    <img src="${user.avatar}" class="avatar" alt="Avatar">
+                    <div class="info"><div class="name">${user.name}</div></div>
+                    <div class="score">${user.score} <span data-key="points_label">Points</span></div>
+                </div>
+            `).join('');
+            setLanguage(currentLanguage); // Apply language to newly rendered elements
+        }
     }
 
     // --- Withdrawal History Logic ---
@@ -1514,66 +1536,70 @@
 
         logMessage(`Setting up Firestore listener for withdrawal history for user Firebase UID: ${window.firebaseUid}`);
         unsubscribeFromWithdrawals = onSnapshot(q, (snapshot) => {
-            logMessage("Firestore onSnapshot: Withdrawal history data received.");
-            withdrawalHistoryListEl.innerHTML = '';
-            const withdrawals = [];
-            snapshot.forEach(doc => {
-                withdrawals.push({ id: doc.id, ...doc.data() });
-            });
+            if (withdrawalHistoryListEl) { // Check if element exists
+                logMessage("Firestore onSnapshot: Withdrawal history data received.");
+                withdrawalHistoryListEl.innerHTML = '';
+                const withdrawals = [];
+                snapshot.forEach(doc => {
+                    withdrawals.push({ id: doc.id, ...doc.data() });
+                });
 
-            if (withdrawals.length === 0) {
-                withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" data-key="no_withdrawals_yet">${translations[currentLanguage].no_withdrawals_yet}</p>`;
-                logMessage("No withdrawal requests found for this user.");
-                setLanguage(currentLanguage); // Apply language to the "no withdrawals" message
-                return;
-            }
-
-            withdrawals.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
-
-            withdrawals.forEach(item => {
-                const withdrawalItemDiv = document.createElement('div');
-                withdrawalItemDiv.classList.add('withdrawal-item');
-
-                let statusClass = '';
-                let statusText = '';
-
-                switch (item.status) {
-                    case 'pending':
-                        statusClass = 'status-pending';
-                        statusText = translations[currentLanguage].withdrawal_status_pending;
-                        break;
-                    case 'approved':
-                        statusClass = 'status-approved';
-                        statusText = translations[currentLanguage].withdrawal_status_approved;
-                        break;
-                    case 'rejected':
-                        statusClass = 'status-rejected';
-                        statusText = translations[currentLanguage].withdrawal_status_rejected;
-                        break;
-                    default:
-                        statusClass = '';
-                        statusText = item.status;
+                if (withdrawals.length === 0) {
+                    withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" data-key="no_withdrawals_yet">${translations[currentLanguage].no_withdrawals_yet}</p>`;
+                    logMessage("No withdrawal requests found for this user.");
+                    setLanguage(currentLanguage); // Apply language to the "no withdrawals" message
+                    return;
                 }
-                
-                const paymentMethodDisplay = translations[currentLanguage][`${item.paymentMethod}_option`] || item.paymentMethod;
 
-                const detailsHtml = `
-                    <p><strong>${translations[currentLanguage].withdrawal_details
-                        .replace('{amount}', item.amountPoints) // Display points for withdrawal
-                        .replace('{method}', paymentMethodDisplay)
-                        .replace('{address}', item.walletAddress)
-                        .replace('{status}', `<span class="${statusClass}">${statusText}</span>`)}
-                    </p>
-                    <p class="withdrawal-date">${translations[currentLanguage].withdrawal_date.replace('{date}', formatTimestamp(item.timestamp))}</p>
-                `;
-                withdrawalItemDiv.innerHTML = detailsHtml;
-                withdrawalHistoryListEl.appendChild(withdrawalItemDiv);
-            });
-            setLanguage(currentLanguage); // Apply language to newly rendered elements
-            logMessage(`Displayed ${withdrawals.length} withdrawal requests.`);
+                withdrawals.sort((a, b) => (b.timestamp?.toDate() || 0) - (a.timestamp?.toDate() || 0));
+
+                withdrawals.forEach(item => {
+                    const withdrawalItemDiv = document.createElement('div');
+                    withdrawalItemDiv.classList.add('withdrawal-item');
+
+                    let statusClass = '';
+                    let statusText = '';
+
+                    switch (item.status) {
+                        case 'pending':
+                            statusClass = 'status-pending';
+                            statusText = translations[currentLanguage].withdrawal_status_pending;
+                            break;
+                        case 'approved':
+                            statusClass = 'status-approved';
+                            statusText = translations[currentLanguage].withdrawal_status_approved;
+                            break;
+                        case 'rejected':
+                            statusClass = 'status-rejected';
+                            statusText = translations[currentLanguage].withdrawal_status_rejected;
+                            break;
+                        default:
+                            statusClass = '';
+                            statusText = item.status;
+                    }
+                    
+                    const paymentMethodDisplay = translations[currentLanguage][`${item.paymentMethod}_option`] || item.paymentMethod;
+
+                    const detailsHtml = `
+                        <p><strong>${translations[currentLanguage].withdrawal_details
+                            .replace('{amount}', item.amountPoints) // Display points for withdrawal
+                            .replace('{method}', paymentMethodDisplay)
+                            .replace('{address}', item.walletAddress)
+                            .replace('{status}', `<span class="${statusClass}">${statusText}</span>`)}
+                        </p>
+                        <p class="withdrawal-date">${translations[currentLanguage].withdrawal_date.replace('{date}', formatTimestamp(item.timestamp))}</p>
+                    `;
+                    withdrawalItemDiv.innerHTML = detailsHtml;
+                    withdrawalHistoryListEl.appendChild(withdrawalItemDiv);
+                });
+                setLanguage(currentLanguage); // Apply language to newly rendered elements
+                logMessage(`Displayed ${withdrawals.length} withdrawal requests.`);
+            }
         }, (error) => {
             logMessage("Firestore Error: fetching withdrawal history: " + error.message, true);
-            withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" style="color:red;">Error loading history: ${error.message}</p>`;
+            if (withdrawalHistoryListEl) { // Check if element exists
+                withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" style="color:red;">Error loading history: ${error.message}</p>`;
+            }
         });
     }
 
