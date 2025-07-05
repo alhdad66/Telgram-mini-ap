@@ -609,8 +609,8 @@
                 <option value="other_wallet" data-key="other_wallet_option">Other Wallet</option>
             </select>
             
-            <label for="wallet-address" data-key-placeholder="wallet_address_placeholder" data-key="wallet_address_label">Wallet Address:</label>
-            <input type="text" id="wallet-address" placeholder="Enter wallet address" />
+            <label for="wallet-address" data-key="wallet_address_label">Wallet Address:</label>
+            <input type="text" id="wallet-address" data-key-placeholder="wallet_address_placeholder" placeholder="Enter wallet address" />
             
             <p id="withdraw-status" class="withdraw-status"></p>
         </div>
@@ -849,8 +849,12 @@
         if (isError) {
             logEntry.style.color = 'red';
         }
-        logContentEl.appendChild(logEntry);
-        logContentEl.scrollTop = logContentEl.scrollHeight;
+        // Ensure logContentEl exists before appending
+        const logContentEl = document.getElementById('log-content');
+        if (logContentEl) {
+            logContentEl.appendChild(logEntry);
+            logContentEl.scrollTop = logContentEl.scrollHeight;
+        }
         if (isError) {
             console.error(message);
         } else {
@@ -859,13 +863,22 @@
     }
 
     // --- App Initialization ---
-    document.addEventListener('DOMContentLoaded', () => {
-        initApp();
-    });
+    // Use window.onload to ensure all DOM elements are available
+    window.onload = async function() {
+        logMessage("Window loaded. Starting app initialization sequence.");
+        await initApp();
+    };
 
     async function initApp() {
         logMessage("initApp: Starting app initialization.");
-        displayUserIdEl.textContent = translations[currentLanguage].loading_app;
+        // Ensure displayUserIdEl exists before trying to set its textContent
+        const displayUserIdEl = document.getElementById('display-user-id');
+        if (displayUserIdEl) {
+            displayUserIdEl.textContent = translations[currentLanguage].loading_app;
+        } else {
+            console.error("Error: displayUserIdEl not found in DOM.");
+            // Proceed anyway, but log the error
+        }
 
         try {
             if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initData) {
@@ -874,29 +887,41 @@
                 // Set theme colors
                 document.body.style.backgroundColor = Telegram.WebApp.themeParams.bg_color || '#1c1c1f';
                 document.body.style.color = Telegram.WebApp.themeParams.text_color || '#f0f0f0';
+                logMessage("Telegram WebApp initialized and expanded.");
 
                 const tgUser = Telegram.WebApp.initDataUnsafe.user;
                 if (tgUser && tgUser.id) {
                     window.telegramUserId = tgUser.id.toString();
                     window.telegramUsername = tgUser.username || '';
-                    usernameEl.textContent = tgUser.first_name || 'Telegram User';
-                    displayUserIdEl.textContent = window.telegramUserId;
+                    // Ensure usernameEl and profilePicDiv exist
+                    const usernameEl = document.getElementById('username');
+                    const profilePicDiv = document.getElementById('profile-pic');
+                    if (usernameEl) usernameEl.textContent = tgUser.first_name || 'Telegram User';
+                    if (displayUserIdEl) displayUserIdEl.textContent = window.telegramUserId;
 
-                    if (tgUser.photo_url) {
-                        profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
-                    } else {
-                        profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
+                    if (profilePicDiv) {
+                        if (tgUser.photo_url) {
+                            profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
+                        } else {
+                            profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
+                        }
                     }
                     logMessage("SUCCESS: Telegram User ID obtained: " + window.telegramUserId);
                 } else {
                     logMessage("FAILURE: Telegram User ID NOT available. initDataUnsafe.user.id is missing.", true);
-                    displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
+                    if (displayUserIdEl) displayUserIdEl.textContent = translations[currentLanguage].telegram_id_missing;
                     isAppReady = false;
                     updateButtonStates();
                     return;
                 }
 
                 // Initialize Firebase
+                // Import Firebase SDKs inside the script tag with type="module"
+                // This ensures they are loaded before being used.
+                const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js");
+                const { getFirestore, doc, getDoc, setDoc, updateDoc, increment, onSnapshot, collection, addDoc, query, where, getDocs, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js");
+                const { getAuth, signInAnonymously } = await import("https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js");
+
                 window.firebaseApp = initializeApp(firebaseConfig);
                 window.db = getFirestore(window.firebaseApp);
                 window.auth = getAuth(window.firebaseApp);
@@ -934,14 +959,14 @@
 
             } else {
                 logMessage("FAILURE: Telegram WebApp SDK not found or not ready. App not running as a Mini App.", true);
-                showAdNotification(translations[currentLanguage].not_mini_app);
-                displayUserIdEl.textContent = translations[currentLanguage].not_mini_app;
+                if (adNotificationEl) adNotificationEl.textContent = translations[currentLanguage].not_mini_app;
+                if (displayUserIdEl) displayUserIdEl.textContent = translations[currentLanguage].not_mini_app;
                 isAppReady = false;
             }
         } catch (error) {
             logMessage("FATAL ERROR during app initialization: " + error.message, true);
-            showAdNotification(translations[currentLanguage].error_loading_user);
-            displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
+            if (adNotificationEl) adNotificationEl.textContent = translations[currentLanguage].error_loading_user;
+            if (displayUserIdEl) displayUserIdEl.textContent = translations[currentLanguage].error_loading_user;
             isAppReady = false;
         } finally {
             updateButtonStates();
@@ -1056,31 +1081,39 @@
             }
         }, (error) => {
             logMessage("Firestore Error: listening to user document in Firestore: " + error.message, true);
-            showAdNotification(translations[currentLanguage].error_loading_user);
+            const adNotificationEl = document.getElementById('ad-notification');
+            if (adNotificationEl) adNotificationEl.textContent = translations[currentLanguage].error_loading_user;
         });
     }
 
     // --- UI Update Functions ---
     function updateDisplay() {
         const balanceUSD = earnedPoints * USD_PER_PEPE;
-        pointsValueEl.textContent = earnedPoints;
-        balanceValueEl.textContent = `$${balanceUSD.toFixed(2)}`;
-        currentEarnedPointsEl.textContent = earnedPoints; // For withdrawal modal
+        // Ensure elements exist before updating
+        const pointsValueEl = document.getElementById('points-value');
+        const balanceValueEl = document.getElementById('balance-value');
+        const currentEarnedPointsEl = document.getElementById('current-earned-points');
+
+        if (pointsValueEl) pointsValueEl.textContent = earnedPoints;
+        if (balanceValueEl) balanceValueEl.textContent = `$${balanceUSD.toFixed(2)}`;
+        if (currentEarnedPointsEl) currentEarnedPointsEl.textContent = earnedPoints; // For withdrawal modal
         logMessage(`Display updated. Points: ${earnedPoints}, Balance: $${balanceUSD.toFixed(2)}`);
     }
 
     function updateReferralUI() {
         const botUsername = "ididkd46_bot"; // Your bot's username
         const referralLink = window.telegramUserId ? `https://t.me/${botUsername}?start=ref_${window.telegramUserId}` : translations[currentLanguage].loading_app;
-        referralLinkInput.value = referralLink;
+        const referralLinkInput = document.getElementById('referral-link');
+        const totalReferralsSpan = document.getElementById('total-referrals');
+        const earnedFromReferralsSpan = document.getElementById('earned-from-referrals');
 
-        totalReferralsSpan.textContent = totalReferrals;
-        earnedFromReferralsSpan.textContent = earnedFromReferrals.toFixed(2); // Display earned points from referrals
+        if (referralLinkInput) referralLinkInput.value = referralLink;
+        if (totalReferralsSpan) totalReferralsSpan.textContent = totalReferrals;
+        if (earnedFromReferralsSpan) earnedFromReferralsSpan.textContent = earnedFromReferrals.toFixed(2);
         logMessage(`Referral UI updated. Total Referrals: ${totalReferrals}, Earned from Referrals: ${earnedFromReferrals.toFixed(2)}`);
     }
 
     function updateButtonStates() {
-        // Disable buttons if app not ready or no Firebase UID
         const disable = !isAppReady || !window.firebaseUid;
         document.querySelectorAll('.task-card').forEach(card => {
             card.style.pointerEvents = disable ? 'none' : 'auto';
@@ -1090,24 +1123,30 @@
              btn.disabled = disable;
              btn.style.opacity = disable ? '0.6' : '1';
         });
-        // Ensure withdraw modal elements are handled
+        const withdrawModalEl = document.getElementById('withdraw-modal');
         if (withdrawModalEl) {
             withdrawModalEl.querySelectorAll('input, select, button').forEach(el => {
                 el.disabled = disable;
             });
         }
-        // Tapping game specific buttons
-        if (claimRewardBtn) { // Check if element exists
+        const claimRewardBtn = document.getElementById('claim-reward-btn');
+        const tapAreaEl = document.getElementById('tap-area');
+
+        if (claimRewardBtn) {
             claimRewardBtn.disabled = disable || (tapsCount < TAPS_REQUIRED_FOR_CLAIM);
         }
-        if (tapAreaEl) { // Check if element exists
-            tapAreaEl.style.pointerEvents = disable ? 'none' : 'auto'; // Disable tapping if app not ready
+        if (tapAreaEl) {
+            tapAreaEl.style.pointerEvents = disable ? 'none' : 'auto';
         }
         logMessage(`Button states updated. Disabled: ${disable}`);
     }
 
     function updateTapUI() {
-        if (tapsRemainingEl) { // Check if element exists
+        const tapsRemainingEl = document.getElementById('taps-remaining');
+        const claimRewardBtn = document.getElementById('claim-reward-btn');
+        const tapAreaEl = document.getElementById('tap-area');
+
+        if (tapsRemainingEl) {
             tapsRemainingEl.textContent = TAPS_REQUIRED_FOR_CLAIM - tapsCount;
         }
         if (claimRewardBtn && tapsRemainingEl && tapAreaEl && tapAreaEl.querySelector('p')) {
@@ -1116,29 +1155,34 @@
                 tapsRemainingEl.style.display = 'none';
                 tapAreaEl.querySelector('p').style.display = 'none';
             } else {
-                claimRewardBtn.style.display = 'block'; // Always show claim button, but disable it if taps not met
+                claimRewardBtn.style.display = 'block';
                 tapsRemainingEl.style.display = 'block';
                 tapAreaEl.querySelector('p').style.display = 'block';
             }
         }
-        updateButtonStates(); // Re-evaluate button state based on tapsCount
+        updateButtonStates();
     }
 
     // --- View Management ---
-    function showView(viewId) {
+    window.showView = function(viewId) {
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-        currentViewId = viewId; // Update current view tracking
+        const targetView = document.getElementById(viewId);
+        if (targetView) {
+            targetView.classList.add('active');
+            currentViewId = viewId;
+        } else {
+            logMessage(`Error: View with ID ${viewId} not found.`, true);
+            return;
+        }
 
         document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.querySelector(`.nav-button[onclick="showView('${viewId}')"]`);
         if(activeBtn) activeBtn.classList.add('active');
 
-        // Specific actions for views
         if (viewId === 'history-view') {
             loadWithdrawalHistory();
         } else if (viewId === 'leaderboard-view') {
-            renderLeaderboard(); // Static for now
+            renderLeaderboard();
         }
         updateBackButtonVisibility();
         logMessage(`Switched to view: ${viewId}`);
@@ -1153,7 +1197,6 @@
         try {
             let totalPointsEarned = pointsToGrant;
 
-            // Increment watchedAdsCount for bonus calculation
             let newWatchedAdsCount = watchedAdsCount + 1;
             let newDailyWatchedAdsCount = dailyWatchedAdsCount + 1;
 
@@ -1166,15 +1209,14 @@
                 earnedPoints: increment(totalPointsEarned),
                 watchedAdsCount: newWatchedAdsCount,
                 dailyWatchedAdsCount: newDailyWatchedAdsCount,
-                lastWatchDate: getTodayDate() // Update last watch date
+                lastWatchDate: getTodayDate()
             });
             logMessage(`Firestore Update: User ${window.firebaseUid} earned ${totalPointsEarned} points.`);
 
-            // Handle referral earnings
             const userDocSnap = await getDoc(userDocRef);
             if (userDocSnap.exists() && userDocSnap.data().referrerTelegramId) {
                 const referrerTelegramId = userDocSnap.data().referrerTelegramId;
-                const referrerEarn = pointsToGrant * REFERRAL_PERCENTAGE; // Referral based on base points, not including bonus
+                const referrerEarn = pointsToGrant * REFERRAL_PERCENTAGE;
 
                 const referrerQuery = query(collection(window.db, `artifacts/${appId}/users`), where("telegramUserId", "==", referrerTelegramId));
                 const referrerSnapshot = await getDocs(referrerQuery);
@@ -1193,32 +1235,36 @@
             }
 
             const newBalanceUSD = (earnedPoints + totalPointsEarned) * USD_PER_PEPE;
-            showAdNotification(translations[currentLanguage].ad_completed_success
-                .replace('{POINTS_EARNED}', totalPointsEarned)
-                .replace('{NEW_BALANCE_USD}', newBalanceUSD.toFixed(2)));
+            const adNotificationEl = document.getElementById('ad-notification');
+            if (adNotificationEl) {
+                adNotificationEl.textContent = translations[currentLanguage].ad_completed_success
+                    .replace('{POINTS_EARNED}', totalPointsEarned)
+                    .replace('{NEW_BALANCE_USD}', newBalanceUSD.toFixed(2));
+                adNotificationEl.style.display = 'block';
+                setTimeout(() => { adNotificationEl.style.display = 'none'; }, 3000);
+            }
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         } catch (error) {
             logMessage("Error granting reward or updating Firestore: " + error.message, true);
-            showAdNotification(translations[currentLanguage].ad_failed);
+            const adNotificationEl = document.getElementById('ad-notification');
+            if (adNotificationEl) {
+                adNotificationEl.textContent = translations[currentLanguage].ad_failed;
+                adNotificationEl.style.display = 'block';
+                setTimeout(() => { adNotificationEl.style.display = 'none'; }, 3000);
+            }
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         }
     }
 
     // Tapping Game Logic
-    if (tapAreaEl) { // Check if element exists before adding listener
-        tapAreaEl.addEventListener('click', async (event) => {
+    const tapAreaElGlobal = document.getElementById('tap-area');
+    if (tapAreaElGlobal) {
+        tapAreaElGlobal.addEventListener('click', async (event) => {
             if (!isAppReady || !window.firebaseUid) {
                 showAdNotification(translations[currentLanguage].loading_app);
                 logMessage("Tap area click blocked: App not ready or Firebase UID missing.");
                 return;
             }
-            // Check daily limit (if re-introduced)
-            // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-            //     showAdNotification(translations[currentLanguage].daily_limit_reached);
-            //     logMessage("Tap area click blocked: Daily limit reached.");
-            //     return;
-            // }
-
             if (tapsCount < TAPS_REQUIRED_FOR_CLAIM) {
                 tapsCount++;
                 updateTapUI();
@@ -1226,20 +1272,19 @@
 
                 const feedback = document.createElement('div');
                 feedback.classList.add('tap-feedback');
-                feedback.textContent = `+${POINTS_PER_TAP_GAME_TAP}`; // Show points per tap
-                feedback.style.left = `${event.clientX - tapAreaEl.getBoundingClientRect().left}px`;
-                feedback.style.top = `${event.clientY - tapAreaEl.getBoundingClientRect().top}px`;
-                tapAreaEl.appendChild(feedback);
+                feedback.textContent = `+${POINTS_PER_TAP_GAME_TAP}`;
+                feedback.style.left = `${event.clientX - tapAreaElGlobal.getBoundingClientRect().left}px`;
+                feedback.style.top = `${event.clientY - tapAreaElGlobal.getBoundingClientRect().top}px`;
+                tapAreaElGlobal.appendChild(feedback);
 
-                tapAreaEl.classList.add('active');
+                tapAreaElGlobal.classList.add('active');
                 setTimeout(() => {
                     feedback.remove();
-                    tapAreaEl.classList.remove('active');
+                    tapAreaElGlobal.classList.remove('active');
                 }, 1000);
             }
         });
     }
-
 
     window.claimTapReward = async function() {
         if (!isAppReady || !window.firebaseUid) {
@@ -1252,29 +1297,17 @@
             logMessage("Claim tap reward blocked: Not enough taps.");
             return;
         }
-        // Check daily limit (if re-introduced)
-        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
-        //     logMessage("Claim tap reward blocked: Daily limit reached.");
-        //     return;
-        // }
 
-        tapsCount = 0; // Reset taps after claiming
-        await grantReward(POINTS_PER_TAP_GAME_CLAIM); // Grant points for the claim
-        updateTapUI(); // Update UI after reset
+        tapsCount = 0;
+        await grantReward(POINTS_PER_TAP_GAME_CLAIM);
+        updateTapUI();
     };
-
 
     window.showAdsgramInterstitial = function() {
         if (!isAppReady || !window.firebaseUid) {
             showAdNotification(translations[currentLanguage].loading_app);
             return;
         }
-        // Check daily limit (if re-introduced)
-        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
-        //     return;
-        // }
         showAdNotification(translations[currentLanguage].ad_loading);
         if (typeof window.Adsgram === 'undefined' || typeof window.Adsgram.init !== 'function') {
             logMessage('Adsgram SDK not ready for Interstitial. Please check the SDK script and network.', true);
@@ -1295,21 +1328,14 @@
             showAdNotification(translations[currentLanguage].loading_app);
             return;
         }
-        // Check daily limit (if re-introduced)
-        // if (dailyWatchedAdsCount >= DAILY_AD_LIMIT) {
-        //     showAdNotification(translations[currentLanguage].daily_limit_reached);
-        //     return;
-        // }
         showAdNotification(translations[currentLanguage].ad_loading);
         if (typeof window.Adsgram === 'undefined' || typeof window.Adsgram.init !== 'function') {
             logMessage('Adsgram SDK not ready for Popup. Please check the SDK script and network.', true);
             showAdNotification(translations[currentLanguage].ad_failed);
             return;
         }
-        // Adsgram might not have specific 'popup' type for init. Using default.
-        // If Adsgram has a specific method for popups, it should be used here.
-        window.Adsgram.init({ blockId: "12307" }).show() 
-            .then(() => grantReward(POINTS_PER_ADSGRAM_POPUP)) // Grant specific points for popup
+        window.Adsgram.init({ blockId: "12307" }).show()
+            .then(() => grantReward(POINTS_PER_ADSGRAM_POPUP))
             .catch(e => {
                 logMessage('Adsgram Popup Ad failed: ' + e.message, true);
                 showAdNotification(translations[currentLanguage].ad_failed);
@@ -1318,12 +1344,15 @@
     };
 
     function showAdNotification(message) {
-        adNotificationEl.textContent = message;
-        adNotificationEl.style.display = 'block';
-        logMessage(`Ad Notification: ${message}`);
-        setTimeout(() => {
-            adNotificationEl.style.display = 'none';
-        }, 3000);
+        const adNotificationEl = document.getElementById('ad-notification');
+        if (adNotificationEl) {
+            adNotificationEl.textContent = message;
+            adNotificationEl.style.display = 'block';
+            logMessage(`Ad Notification: ${message}`);
+            setTimeout(() => {
+                adNotificationEl.style.display = 'none';
+            }, 3000);
+        }
     }
 
     // --- Withdrawal Logic ---
@@ -1332,8 +1361,8 @@
             showAdNotification(translations[currentLanguage].loading_app);
             return;
         }
-        // Check minimum withdrawal in points
-        const minPointsForWithdrawal = document.getElementById('payment-method').value === 'faucetpay' ? MIN_WITHDRAW_POINTS_FAUCETPAY : MIN_WITHDRAW_POINTS_OTHER;
+        const paymentMethodEl = document.getElementById('payment-method');
+        const minPointsForWithdrawal = paymentMethodEl.value === 'faucetpay' ? MIN_WITHDRAW_POINTS_FAUCETPAY : MIN_WITHDRAW_POINTS_OTHER;
         if (earnedPoints < minPointsForWithdrawal) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             const msg = translations[currentLanguage].min_withdraw_alert
@@ -1343,16 +1372,22 @@
             logMessage(`Withdrawal blocked: Minimum not met. Current: ${earnedPoints} points`, true);
             return;
         }
-        document.getElementById('withdraw-amount').value = earnedPoints; // Pre-fill with current points
-        document.getElementById('wallet-address').value = ''; // Clear previous address
-        document.getElementById('payment-method').value = 'faucetpay'; // Default to FaucetPay
-        withdrawStatusEl.textContent = ''; // Clear previous status
-        withdrawModalEl.classList.add('active');
+        const withdrawAmountEl = document.getElementById('withdraw-amount');
+        const walletAddressEl = document.getElementById('wallet-address');
+        const withdrawStatusEl = document.getElementById('withdraw-status');
+        const withdrawModalEl = document.getElementById('withdraw-modal');
+
+        if (withdrawAmountEl) withdrawAmountEl.value = earnedPoints;
+        if (walletAddressEl) walletAddressEl.value = '';
+        if (paymentMethodEl) paymentMethodEl.value = 'faucetpay';
+        if (withdrawStatusEl) withdrawStatusEl.textContent = '';
+        if (withdrawModalEl) withdrawModalEl.classList.add('active');
         logMessage("Withdrawal modal opened.");
     };
 
     window.closeWithdrawModal = function() {
-        withdrawModalEl.classList.remove('active');
+        const withdrawModalEl = document.getElementById('withdraw-modal');
+        if (withdrawModalEl) withdrawModalEl.classList.remove('active');
         logMessage("Withdrawal modal closed.");
     };
 
@@ -1367,8 +1402,6 @@
         const walletAddress = document.getElementById('wallet-address').value.trim();
 
         let minRequiredPoints;
-        let minWarningMessageKey;
-
         if (paymentMethod === 'faucetpay') {
             minRequiredPoints = MIN_WITHDRAW_POINTS_FAUCETPAY;
         } else {
@@ -1414,14 +1447,13 @@
             });
             logMessage(`Firestore Update: Points deducted successfully for user Firebase UID: ${window.firebaseUid}.`);
 
-            // Create a new withdrawal request document in Firestore
             const withdrawalsCollectionRef = collection(window.db, `artifacts/${appId}/withdrawals`);
             const newWithdrawalDocRef = await addDoc(withdrawalsCollectionRef, {
                 firebaseUid: window.firebaseUid,
                 telegramUserId: window.telegramUserId,
                 username: window.telegramUsername || 'N/A',
-                amountPoints: amountPoints, // Store in points
-                amountUSD: (amountPoints * USD_PER_PEPE).toFixed(2), // Store USD equivalent
+                amountPoints: amountPoints,
+                amountUSD: (amountPoints * USD_PER_PEPE).toFixed(2),
                 paymentMethod: paymentMethod,
                 walletAddress: walletAddress,
                 status: 'pending',
@@ -1434,10 +1466,11 @@
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
             logMessage("Withdrawal request sent successfully.");
 
-            // Clear form fields
-            document.getElementById('withdraw-amount').value = '';
-            document.getElementById('wallet-address').value = '';
-            closeWithdrawModal(); // Close modal on success
+            const withdrawAmountEl = document.getElementById('withdraw-amount');
+            const walletAddressEl = document.getElementById('wallet-address');
+            if (withdrawAmountEl) withdrawAmountEl.value = '';
+            if (walletAddressEl) walletAddressEl.value = '';
+            closeWithdrawModal();
 
         } catch (error) {
             logMessage("Withdrawal Error: Failed to update Firestore: " + error.message, true);
@@ -1448,7 +1481,8 @@
 
     let messageTimeout;
     function showTemporaryMessage(msg, color) {
-        if (withdrawStatusEl) { // Check if element exists
+        const withdrawStatusEl = document.getElementById('withdraw-status');
+        if (withdrawStatusEl) {
             withdrawStatusEl.textContent = msg;
             withdrawStatusEl.style.color = color;
             clearTimeout(messageTimeout);
@@ -1465,9 +1499,9 @@
             showAdNotification(translations[currentLanguage].telegram_id_missing);
             return;
         }
-        const botUsername = "ididkd46_bot"; // Your bot's username
+        const botUsername = "ididkd46_bot";
         const referralLink = `https://t.me/${botUsername}?start=ref_${window.telegramUserId}`;
-        const text = translations[currentLanguage].referral_description; // Use translation for share text
+        const text = translations[currentLanguage].referral_description;
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
         Telegram.WebApp.openTelegramLink(shareUrl);
         logMessage("Share app link opened.");
@@ -1478,7 +1512,8 @@
             showTemporaryMessage(translations[currentLanguage].loading_app, 'red');
             return;
         }
-        if (referralLinkInput) { // Check if element exists
+        const referralLinkInput = document.getElementById('referral-link');
+        if (referralLinkInput) {
             referralLinkInput.select();
             document.execCommand('copy');
             showTemporaryMessage(translations[currentLanguage].link_copied_success, 'green');
@@ -1492,8 +1527,6 @@
 
     // --- Leaderboard Logic (Static for now) ---
     function renderLeaderboard() {
-        // This leaderboard is static. For a dynamic leaderboard,
-        // you would fetch user data from Firestore, sort it by earnedPoints, and display.
         const leaderboardData = [
             { name: "CryptoKing", score: 2540, avatar: "https://i.pravatar.cc/150?img=1" },
             { name: "Elena", score: 2210, avatar: "https://i.pravatar.cc/150?img=2" },
@@ -1503,7 +1536,7 @@
         ];
         
         const leaderboardListEl = document.getElementById('leaderboard-list');
-        if (leaderboardListEl) { // Check if element exists
+        if (leaderboardListEl) {
             leaderboardListEl.innerHTML = leaderboardData.map((user, index) => `
                 <div class="list-item">
                     <div class="rank">#${index + 1}</div>
@@ -1512,7 +1545,7 @@
                     <div class="score">${user.score} <span data-key="points_label">Points</span></div>
                 </div>
             `).join('');
-            setLanguage(currentLanguage); // Apply language to newly rendered elements
+            setLanguage(currentLanguage);
         }
     }
 
@@ -1536,7 +1569,8 @@
 
         logMessage(`Setting up Firestore listener for withdrawal history for user Firebase UID: ${window.firebaseUid}`);
         unsubscribeFromWithdrawals = onSnapshot(q, (snapshot) => {
-            if (withdrawalHistoryListEl) { // Check if element exists
+            const withdrawalHistoryListEl = document.getElementById('withdrawal-history-list');
+            if (withdrawalHistoryListEl) {
                 logMessage("Firestore onSnapshot: Withdrawal history data received.");
                 withdrawalHistoryListEl.innerHTML = '';
                 const withdrawals = [];
@@ -1547,7 +1581,7 @@
                 if (withdrawals.length === 0) {
                     withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" data-key="no_withdrawals_yet">${translations[currentLanguage].no_withdrawals_yet}</p>`;
                     logMessage("No withdrawal requests found for this user.");
-                    setLanguage(currentLanguage); // Apply language to the "no withdrawals" message
+                    setLanguage(currentLanguage);
                     return;
                 }
 
@@ -1582,7 +1616,7 @@
 
                     const detailsHtml = `
                         <p><strong>${translations[currentLanguage].withdrawal_details
-                            .replace('{amount}', item.amountPoints) // Display points for withdrawal
+                            .replace('{amount}', item.amountPoints)
                             .replace('{method}', paymentMethodDisplay)
                             .replace('{address}', item.walletAddress)
                             .replace('{status}', `<span class="${statusClass}">${statusText}</span>`)}
@@ -1592,12 +1626,13 @@
                     withdrawalItemDiv.innerHTML = detailsHtml;
                     withdrawalHistoryListEl.appendChild(withdrawalItemDiv);
                 });
-                setLanguage(currentLanguage); // Apply language to newly rendered elements
+                setLanguage(currentLanguage);
                 logMessage(`Displayed ${withdrawals.length} withdrawal requests.`);
             }
         }, (error) => {
             logMessage("Firestore Error: fetching withdrawal history: " + error.message, true);
-            if (withdrawalHistoryListEl) { // Check if element exists
+            const withdrawalHistoryListEl = document.getElementById('withdrawal-history-list');
+            if (withdrawalHistoryListEl) {
                 withdrawalHistoryListEl.innerHTML = `<p class="no-withdrawals-message" style="color:red;">Error loading history: ${error.message}</p>`;
             }
         });
@@ -1615,11 +1650,11 @@
     function formatTimestamp(timestamp) {
         if (!timestamp) return '';
         let date;
-        if (timestamp.toDate) { // Firestore Timestamp object
+        if (timestamp.toDate) {
             date = timestamp.toDate();
-        } else if (typeof timestamp === 'number') { // JavaScript timestamp
+        } else if (typeof timestamp === 'number') {
             date = new Date(timestamp);
-        } else { // Assume it's an ISO string or similar
+        } else {
             date = new Date(timestamp);
         }
 
@@ -1691,11 +1726,11 @@
             }
         });
 
-        updateDisplay(); // Update dynamic values
-        updateReferralUI(); // Update referral UI with new language
-        renderLeaderboard(); // Re-render leaderboard to apply language
+        updateDisplay();
+        updateReferralUI();
+        renderLeaderboard();
         if (currentViewId === 'history-view') {
-            loadWithdrawalHistory(); // Re-render history to apply language
+            loadWithdrawalHistory();
         }
     };
 </script>
