@@ -6,15 +6,15 @@
   <title>Easy Earning Bot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    /* الأنماط الأساسية للتطبيق */
+    /* Basic application styles */
     :root {
-      --primary-color: #2ed914; /* أخضر ساطع */
-      --primary-hover: #3bff21; /* أخضر أفتح عند التمرير */
+      --primary-color: #2ed914; /* Bright green */
+      --primary-hover: #3bff21; /* Lighter green on hover */
       --secondary-color: #2a2a2e;
       --background-color: #1c1c1f;
       --text-color: #f0f0f0;
       --text-muted-color: #a0a0a0;
-      --accent-color: #ff8c00; /* لون برتقالي مميز */
+      --accent-color: #ff8c00; /* Orange accent color */
       --card-bg: #252528;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,7 +28,7 @@
       display: flex; flex-direction: column; overflow: hidden; position: relative;
     }
     main {
-      flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* مساحة للتنقل السفلي */
+      flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* Space for footer nav */
     }
     .view { display: none; animation: fadeIn 0.4s ease-in-out; }
     .view.active { display: block; }
@@ -109,7 +109,7 @@
     .modal-content p { color: var(--text-muted-color); margin-bottom: 25px; }
     .modal-actions { display: flex; gap: 10px; }
 
-    /* أنماط لعبة النقر */
+    /* Clicker Game styles */
     .clicker-container {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 20px; background: var(--card-bg); border-radius: 16px;
@@ -146,7 +146,7 @@
     .claim-reward-button { margin-top: 30px; width: 80%; }
     .hidden { display: none !important; }
 
-    /* أنماط عجلة الحظ */
+    /* Wheel of Fortune styles */
     .wheel-container {
       display: flex;
       flex-direction: column;
@@ -230,7 +230,7 @@
       border-color: var(--primary-color);
     }
 
-    /* أنماط صفحة الإحالة */
+    /* Referral View styles */
     .referral-container {
         display: flex;
         flex-direction: column;
@@ -251,7 +251,7 @@
         margin-bottom: 15px;
         font-size: 14px;
         color: var(--text-color);
-        word-break: break-all; /* يضمن التفاف الروابط الطويلة */
+        word-break: break-all; /* Ensures long links wrap */
         text-align: center;
     }
 
@@ -286,19 +286,19 @@
   </style>
 
   <script type="module">
-    // استيراد وظائف Firebase المطلوبة
+    // Import necessary Firebase SDK functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, addDoc, getDocs, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-    // لا يوجد استيراد لـ Cloud Functions هنا لأنها تتطلب إعداد خادم.
+    // Cloud Functions are not imported here as they require a backend setup.
 
-    // متغيرات Firebase العامة (سيتم تهيئتها في initApp)
+    // Global Firebase variables (will be initialized in initApp)
     window.firebaseApp = null;
     window.db = null;
     window.auth = null;
-    window.userId = null; // لتخزين معرف مستخدم Firebase الحالي
+    window.userId = null; // To store the current user's Firebase UID
 
-    // إعدادات Firebase (مقدمة من المستخدم)
+    // Firebase configuration (provided by user)
     const firebaseConfig = {
       apiKey: "AIzaSyCEhqlsyg6og3z1ZuQ8ZJsFewgYbSSvUEQ",
       authDomain: "adsgram-33175.firebaseapp.com",
@@ -306,17 +306,17 @@
       storageBucket: "adsgram-33175.firebasestorage.app",
       messagingSenderId: "762757643972",
       appId: "1:762757643972:web:b716aa8150643c0e071391",
-      measurementId: "G-H5NFFBHPE6" // measurementId اختياري وغير مستخدم في منطق هذا التطبيق
+      measurementId: "G-H5NFFBHPE6" // measurementId is optional and not used in this app's logic
     };
 
-    // تهيئة Firebase (سيتم استدعاؤها مرة واحدة في initApp)
+    // Initialize Firebase (will be called once in initApp)
     window.initializeFirebase = () => {
         if (!window.firebaseApp) {
             window.firebaseApp = initializeApp(firebaseConfig);
             window.db = getFirestore(window.firebaseApp);
             window.auth = getAuth(window.firebaseApp);
 
-            // الاستماع لتغيرات حالة المصادقة لتعيين userId
+            // Listen for auth state changes to set userId
             onAuthStateChanged(window.auth, (user) => {
                 if (user) {
                     window.userId = user.uid;
@@ -330,7 +330,7 @@
     };
   </script>
 
-  <!-- مكتبات إضافية -->
+  <!-- Additional libraries -->
   <script src='//libtl.com/sdk.js' data-zone='9459352' data-sdk='show_9459352'></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -338,7 +338,7 @@
   <div class="container">
     <main id="main-content">
 
-      <!-- عرض الصفحة الرئيسية -->
+      <!-- Home View -->
       <div id="home-view" class="view active">
         <div class="user-header-card">
           <div class="user-avatar" id="profile-pic">EE</div>
@@ -375,7 +375,7 @@
         </div>
       </div>
 
-      <!-- عرض المهام (لعبة النقر فقط) -->
+      <!-- Tasks View (Clicker Game Only) -->
       <div id="tasks-view" class="view">
         <h2 class="section-title">انقر لتربح!</h2>
         <div class="clicker-container">
@@ -389,14 +389,14 @@
         </div>
       </div>
 
-      <!-- عرض عجلة الحظ (عرض منفصل جديد) -->
+      <!-- Wheel of Fortune View (New Separate View) -->
       <div id="wheel-view" class="view">
         <h2 class="section-title">عجلة الحظ اليومية</h2>
         <div class="wheel-container">
             <h3 class="section-subtitle">أدر العجلة لتربح!</h3>
             <div class="wheel-pointer"></div>
             <div class="wheel-display" id="wheel-display">
-                <!-- سيتم عرض مقاطع العجلة بواسطة CSS conic-gradient -->
+                <!-- Wheel segments will be rendered by CSS conic-gradient -->
             </div>
             <p class="wheel-result" id="wheel-result">أدخل الكود لتفعيل العجلة.</p>
             <input type="text" id="daily-code-input" class="text-input" placeholder="أدخل الكود اليومي هنا">
@@ -412,13 +412,13 @@
         </div>
       </div>
 
-      <!-- عرض الإحالة (عرض منفصل جديد) -->
+      <!-- Referral View (New Separate View) -->
       <div id="referral-view" class="view">
         <h2 class="section-title">صفحة الإحالة</h2>
         <div class="referral-container">
             <h3 class="section-subtitle">رابط الإحالة الخاص بك</h3>
             <div class="referral-link-display" id="referral-link-display">
-                <!-- سيتم عرض رابط الإحالة هنا -->
+                <!-- Referral link will be displayed here -->
             </div>
             <button class="action-button primary-button" onclick="copyReferralLink()">
                 نسخ الرابط <i class="fa-solid fa-copy"></i>
@@ -438,21 +438,21 @@
         </div>
       </div>
 
-      <!-- عرض لوحة القادة -->
+      <!-- Leaderboard View -->
       <div id="leaderboard-view" class="view">
         <h2 class="section-title">أفضل الكاسبين</h2>
-        <div id="leaderboard-list"><!-- سيتم إنشاء عناصر لوحة القادة هنا بواسطة JS --></div>
+        <div id="leaderboard-list"><!-- Leaderboard items will be generated here by JS --></div>
       </div>
 
-      <!-- عرض السجل -->
+      <!-- History View -->
       <div id="history-view" class="view">
         <h2 class="section-title">النشاط الأخير</h2>
-        <div id="history-list"><!-- سيتم إنشاء عناصر السجل هنا بواسطة JS --></div>
+        <div id="history-list"><!-- History items will be generated here by JS --></div>
       </div>
 
     </main>
 
-    <!-- شريط التنقل السفلي -->
+    <!-- Footer Navigation Bar -->
     <nav class="footer-nav">
       <button class="nav-button active" onclick="showView('home-view')"><i class="icon fa-solid fa-house"></i>الرئيسية</button>
       <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-hand-pointer"></i>النقر</button>
@@ -463,7 +463,7 @@
     </nav>
   </div>
   
-  <!-- نافذة سحب الأموال المنبثقة -->
+  <!-- Withdrawal Modal -->
   <div class="modal-overlay" id="withdraw-modal">
     <div class="modal-content">
         <h3>تأكيد السحب</h3>
@@ -475,7 +475,7 @@
     </div>
   </div>
 
-  <!-- نافذة رسالة عامة منبثقة -->
+  <!-- Generic Message Modal -->
   <div class="modal-overlay" id="message-modal">
     <div class="modal-content">
         <h3 id="message-modal-title"></h3>
@@ -488,76 +488,76 @@
 
 
 <script>
-    // --- متغيرات الحالة ---
+    // --- State Variables ---
     let points = 0;
     let balance = 0.00;
     let historyLog = [];
-    let tgUser = null; // بيانات مستخدم Telegram من WebApp
-    const pointsPerAd = 1; // النقاط المكتسبة لكل إعلان (أو نقرة)
-    const ratePerPoint = 0.05; // سعر النقطة بالدولار
+    let tgUser = null; // Telegram user data from WebApp
+    const pointsPerAd = 1; // Points earned per ad (or click)
+    const ratePerPoint = 0.05; // Value of each point in USD
 
-    // متغيرات خاصة بلعبة النقر
+    // Clicker Game specific variables
     let clicksCount = 0;
-    const clicksRequired = 10; // عدد النقرات المطلوبة للمطالبة بالمكافأة
+    const clicksRequired = 10; // Number of clicks required to claim reward
 
-    // متغيرات خاصة بعجلة الحظ
-    let currentDailyCode = ''; // سيتم جلبها من Firestore
-    let lastSpinDate = null; // لتتبع ما إذا تم تدوير العجلة اليوم
-    let isWheelActive = false; // صحيح إذا تم إدخال الكود اليومي ولم يتم تدويرها اليوم
+    // Wheel of Fortune specific variables
+    let currentDailyCode = ''; // Will be fetched from Firestore
+    let lastSpinDate = null; // To track if the wheel has been spun today
+    let isWheelActive = false; // True if daily code entered and not spun today
 
-    // متغيرات خاصة بالإحالة (يتم تحميلها الآن من Firestore)
+    // Referral specific variables (now loaded from Firestore)
     let referralCount = 0;
     let referralEarnings = 0.00;
 
-    // --- منطق التطبيق الأساسي ---
+    // --- Core App Logic ---
     document.addEventListener('DOMContentLoaded', () => {
         initApp();
-        // مستمعو الأحداث لعناصر لعبة النقر
+        // Event listeners for the clicker game elements
         document.getElementById('click-area').addEventListener('click', handleClicks);
         document.getElementById('claim-reward-button').addEventListener('click', claimReward);
 
-        // مستمعو الأحداث لعناصر عجلة الحظ
+        // Event listeners for the Wheel of Fortune elements
         document.getElementById('activate-wheel-button').addEventListener('click', checkDailyCode);
         document.getElementById('spin-wheel-button').addEventListener('click', spinWheel);
         document.getElementById('join-channel-button').addEventListener('click', joinTelegramChannel);
 
-        // مستمعو الأحداث لعناصر صفحة الإحالة
+        // Event listeners for the Referral page elements
         document.getElementById('referral-link-display').addEventListener('click', copyReferralLink);
     });
 
-    // دالة تهيئة التطبيق
+    // Application initialization function
     async function initApp() {
-        // تهيئة خدمات Firebase
-        window.initializeFirebase(); // استدعاء دالة التهيئة العامة المعرفة في وسم السكربت
+        // Initialize Firebase services
+        window.initializeFirebase(); // Call the global initializer defined in the script tag
 
         if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
-            tgUser = Telegram.WebApp.initDataUnsafe.user; // الحصول على بيانات مستخدم Telegram
+            tgUser = Telegram.WebApp.initDataUnsafe.user; // Get Telegram user data
         }
         
-        // --- مصادقة Firebase: الأولوية لرمز Canvas، ثم المصادقة المجهولة ---
-        // بما أن وظائف Cloud Functions لمصادقة Telegram غير متاحة بدون خادم،
-        // نعود إلى المصادقة المجهولة للاستمرارية عبر الجلسات على نفس الجهاز.
+        // --- Firebase Authentication: Prioritize Canvas token, then Anonymous ---
+        // Since Cloud Functions for Telegram auth are not available without a server,
+        // we revert to anonymous authentication for persistence across sessions on the same device.
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             try {
                 await signInWithCustomToken(window.auth, __initial_auth_token);
-                console.log("تم تسجيل الدخول باستخدام الرمز المخصص من بيئة Canvas.");
+                console.log("Signed in with custom token from Canvas environment.");
             } catch (error) {
-                console.error("خطأ في تسجيل الدخول باستخدام رمز Canvas:", error);
-                showMessageModal("خطأ في المصادقة", "فشل تسجيل الدخول باستخدام رمز Canvas.");
+                console.error("Error signing in with Canvas token:", error);
+                showMessageModal("Authentication Error", "Failed to sign in with Canvas token.");
             }
         } else {
             try {
                 await signInAnonymously(window.auth);
-                console.log("تم تسجيل الدخول كمجهول.");
+                console.log("Signed in anonymously.");
             } catch (error) {
-                console.error("خطأ في تسجيل الدخول كمجهول:", error);
-                showMessageModal("خطأ حرج", "فشل تسجيل الدخول تماماً.");
+                console.error("Error signing in anonymously:", error);
+                showMessageModal("Critical Error", "Failed to sign in completely.");
             }
         }
 
-        // انتظر حتى تكون حالة مصادقة Firebase جاهزة ويتم تعيين userId
+        // Wait for Firebase auth state to be ready and userId to be set
         await new Promise(resolve => {
             const unsubscribe = onAuthStateChanged(window.auth, (user) => {
                 if (user) {
@@ -567,21 +567,21 @@
             });
         });
 
-        await loadData(); // الآن قم بتحميل البيانات من Firestore بعد مصادقة المستخدم
-        loadTelegramUser(); // ستستخدم هذه الدالة tgUser الذي تم تعيينه بالفعل
-        showView('home-view'); // ابدأ من عرض الصفحة الرئيسية
-        renderLeaderboard(); // ستحتاج لوحة القادة لجلب البيانات من Firestore في تطبيق حقيقي
+        await loadData(); // Now load data from Firestore after user is authenticated
+        loadTelegramUser(); // This will use tgUser which is already set
+        showView('home-view'); // Start on home view
+        renderLeaderboard(); // Leaderboard will need to fetch from Firestore in a real app
 
-        // جلب الكود اليومي بشكل آمن من Firestore (يديره المسؤول)
+        // Fetch daily code securely from Firestore (admin managed)
         await fetchDailyCodeFromFirestore();
         
         initializeInAppAds();
     }
     
-    // --- جلب الكود اليومي من Firestore ---
+    // --- Fetch Daily Code from Firestore ---
     async function fetchDailyCodeFromFirestore() {
         if (!window.db) {
-            console.warn("قاعدة بيانات Firestore غير متاحة لجلب الكود اليومي.");
+            console.warn("Firestore DB not available for fetching daily code.");
             return;
         }
         try {
@@ -589,19 +589,19 @@
             const docSnap = await getDoc(dailyCodeDocRef);
             if (docSnap.exists()) {
                 currentDailyCode = docSnap.data().code;
-                console.log("تم جلب الكود اليومي من Firestore:", currentDailyCode);
+                console.log("Daily code fetched from Firestore:", currentDailyCode);
             } else {
-                console.warn("لم يتم العثور على مستند الكود اليومي في Firestore. استخدام كود احتياطي.");
-                currentDailyCode = 'DEFAULTCODE'; // كود احتياطي إذا لم يتم تعيينه في Firestore
+                console.warn("Daily code document not found in Firestore. Using fallback.");
+                currentDailyCode = 'DEFAULTCODE'; // Fallback code if not set in Firestore
             }
         } catch (error) {
-            console.error("خطأ في جلب الكود اليومي من Firestore:", error);
-            showMessageModal("خطأ في الكود اليومي", "فشل جلب الكود اليومي من الخادم. قد لا تتمكن من استخدام العجلة.");
-            currentDailyCode = 'ERROR'; // للإشارة إلى وجود خطأ
+            console.error("Error fetching daily code from Firestore:", error);
+            showMessageModal("Daily Code Error", "Failed to fetch daily code from server. You might not be able to use the wheel.");
+            currentDailyCode = 'ERROR'; // Indicate an error
         }
     }
 
-    // --- تهيئة الإعلانات التلقائية (للعمل في الخلفية) ---
+    // --- Initialize Automatic Ads (for background operation) ---
     function initializeInAppAds() {
         if (typeof show_9459352 === 'function') {
             show_9459352({
@@ -611,17 +611,17 @@
                 capping: 0.1,
                 interval: 30,
                 timeout: 5,
-                everyPage: false // `false` مهم للتطبيقات أحادية الصفحة مثل هذا
+                everyPage: false // `false` is important for single-page apps like this
               }
             });
-            console.log("تم تهيئة الإعلانات البينية التلقائية داخل التطبيق.");
+            console.log("Automatic In-App Interstitial Ads Initialized.");
         } else {
-            console.warn("Monetag SDK غير جاهز للإعلانات داخل التطبيق. إعادة المحاولة...");
-            setTimeout(initializeInAppAds, 2000); // إعادة المحاولة بعد ثانيتين إذا لم يتم تحميل SDK بعد
+            console.warn("Monetag SDK not ready for In-App Ads. Retrying...");
+            setTimeout(initializeInAppAds, 2000); // Retry after 2 seconds if SDK is not loaded yet
         }
     }
 
-    // --- إدارة العرض ---
+    // --- View Management ---
     function showView(viewId) {
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
@@ -631,15 +631,15 @@
         if(activeBtn) activeBtn.classList.add('active');
         
         if (viewId === 'history-view') renderHistory();
-        if (viewId === 'tasks-view') updateClickerDisplay(); // تحديث عرض النقر عند عرض المهام
-        if (viewId === 'wheel-view') updateWheelDisplay(); // تحديث عرض العجلة عند عرضها
-        if (viewId === 'referral-view') renderReferralPage(); // عرض صفحة الإحالة عند عرضها
+        if (viewId === 'tasks-view') updateClickerDisplay(); // Update clicker display when tasks view is shown
+        if (viewId === 'wheel-view') updateWheelDisplay(); // Update wheel display when wheel view is shown
+        if (viewId === 'referral-view') renderReferralPage(); // Render referral page when shown
     }
     
-    // --- استمرارية البيانات (Firestore) ---
+    // --- Data Persistence (Firestore) ---
     async function loadData() {
         if (!window.userId || !window.db) {
-            console.warn("Firebase لم يتم تهيئته بالكامل أو معرف المستخدم غير متاح لتحميل البيانات.");
+            console.warn("Firebase not fully initialized or user ID not available for loading data.");
             return;
         }
 
@@ -656,10 +656,10 @@
                 lastSpinDate = data.lastSpinDate || null;
                 referralCount = data.referralCount || 0;
                 referralEarnings = data.referralEarnings || 0.00;
-                console.log("تم تحميل البيانات من Firestore:", data);
+                console.log("Data loaded from Firestore:", data);
             } else {
-                console.log("لم يتم العثور على بيانات المستخدم في Firestore. تهيئة بيانات جديدة.");
-                // تهيئة بيانات مستخدم جديدة في Firestore
+                console.log("No user data found in Firestore. Initializing new data.");
+                // Initialize new user data in Firestore
                 await setDoc(userDocRef, {
                     points: 0,
                     balance: 0.00,
@@ -668,21 +668,21 @@
                     lastSpinDate: null,
                     referralCount: 0,
                     referralEarnings: 0.00,
-                    telegramId: tgUser ? tgUser.id.toString() : null, // تخزين معرف Telegram إذا كان متاحاً
-                    username: tgUser ? tgUser.username || tgUser.first_name : null // تخزين اسم المستخدم
+                    telegramId: tgUser ? tgUser.id.toString() : null, // Store Telegram ID if available
+                    username: tgUser ? tgUser.username || tgUser.first_name : null // Store username
                 });
-                console.log("تم تهيئة بيانات مستخدم جديدة في Firestore.");
+                console.log("New user data initialized in Firestore.");
             }
         } catch (error) {
-            console.error("خطأ في تحميل البيانات من Firestore:", error);
-            showMessageModal("خطأ في التحميل", "فشل تحميل بياناتك. يرجى المحاولة مرة أخرى.");
+            console.error("Error loading data from Firestore:", error);
+            showMessageModal("Loading Error", "Failed to load your data. Please try again.");
         }
         updateDisplay();
     }
 
     async function saveData() {
         if (!window.userId || !window.db) {
-            console.warn("Firebase لم يتم تهيئته بالكامل أو معرف المستخدم غير متاح لحفظ البيانات.");
+            console.warn("Firebase not fully initialized or user ID not available for saving data.");
             return;
         }
 
@@ -691,18 +691,18 @@
             await setDoc(userDocRef, {
                 points: points,
                 balance: balance,
-                historyLog: historyLog, // ملاحظة: للسجل الكبير، فكر في استخدام مجموعة فرعية
+                historyLog: historyLog, // Note: For large history, consider a subcollection
                 clicksCount: clicksCount,
                 lastSpinDate: lastSpinDate,
                 referralCount: referralCount,
                 referralEarnings: referralEarnings,
-                telegramId: tgUser ? tgUser.id.toString() : null, // التأكد من أن معرف Telegram هو سلسلة نصية
+                telegramId: tgUser ? tgUser.id.toString() : null, // Ensure Telegram ID is string
                 username: tgUser ? tgUser.username || tgUser.first_name : null
-            }, { merge: true }); // استخدم merge: true لتحديث الحقول المحددة فقط
-            console.log("تم حفظ البيانات في Firestore.");
+            }, { merge: true }); // Use merge: true to only update specified fields
+            console.log("Data saved to Firestore.");
         } catch (error) {
-            console.error("خطأ في حفظ البيانات في Firestore:", error);
-            showMessageModal("خطأ في الحفظ", "فشل حفظ بياناتك. يرجى المحاولة مرة أخرى.");
+            console.error("Error saving data to Firestore:", error);
+            showMessageModal("Saving Error", "Failed to save your data. Please try again.");
         }
     }
 
@@ -711,7 +711,7 @@
         document.getElementById('balance-value').textContent = `$${balance.toFixed(2)}`;
     }
     
-    // --- المستخدم والملف الشخصي ---
+    // --- User & Profile ---
     function loadTelegramUser() {
         if (tgUser) {
             document.getElementById('username').textContent = tgUser.first_name || 'Telegram User';
@@ -722,15 +722,15 @@
                 profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
             }
         } else {
-            document.getElementById('username').textContent = 'Guest User'; // احتياطي لبيئة غير Telegram
+            document.getElementById('username').textContent = 'Guest User'; // Fallback for non-Telegram env
             document.getElementById('profile-pic').textContent = 'G';
         }
     }
 
-    // --- منطق السجل ---
+    // --- History Logic ---
     async function addToHistory(type, detail) {
         if (!window.userId || !window.db) {
-            console.warn("معرف المستخدم أو قاعدة البيانات غير متاحين لإضافة إلى السجل.");
+            console.warn("User ID or DB not available for adding to history.");
             return;
         }
         const timestamp = new Date().toISOString();
@@ -738,25 +738,25 @@
 
         try {
             const userDocRef = doc(window.db, "users", window.userId);
-            // استخدم arrayUnion لإضافة إدخال جديد إلى مصفوفة historyLog
+            // Use arrayUnion to add new entry to historyLog array
             await updateDoc(userDocRef, {
                 historyLog: arrayUnion(historyEntry)
             });
-            // قم أيضاً بتحديث historyLog المحلي للعرض الفوري
+            // Also update the local historyLog for immediate display
             historyLog.unshift(historyEntry);
-            if (historyLog.length > 50) historyLog.pop(); // حافظ على السجل المحلي محدوداً
-            console.log("تم تحديث السجل في Firestore.");
+            if (historyLog.length > 50) historyLog.pop(); // Keep local log limited
+            console.log("History updated in Firestore.");
         } catch (error) {
-            console.error("خطأ في إضافة إلى السجل في Firestore:", error);
-            showMessageModal("خطأ في السجل", "فشل تحديث سجل النشاط.");
+            console.error("Error adding to history in Firestore:", error);
+            showMessageModal("History Error", "Failed to update activity log.");
         }
     }
 
     function renderHistory() {
         const list = document.getElementById('history-list');
-        // historyLog تم ملؤه بالفعل من Firestore عبر loadData()
+        // historyLog is already populated from Firestore via loadData()
         if (historyLog.length === 0) {
-            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا يوجد نشاط بعد.</div><div class="detail">شاهد بعض الإعلانات لتبدأ!</div></div></div>`;
+            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">No activity yet.</div><div class="detail">Watch some ads to start!</div></div></div>`;
             return;
         }
         
@@ -775,10 +775,10 @@
         }).join('');
     }
 
-    // --- منطق لوحة القادة (ستحتاج لجلبها من Firestore في تطبيق حقيقي) ---
+    // --- Leaderboard Logic (will need to fetch from Firestore in real app) ---
     function renderLeaderboard() {
-        // في تطبيق حقيقي، ستقوم بجلب هذه البيانات من Firestore
-        // عن طريق استعلام مجموعة 'leaderboard' أو تجميع بيانات المستخدمين.
+        // In a real application, you would fetch this data from Firestore
+        // by querying a 'leaderboard' collection or aggregating user data.
         const leaderboardData = [
             { name: "CryptoKing", score: 2540, avatar: "https://i.pravatar.cc/150?img=1" },
             { name: "Elena", score: 2210, avatar: "https://i.pravatar.cc/150?img=2" },
@@ -797,7 +797,7 @@
         `).join('');
     }
 
-    // --- وظائف لعبة النقر ---
+    // --- Clicker Game Functions ---
     function updateClickerDisplay() {
         document.getElementById('click-count').textContent = `${clicksCount} / ${clicksRequired} نقرات`;
         const claimButton = document.getElementById('claim-reward-button');
@@ -805,59 +805,59 @@
 
         if (clicksCount >= clicksRequired) {
             claimButton.classList.remove('hidden');
-            clickArea.style.pointerEvents = 'none'; // تعطيل النقر على منطقة النقر
-            clickArea.style.opacity = '0.6'; // إشارة مرئية للتعطيل
-            Telegram.WebApp.HapticFeedback.notificationOccurred('success'); // ردود فعل لمسية جاهزة للمطالبة
+            clickArea.style.pointerEvents = 'none'; // Disable clicking on tap area
+            clickArea.style.opacity = '0.6'; // Visually indicate disabled
+            Telegram.WebApp.HapticFeedback.notificationOccurred('success'); // Haptic feedback for ready to claim
         } else {
             claimButton.classList.add('hidden');
-            clickArea.style.pointerEvents = 'auto'; // تمكين النقر
+            clickArea.style.pointerEvents = 'auto'; // Enable clicking
             clickArea.style.opacity = '1';
         }
-        // saveData(); // حفظ عدد النقرات عند كل تحديث - يتم التعامل معها الآن بواسطة grantClickerReward
+        // saveData(); // Save clicks count on each update - now handled by grantClickerReward
     }
 
     function handleClicks() {
         if (clicksCount < clicksRequired) {
             clicksCount++;
             updateClickerDisplay();
-            Telegram.WebApp.HapticFeedback.impactOccurred('light'); // ردود فعل لمسية خفيفة عند كل نقرة
+            Telegram.WebApp.HapticFeedback.impactOccurred('light'); // Light haptic feedback on each click
         }
     }
 
     async function claimReward() {
         if (clicksCount < clicksRequired) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("خطأ", "تحتاج إلى النقر 10 مرات للمطالبة بالمكافأة!");
+            showMessageModal("Error", "You need to click 10 times to claim the reward!");
             return;
         }
 
         if (typeof show_9459352 !== 'function') {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("خطأ في الإعلان", "مزود الإعلانات غير جاهز. يرجى المحاولة مرة أخرى.");
+            showMessageModal("Ad Error", "Ad provider not ready. Please try again.");
             return;
         }
 
-        showMessageModal("تحميل الإعلان", "جارٍ تحميل الإعلان... يرجى الانتظار.");
+        showMessageModal("Loading Ad", "Loading ad... Please wait.");
 
-        show_9459352().then(async () => { // جعل هذا async لانتظار grantClickerReward
-            await grantClickerReward(); // منح المكافأة بعد مشاهدة الإعلان
-            clicksCount = 0; // إعادة تعيين النقرات محلياً
-            updateClickerDisplay(); // تحديث العرض بعد إعادة التعيين
-            showMessageModal("تمت المطالبة بالمكافأة!", `تهانينا! لقد ربحت +${pointsPerAd} نقطة.`);
+        show_9459352().then(async () => { // Make this async to await grantClickerReward
+            await grantClickerReward(); // Grant reward after ad is watched
+            clicksCount = 0; // Reset clicks locally
+            updateClickerDisplay(); // Update display after reset
+            showMessageModal("Reward Claimed!", `Congratulations! You earned +${pointsPerAd} points.`);
         }).catch(e => {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("خطأ في الإعلان", "تعذر عرض الإعلان أو تم تخطيه. يرجى المحاولة مرة أخرى.");
+            showMessageModal("Ad Error", "Ad could not be displayed or was skipped. Please try again.");
         });
     }
 
-    // --- دالة الكسب (تُستدعى بعد مشاهدة إعلان النقر) ---
+    // --- Earning Function (called after clicker ad is watched) ---
     async function grantClickerReward() {
         if (!window.userId || !window.db) {
-            showMessageModal("خطأ", "يجب تسجيل الدخول لمنح المكافأة.");
+            showMessageModal("Error", "You must be logged in to grant the reward.");
             return;
         }
         
-        // تحديث الحالة المحلية فوراً للاستجابة
+        // Update local state immediately for responsiveness
         points += pointsPerAd;
         balance = points * ratePerPoint; 
         updateDisplay(); 
@@ -865,23 +865,23 @@
         try {
             const userDocRef = doc(window.db, "users", window.userId);
             await updateDoc(userDocRef, {
-                points: increment(pointsPerAd), // استخدام increment للتحديثات الذرية
+                points: increment(pointsPerAd), // Use increment for atomic updates
                 balance: increment(pointsPerAd * ratePerPoint),
-                clicksCount: 0 // إعادة تعيين clicksCount في Firestore
+                clicksCount: 0 // Reset clicksCount in Firestore
             });
-            await addToHistory('earn', `+${pointsPerAd} نقطة من مهمة النقر`); // سيقوم هذا أيضاً بتحديث Firestore
-            console.log("تم منح مكافأة النقر وحفظها في Firestore.");
+            await addToHistory('earn', `+${pointsPerAd} points from clicker task`); // This will also update Firestore
+            console.log("Clicker reward granted and saved to Firestore.");
         } catch (error) {
-            console.error("خطأ في منح مكافأة النقر إلى Firestore:", error);
-            showMessageModal("خطأ في المكافأة", "فشل منح المكافأة وحفظها.");
-            // إعادة الحالة المحلية إذا فشل الحفظ (اختياري، ولكن ممارسة جيدة)
+            console.error("Error granting clicker reward to Firestore:", error);
+            showMessageModal("Reward Error", "Failed to grant and save reward.");
+            // Revert local state if save fails (optional, but good practice)
             points -= pointsPerAd;
             balance -= (pointsPerAd * ratePerPoint);
             updateDisplay();
         }
     }
 
-    // --- وظائف عجلة الحظ ---
+    // --- Wheel of Fortune Functions ---
     function updateWheelDisplay() {
         const codeInput = document.getElementById('daily-code-input');
         const activateButton = document.getElementById('activate-wheel-button');
@@ -890,115 +890,115 @@
         const wheelResult = document.getElementById('wheel-result');
         const wheelArea = document.getElementById('wheel-display');
 
-        // التحقق مما إذا تم تدوير العجلة اليوم
+        // Check if the wheel has been spun today
         if (lastSpinDate === new Date().toDateString()) {
             codeInput.value = '';
-            codeInput.placeholder = 'تم تدوير العجلة اليوم!';
+            codeInput.placeholder = 'Wheel already spun today!';
             codeInput.disabled = true;
             activateButton.classList.add('hidden');
             joinChannelButton.classList.add('hidden');
             spinButton.classList.add('hidden');
-            wheelResult.textContent = 'عد غداً للمزيد من الفرص!';
-            wheelArea.style.opacity = '0.5'; // تعتيم العجلة
+            wheelResult.textContent = 'Come back tomorrow for more chances!';
+            wheelArea.style.opacity = '0.5'; // Dim the wheel
             Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
         } else {
-            // لم يتم تدويرها اليوم
+            // Not spun today
             codeInput.disabled = false;
-            codeInput.placeholder = 'أدخل الكود اليومي';
+            codeInput.placeholder = 'Enter daily code';
             wheelArea.style.opacity = '1';
 
             if (isWheelActive) {
-                // الكود تم إدخاله وصالح
+                // Code entered and valid
                 activateButton.classList.add('hidden');
                 joinChannelButton.classList.add('hidden');
                 spinButton.classList.remove('hidden');
-                wheelResult.textContent = 'الكود صحيح! أدر العجلة!';
+                wheelResult.textContent = 'Code is correct! Spin the wheel!';
             } else {
-                // في انتظار الكود
+                // Waiting for code
                 activateButton.classList.remove('hidden');
                 joinChannelButton.classList.remove('hidden');
                 spinButton.classList.add('hidden');
-                wheelResult.textContent = 'أدخل الكود اليومي لتفعيل العجلة.';
+                wheelResult.textContent = 'Enter daily code to activate the wheel.';
             }
         }
-        saveData(); // حفظ حالة العجلة
+        saveData(); // Save wheel state
     }
 
     async function checkDailyCode() {
         if (!window.userId || !window.db) {
-            showMessageModal("خطأ", "يجب تسجيل الدخول لاستخدام العجلة.");
+            showMessageModal("Error", "You must be logged in to use the wheel.");
             return;
         }
-        // جلب الكود اليومي بشكل آمن من Firestore قبل التحقق
-        await fetchDailyCodeFromFirestore(); // التأكد من أن currentDailyCode محدث
+        // Fetch daily code securely from Firestore before checking
+        await fetchDailyCodeFromFirestore(); // Ensure currentDailyCode is up-to-date
 
         const inputCode = document.getElementById('daily-code-input').value.trim().toUpperCase();
         if (inputCode === currentDailyCode) {
             isWheelActive = true;
             updateWheelDisplay();
-            showMessageModal("نجاح", "الكود صحيح! يمكنك الآن تدوير العجلة.");
+            showMessageModal("Success", "Code is correct! You can now spin the wheel.");
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         } else {
             isWheelActive = false;
-            showMessageModal("خطأ", "الكود غير صحيح. يرجى التحقق والمحاولة مرة أخرى.");
+            showMessageModal("Error", "Incorrect code. Please check and try again.");
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         }
     }
 
     async function spinWheel() {
         if (!isWheelActive) {
-            showMessageModal("خطأ", "يرجى إدخال الكود اليومي أولاً أو عد غداً.");
+            showMessageModal("Error", "Please enter the daily code first or come back tomorrow.");
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
         if (lastSpinDate === new Date().toDateString()) {
-            showMessageModal("عذراً", "لقد قمت بتدوير العجلة بالفعل اليوم. عد غداً!");
+            showMessageModal("Sorry", "You have already spun the wheel today. Come back tomorrow!");
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             return;
         }
 
-        showMessageModal("تحميل الإعلان", "جارٍ تحميل الإعلان... يرجى الانتظار قبل تدوير العجلة.");
+        showMessageModal("Loading Ad", "Loading ad... Please wait before spinning the wheel.");
         
-        show_9459352().then(async () => { // جعل هذا async لانتظار grantWheelReward
-            // تم مشاهدة الإعلان، تابع التدوير
-            const prizes = [10, 20, 5, 15, 25, 5, 10, 30]; // النقاط
+        show_9459352().then(async () => { // Make this async to await grantWheelReward
+            // Ad watched, proceed with spin
+            const prizes = [10, 20, 5, 15, 25, 5, 10, 30]; // Points
             const randomIndex = Math.floor(Math.random() * prizes.length);
             const wonPoints = prizes[randomIndex];
 
             const wheelDisplay = document.getElementById('wheel-display');
             const degreesPerSegment = 360 / prizes.length;
-            // تدوير عدة مرات والهبوط في منتصف القطاع المستهدف
+            // Spin multiple times and land in the middle of the target segment
             const targetRotation = 360 * 5 + (prizes.length - randomIndex) * degreesPerSegment - (degreesPerSegment / 2); 
 
             wheelDisplay.style.transition = 'transform 4s ease-out';
             wheelDisplay.style.transform = `rotate(${targetRotation}deg)`;
 
-            setTimeout(async () => { // جعل هذا الاستدعاء async
-                await grantWheelReward(wonPoints); // منح المكافأة
-                lastSpinDate = new Date().toDateString(); // وضع علامة على أنها تم تدويرها اليوم محلياً
-                await saveData(); // حفظ lastSpinDate المحدثة
-                updateWheelDisplay(); // تحديث واجهة المستخدم بعد التدوير وإعادة التعيين
-                showMessageModal("تهانينا!", `لقد ربحت ${wonPoints} نقطة من عجلة الحظ!`);
+            setTimeout(async () => { // Make this callback async
+                await grantWheelReward(wonPoints); // Grant reward
+                lastSpinDate = new Date().toDateString(); // Mark as spun today locally
+                await saveData(); // Save the updated lastSpinDate
+                updateWheelDisplay(); // Update UI after spin and reset
+                showMessageModal("Congratulations!", `You won ${wonPoints} points from the wheel of fortune!`);
                 Telegram.WebApp.HapticFeedback.notificationOccurred('success');
 
-                // إعادة تعيين موضع العجلة بصرياً لتدوير اليوم التالي
-                wheelDisplay.style.transition = 'none'; // إزالة الانتقال لإعادة التعيين الفوري
-                wheelDisplay.style.transform = `rotate(0deg)`; // إعادة التعيين إلى الموضع الأولي
-            }, 4500); // إتاحة الوقت لرسوم التدوير المتحركة + قليل من الوقت الإضافي
+                // Reset wheel position visually for the next day's spin
+                wheelDisplay.style.transition = 'none'; // Remove transition for instant reset
+                wheelDisplay.style.transform = `rotate(0deg)`; // Reset to initial position
+            }, 4500); // Allow time for spin animation + a bit more
         }).catch(e => {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("خطأ في الإعلان", "تعذر عرض الإعلان أو تم تخطيه. يرجى المحاولة مرة أخرى.");
+            showMessageModal("Ad Error", "Ad could not be displayed or was skipped. Please try again.");
         });
     }
 
     async function grantWheelReward(amount) {
         if (!window.userId || !window.db) {
-            showMessageModal("خطأ", "يجب تسجيل الدخول لمنح المكافأة.");
+            showMessageModal("Error", "You must be logged in to grant the reward.");
             return;
         }
         
-        // تحديث الحالة المحلية فوراً
+        // Update local state immediately
         points += amount;
         balance = points * ratePerPoint;
         updateDisplay();
@@ -1008,42 +1008,42 @@
             await updateDoc(userDocRef, {
                 points: increment(amount),
                 balance: increment(amount * ratePerPoint),
-                lastSpinDate: new Date().toDateString() // تحديث lastSpinDate في Firestore
+                lastSpinDate: new Date().toDateString() // Update lastSpinDate in Firestore
             });
-            await addToHistory('earn', `+${amount} نقطة من عجلة الحظ`);
-            console.log("تم منح مكافأة العجلة وحفظها في Firestore.");
+            await addToHistory('earn', `+${amount} points from wheel of fortune`);
+            console.log("Wheel reward granted and saved to Firestore.");
         } catch (error) {
-            console.error("خطأ في منح مكافأة العجلة إلى Firestore:", error);
-            showMessageModal("خطأ في المكافأة", "فشل منح مكافأة العجلة وحفظها.");
-            // إعادة الحالة المحلية إذا فشل الحفظ
+            console.error("Error granting wheel reward to Firestore:", error);
+            showMessageModal("Reward Error", "Failed to grant and save wheel reward.");
+            // Revert local state if save fails
             points -= amount;
             balance -= (amount * ratePerPoint);
             updateDisplay();
         }
     }
 
-    // --- دالة الانضمام إلى قناة Telegram ---
+    // --- Join Telegram Channel Function ---
     function joinTelegramChannel() {
-        const channelLink = 'https://t.me/mmoonnaayy1';
-        // التحقق مما إذا كان كائن Telegram WebApp متاحاً وجاهزاً
+        const channelLink = 'https://t.me/mmoonnaayy1'; // Your Telegram channel link
+        // Check if Telegram WebApp object is available and ready
         if (window.Telegram && Telegram.WebApp && Telegram.WebApp.ready) {
             Telegram.WebApp.openTelegramLink(channelLink);
         } else {
-            // احتياطي للبيئات التي لا يتوفر فيها Telegram WebApp (مثل المتصفح العادي)
+            // Fallback for environments where Telegram WebApp is not available (e.g., standard browser)
             window.open(channelLink, '_blank');
-            showMessageModal("تنبيه", "قد لا يتم فتح القناة مباشرة. يرجى التأكد من أنك تستخدم التطبيق داخل تيليجرام أو قم بفتح الرابط يدوياً.");
+            showMessageModal("Notice", "The channel might not open directly. Please ensure you are using the app within Telegram or open the link manually.");
         }
     }
 
-    // --- وظائف صفحة الإحالة ---
+    // --- Referral Page Functions ---
     function renderReferralPage() {
         const referralLinkDisplay = document.getElementById('referral-link-display');
         const totalReferralsDisplay = document.getElementById('total-referrals');
         const referralEarningsDisplay = document.getElementById('referral-earnings');
 
-        const botUsername = "Easyearing99_bot"; // تأكد من أن هذا هو اسم المستخدم الفعلي لروبوتك
-        // استخدم window.userId لرابط الإحالة لأنه مرتبط الآن بمصادقة Firebase
-        const referralLink = window.userId ? `https://t.me/${botUsername}?start=${window.userId}` : 'الرابط غير متاح (قم بتسجيل الدخول)';
+        const botUsername = "Easyearing99_bot"; // Make sure this is your bot's actual username
+        // Use window.userId for the referral link as it's now tied to Firebase Auth
+        const referralLink = window.userId ? `https://t.me/${botUsername}?start=${window.userId}` : 'Link not available (please log in)';
         
         referralLinkDisplay.textContent = referralLink;
         totalReferralsDisplay.textContent = referralCount;
@@ -1054,29 +1054,29 @@
         const referralLinkDisplay = document.getElementById('referral-link-display');
         const referralLink = referralLinkDisplay.textContent;
 
-        // استخدم document.execCommand('copy') حيث قد لا يعمل navigator.clipboard.writeText() في iFrames
+        // Use document.execCommand('copy') as navigator.clipboard.writeText() might not work in iFrames
         const tempInput = document.createElement('textarea');
         tempInput.value = referralLink;
         document.body.appendChild(tempInput);
         tempInput.select();
         try {
             document.execCommand('copy');
-            showMessageModal("تم النسخ", "تم نسخ رابط الإحالة إلى الحافظة!");
+            showMessageModal("Copied!", "Referral link copied to clipboard!");
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         } catch (err) {
-            console.error('فشل نسخ رابط الإحالة: ', err);
-            showMessageModal("خطأ في النسخ", "فشل نسخ الرابط. يرجى المحاولة يدوياً.");
+            console.error('Failed to copy referral link: ', err);
+            showMessageModal("Copy Error", "Failed to copy link. Please try manually.");
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         } finally {
             document.body.removeChild(tempInput);
         }
     }
 
-    // --- منطق السحب ---
+    // --- Withdrawal Logic ---
     async function openWithdrawModal() {
         if (balance < 5) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("خطأ في السحب", "الحد الأدنى للسحب هو 5.00 دولارات. استمر في الكسب!");
+            showMessageModal("Withdrawal Error", "Minimum withdrawal is $5.00. Keep earning!");
             return;
         }
         document.getElementById('withdraw-modal').classList.add('active');
@@ -1089,13 +1089,15 @@
     async function requestWithdraw() {
         closeWithdrawModal();
         if (!window.userId || !window.db) {
-            showMessageModal("خطأ", "يجب تسجيل الدخول لطلب السحب.");
+            showMessageModal("Error", "You must be logged in to request a withdrawal.");
             return;
         }
 
-        const botToken = '7201062892:AAGewLnDhE6l7buTuXAIScVhI4d-XJZZ5Hs';
-        const adminUserId = '6357701459';
-        // استخدم اسم مستخدم/معرف Telegram إذا كان متاحاً، وإلا فارجع إلى معرف Firebase UID
+        // === Your Bot Token and Admin User ID ===
+        const botToken = '7380785513:AAHKo14QwkPgIgHcXZQDJF0Mr0OoxpyPl5w'; // Your bot token
+        const adminUserId = '7416599626'; // Your Telegram user ID
+
+        // Use Telegram username/ID if available, otherwise fallback to Firebase UID
         const userInfo = tgUser ? `@${tgUser.username || tgUser.first_name} (Telegram ID: ${tgUser.id})` : `Firebase User ID: ${window.userId}`;
         const message = `💸 *Withdrawal Request*\n\n👤 *User:* ${userInfo}\n💰 *Amount:* $${balance.toFixed(2)}\n\n_Please process this request._`;
 
@@ -1109,37 +1111,37 @@
 
             if (data.ok) {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-                showMessageModal("تم إرسال طلب السحب", "تم إرسال طلب السحب بنجاح!");
-                await addToHistory('withdraw', `طلب سحب بمبلغ $${balance.toFixed(2)}`);
+                showMessageModal("Withdrawal Request Sent", "Your withdrawal request has been sent successfully!");
+                await addToHistory('withdraw', `Withdrawal request for $${balance.toFixed(2)}`);
                 
-                // إعادة تعيين رصيد ونقاط المستخدم في Firestore بعد طلب ناجح
+                // Reset user's balance and points in Firestore after successful request
                 const userDocRef = doc(window.db, "users", window.userId);
                 await updateDoc(userDocRef, {
                     balance: 0,
                     points: 0 
                 });
-                balance = 0; // تحديث الحالة المحلية
+                balance = 0; // Update local state
                 points = 0;
                 updateDisplay();
             } else {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-                showMessageModal("فشل إرسال الطلب", "فشل إرسال الطلب. يرجى المحاولة مرة أخرى لاحقًا.");
+                showMessageModal("Failed to Send Request", "Failed to send request. Please try again later.");
             }
         } catch (err) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("خطأ في الشبكة", "حدث خطأ. تحقق من اتصالك وحاول مرة أخرى.");
+            showMessageModal("Network Error", "An error occurred. Check your connection and try again.");
         }
     }
 
-    // --- وظائف نافذة الرسالة العامة المنبثقة ---
+    // --- Generic Message Modal Functions ---
     function showMessageModal(title, message) {
         document.getElementById('message-modal-title').textContent = title;
         document.getElementById('message-modal-text').textContent = message;
-        document.getElementById('message-modal').classList.add('active');
+        document.getElementById('message-modal').classList.add('active'); 
     }
 
     function closeMessageModal() {
-        document.getElementById('message-modal').classList.remove('active');
+        document.getElementById('message-modal').classList.remove('active'); 
     }
 </script>
 
