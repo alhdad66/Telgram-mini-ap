@@ -547,6 +547,8 @@
         
         // --- Firebase Authentication: Prioritize Canvas token, then Anonymous ---
         console.log("Attempting Firebase authentication...");
+        // __initial_auth_token is provided by the Canvas environment.
+        // If your bot is not set up to provide custom tokens, this will be undefined.
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
             console.log("Canvas token detected. Attempting signInWithCustomToken...");
             try {
@@ -554,16 +556,17 @@
                 console.log("Firebase Auth: Signed in with custom token from Canvas environment.");
             } catch (error) {
                 console.error("Firebase Auth Error: Failed to sign in with Canvas token.", error);
-                showMessageModal("Authentication Error", "Failed to sign in with Canvas token: " + error.message);
+                showMessageModal("Authentication Error (Canvas Token)", "Failed to sign in with Canvas token. This is expected if your bot doesn't issue custom tokens. Error: " + error.message);
             }
         } else {
-            console.log("No Canvas token. Attempting signInAnonymously...");
+            console.log("No Canvas token or Canvas token is undefined. Attempting signInAnonymously...");
             try {
                 await signInAnonymously(window.auth);
                 console.log("Firebase Auth: Signed in anonymously.");
             } catch (error) {
                 console.error("Firebase Auth Error: Failed to sign in anonymously.", error);
-                showMessageModal("Critical Error", "Failed to sign in completely: " + error.message);
+                // This is the critical error for your current setup.
+                showMessageModal("Critical Login Error (Anonymous)", "Failed to sign in anonymously. This usually means 'Anonymous Authentication' is NOT enabled in your Firebase Project Settings -> Authentication -> Sign-in method. Please enable it. Error: " + error.message);
             }
         }
 
@@ -582,7 +585,14 @@
         });
         console.log("Firebase auth state is ready. User ID:", window.userId);
 
-        await loadData(); // Now load data from Firestore after user is authenticated
+        // Only load data if userId is successfully set (meaning Firebase Auth worked)
+        if (window.userId) {
+            await loadData(); // Now load data from Firestore after user is authenticated
+        } else {
+            console.warn("Firebase User ID not set. Cannot load/save data to Firestore. App will function locally without persistence.");
+            showMessageModal("Data Persistence Warning", "Could not establish a persistent user session. Your points and balance will not be saved across sessions. Please check Firebase Anonymous Authentication settings.");
+        }
+
         loadTelegramUser(); // This will use tgUser which is already set
         showView('home-view'); // Start on home view
         renderLeaderboard(); // Leaderboard will need to fetch from Firestore in a real app
@@ -660,6 +670,7 @@
         console.log("Attempting to load user data from Firestore...");
         if (!window.userId || !window.db) {
             console.warn("Firebase not fully initialized or user ID not available for loading data. Skipping loadData.");
+            showMessageModal("Data Load Error", "Cannot load data: User not authenticated or Firestore not ready.");
             return;
         }
 
@@ -704,6 +715,7 @@
         console.log("Attempting to save user data to Firestore...");
         if (!window.userId || !window.db) {
             console.warn("Firebase not fully initialized or user ID not available for saving data. Skipping saveData.");
+            showMessageModal("Data Save Error", "Cannot save data: User not authenticated or Firestore not ready.");
             return;
         }
 
@@ -757,6 +769,7 @@
         console.log(`Adding to history: Type=${type}, Detail=${detail}`);
         if (!window.userId || !window.db) {
             console.warn("User ID or DB not available for adding to history. Skipping.");
+            showMessageModal("History Add Error", "Cannot add to history: User not authenticated or Firestore not ready.");
             return;
         }
         const timestamp = new Date().toISOString();
@@ -1014,7 +1027,7 @@
             return;
         }
 
-        showMessageModal("Loading Ad", "Loading ad... Please wait before spinning the wheel.");
+        showMessageModal("Loading Ad", "Loading ad... Please wait.");
         console.log("Wheel: Attempting to show ad for spin...");
         
         show_9459352().then(async () => { // Make this async to await grantWheelReward
@@ -1078,7 +1091,7 @@
             console.log("Wheel reward granted and saved to Firestore successfully.");
         } catch (error) {
             console.error("Wheel: Error granting wheel reward to Firestore:", error);
-            showMessageModal("Reward Error", "Failed to grant and save wheel reward. Error: " + error.message);
+            showMessageModal("Reward Error", "Failed to grant and save reward. Error: " + error.message);
             // Revert local state if save fails
             points -= amount;
             balance -= (amount * ratePerPoint);
