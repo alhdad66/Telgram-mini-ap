@@ -312,20 +312,24 @@
     // Initialize Firebase (will be called once in initApp)
     window.initializeFirebase = () => {
         if (!window.firebaseApp) {
+            console.log("Initializing Firebase app...");
             window.firebaseApp = initializeApp(firebaseConfig);
             window.db = getFirestore(window.firebaseApp);
             window.auth = getAuth(window.firebaseApp);
+            console.log("Firebase app, DB, and Auth initialized.");
 
             // Listen for auth state changes to set userId
             onAuthStateChanged(window.auth, (user) => {
                 if (user) {
                     window.userId = user.uid;
-                    console.log("Firebase User ID:", window.userId);
+                    console.log("Firebase Auth State Changed: User signed in. UID:", window.userId);
                 } else {
                     window.userId = null;
-                    console.log("No Firebase user is signed in.");
+                    console.log("Firebase Auth State Changed: No user signed in.");
                 }
             });
+        } else {
+            console.log("Firebase app already initialized.");
         }
     };
   </script>
@@ -511,6 +515,7 @@
 
     // --- Core App Logic ---
     document.addEventListener('DOMContentLoaded', () => {
+        console.log("DOM Content Loaded. Initializing app...");
         initApp();
         // Event listeners for the clicker game elements
         document.getElementById('click-area').addEventListener('click', handleClicks);
@@ -527,6 +532,7 @@
 
     // Application initialization function
     async function initApp() {
+        console.log("initApp started.");
         // Initialize Firebase services
         window.initializeFirebase(); // Call the global initializer defined in the script tag
 
@@ -534,38 +540,47 @@
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
             tgUser = Telegram.WebApp.initDataUnsafe.user; // Get Telegram user data
+            console.log("Telegram WebApp initialized. User data:", tgUser);
+        } else {
+            console.warn("Telegram WebApp not available or not ready.");
         }
         
         // --- Firebase Authentication: Prioritize Canvas token, then Anonymous ---
-        // Since Cloud Functions for Telegram auth are not available without a server,
-        // we revert to anonymous authentication for persistence across sessions on the same device.
+        console.log("Attempting Firebase authentication...");
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            console.log("Canvas token detected. Attempting signInWithCustomToken...");
             try {
                 await signInWithCustomToken(window.auth, __initial_auth_token);
-                console.log("Signed in with custom token from Canvas environment.");
+                console.log("Firebase Auth: Signed in with custom token from Canvas environment.");
             } catch (error) {
-                console.error("Error signing in with Canvas token:", error);
-                showMessageModal("Authentication Error", "Failed to sign in with Canvas token.");
+                console.error("Firebase Auth Error: Failed to sign in with Canvas token.", error);
+                showMessageModal("Authentication Error", "Failed to sign in with Canvas token: " + error.message);
             }
         } else {
+            console.log("No Canvas token. Attempting signInAnonymously...");
             try {
                 await signInAnonymously(window.auth);
-                console.log("Signed in anonymously.");
+                console.log("Firebase Auth: Signed in anonymously.");
             } catch (error) {
-                console.error("Error signing in anonymously:", error);
-                showMessageModal("Critical Error", "Failed to sign in completely.");
+                console.error("Firebase Auth Error: Failed to sign in anonymously.", error);
+                showMessageModal("Critical Error", "Failed to sign in completely: " + error.message);
             }
         }
 
         // Wait for Firebase auth state to be ready and userId to be set
+        console.log("Waiting for Firebase auth state to be ready...");
         await new Promise(resolve => {
             const unsubscribe = onAuthStateChanged(window.auth, (user) => {
                 if (user) {
+                    console.log("onAuthStateChanged: User is now available. UID:", user.uid);
                     resolve();
                     unsubscribe();
+                } else {
+                    console.log("onAuthStateChanged: User is not available yet or signed out.");
                 }
             });
         });
+        console.log("Firebase auth state is ready. User ID:", window.userId);
 
         await loadData(); // Now load data from Firestore after user is authenticated
         loadTelegramUser(); // This will use tgUser which is already set
@@ -576,12 +591,14 @@
         await fetchDailyCodeFromFirestore();
         
         initializeInAppAds();
+        console.log("initApp finished.");
     }
     
     // --- Fetch Daily Code from Firestore ---
     async function fetchDailyCodeFromFirestore() {
+        console.log("Attempting to fetch daily code from Firestore...");
         if (!window.db) {
-            console.warn("Firestore DB not available for fetching daily code.");
+            console.warn("Firestore DB not available for fetching daily code. Skipping fetch.");
             return;
         }
         try {
@@ -589,20 +606,21 @@
             const docSnap = await getDoc(dailyCodeDocRef);
             if (docSnap.exists()) {
                 currentDailyCode = docSnap.data().code;
-                console.log("Daily code fetched from Firestore:", currentDailyCode);
+                console.log("Daily code fetched successfully from Firestore:", currentDailyCode);
             } else {
-                console.warn("Daily code document not found in Firestore. Using fallback.");
+                console.warn("Daily code document 'appSettings/dailyCode' not found in Firestore. Using fallback code 'DEFAULTCODE'.");
                 currentDailyCode = 'DEFAULTCODE'; // Fallback code if not set in Firestore
             }
         } catch (error) {
             console.error("Error fetching daily code from Firestore:", error);
-            showMessageModal("Daily Code Error", "Failed to fetch daily code from server. You might not be able to use the wheel.");
+            showMessageModal("Daily Code Error", "Failed to fetch daily code from server. You might not be able to use the wheel. Error: " + error.message);
             currentDailyCode = 'ERROR'; // Indicate an error
         }
     }
 
     // --- Initialize Automatic Ads (for background operation) ---
     function initializeInAppAds() {
+        console.log("Attempting to initialize in-app ads...");
         if (typeof show_9459352 === 'function') {
             show_9459352({
               type: 'inApp',
@@ -614,15 +632,16 @@
                 everyPage: false // `false` is important for single-page apps like this
               }
             });
-            console.log("Automatic In-App Interstitial Ads Initialized.");
+            console.log("Automatic In-App Interstitial Ads Initialized successfully.");
         } else {
-            console.warn("Monetag SDK not ready for In-App Ads. Retrying...");
+            console.warn("Monetag SDK (show_9459352) not ready for In-App Ads. Retrying in 2 seconds...");
             setTimeout(initializeInAppAds, 2000); // Retry after 2 seconds if SDK is not loaded yet
         }
     }
 
     // --- View Management ---
     function showView(viewId) {
+        console.log("Showing view:", viewId);
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
         
@@ -638,8 +657,9 @@
     
     // --- Data Persistence (Firestore) ---
     async function loadData() {
+        console.log("Attempting to load user data from Firestore...");
         if (!window.userId || !window.db) {
-            console.warn("Firebase not fully initialized or user ID not available for loading data.");
+            console.warn("Firebase not fully initialized or user ID not available for loading data. Skipping loadData.");
             return;
         }
 
@@ -656,9 +676,9 @@
                 lastSpinDate = data.lastSpinDate || null;
                 referralCount = data.referralCount || 0;
                 referralEarnings = data.referralEarnings || 0.00;
-                console.log("Data loaded from Firestore:", data);
+                console.log("User data loaded successfully from Firestore:", data);
             } else {
-                console.log("No user data found in Firestore. Initializing new data.");
+                console.log("No user data found in Firestore for UID:", window.userId, ". Initializing new data.");
                 // Initialize new user data in Firestore
                 await setDoc(userDocRef, {
                     points: 0,
@@ -671,18 +691,19 @@
                     telegramId: tgUser ? tgUser.id.toString() : null, // Store Telegram ID if available
                     username: tgUser ? tgUser.username || tgUser.first_name : null // Store username
                 });
-                console.log("New user data initialized in Firestore.");
+                console.log("New user data initialized successfully in Firestore.");
             }
         } catch (error) {
             console.error("Error loading data from Firestore:", error);
-            showMessageModal("Loading Error", "Failed to load your data. Please try again.");
+            showMessageModal("Loading Error", "Failed to load your data. Please try again. Error: " + error.message);
         }
         updateDisplay();
     }
 
     async function saveData() {
+        console.log("Attempting to save user data to Firestore...");
         if (!window.userId || !window.db) {
-            console.warn("Firebase not fully initialized or user ID not available for saving data.");
+            console.warn("Firebase not fully initialized or user ID not available for saving data. Skipping saveData.");
             return;
         }
 
@@ -699,20 +720,22 @@
                 telegramId: tgUser ? tgUser.id.toString() : null, // Ensure Telegram ID is string
                 username: tgUser ? tgUser.username || tgUser.first_name : null
             }, { merge: true }); // Use merge: true to only update specified fields
-            console.log("Data saved to Firestore.");
+            console.log("Data saved successfully to Firestore.");
         } catch (error) {
             console.error("Error saving data to Firestore:", error);
-            showMessageModal("Saving Error", "Failed to save your data. Please try again.");
+            showMessageModal("Saving Error", "Failed to save your data. Please try again. Error: " + error.message);
         }
     }
 
     function updateDisplay() {
         document.getElementById('points-value').textContent = points;
         document.getElementById('balance-value').textContent = `$${balance.toFixed(2)}`;
+        console.log(`Display updated: Points=${points}, Balance=$${balance.toFixed(2)}`);
     }
     
     // --- User & Profile ---
     function loadTelegramUser() {
+        console.log("Loading Telegram user info...");
         if (tgUser) {
             document.getElementById('username').textContent = tgUser.first_name || 'Telegram User';
             const profilePicDiv = document.getElementById('profile-pic');
@@ -721,16 +744,19 @@
             } else {
                 profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
             }
+            console.log("Telegram user info loaded:", tgUser.username || tgUser.first_name);
         } else {
             document.getElementById('username').textContent = 'Guest User'; // Fallback for non-Telegram env
             document.getElementById('profile-pic').textContent = 'G';
+            console.log("No Telegram user info available. Displaying as Guest.");
         }
     }
 
     // --- History Logic ---
     async function addToHistory(type, detail) {
+        console.log(`Adding to history: Type=${type}, Detail=${detail}`);
         if (!window.userId || !window.db) {
-            console.warn("User ID or DB not available for adding to history.");
+            console.warn("User ID or DB not available for adding to history. Skipping.");
             return;
         }
         const timestamp = new Date().toISOString();
@@ -745,18 +771,20 @@
             // Also update the local historyLog for immediate display
             historyLog.unshift(historyEntry);
             if (historyLog.length > 50) historyLog.pop(); // Keep local log limited
-            console.log("History updated in Firestore.");
+            console.log("History updated successfully in Firestore.");
         } catch (error) {
             console.error("Error adding to history in Firestore:", error);
-            showMessageModal("History Error", "Failed to update activity log.");
+            showMessageModal("History Error", "Failed to update activity log. Error: " + error.message);
         }
     }
 
     function renderHistory() {
+        console.log("Rendering history...");
         const list = document.getElementById('history-list');
         // historyLog is already populated from Firestore via loadData()
         if (historyLog.length === 0) {
             list.innerHTML = `<div class="list-item"><div class="info"><div class="name">No activity yet.</div><div class="detail">Watch some ads to start!</div></div></div>`;
+            console.log("History list is empty.");
             return;
         }
         
@@ -773,10 +801,12 @@
                     </div>
                 </div>`;
         }).join('');
+        console.log("History rendered with", historyLog.length, "items.");
     }
 
     // --- Leaderboard Logic (will need to fetch from Firestore in real app) ---
     function renderLeaderboard() {
+        console.log("Rendering leaderboard (mock data).");
         // In a real application, you would fetch this data from Firestore
         // by querying a 'leaderboard' collection or aggregating user data.
         const leaderboardData = [
@@ -795,6 +825,7 @@
                 <div class="score">${user.score} pts</div>
             </div>
         `).join('');
+        console.log("Leaderboard rendered.");
     }
 
     // --- Clicker Game Functions ---
@@ -808,52 +839,65 @@
             clickArea.style.pointerEvents = 'none'; // Disable clicking on tap area
             clickArea.style.opacity = '0.6'; // Visually indicate disabled
             Telegram.WebApp.HapticFeedback.notificationOccurred('success'); // Haptic feedback for ready to claim
+            console.log("Clicker: Max clicks reached. Claim button shown.");
         } else {
             claimButton.classList.add('hidden');
             clickArea.style.pointerEvents = 'auto'; // Enable clicking
             clickArea.style.opacity = '1';
+            console.log(`Clicker: Clicks updated to ${clicksCount}.`);
         }
-        // saveData(); // Save clicks count on each update - now handled by grantClickerReward
     }
 
     function handleClicks() {
+        console.log("Clicker: Click detected.");
         if (clicksCount < clicksRequired) {
             clicksCount++;
             updateClickerDisplay();
             Telegram.WebApp.HapticFeedback.impactOccurred('light'); // Light haptic feedback on each click
+        } else {
+            console.log("Clicker: Already reached max clicks.");
         }
     }
 
     async function claimReward() {
+        console.log("Clicker: Claim reward initiated.");
         if (clicksCount < clicksRequired) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             showMessageModal("Error", "You need to click 10 times to claim the reward!");
+            console.warn("Clicker: Claim failed. Not enough clicks.");
             return;
         }
 
         if (typeof show_9459352 !== 'function') {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             showMessageModal("Ad Error", "Ad provider not ready. Please try again.");
+            console.error("Clicker: Ad provider (Monetag SDK) not ready.");
             return;
         }
 
         showMessageModal("Loading Ad", "Loading ad... Please wait.");
+        console.log("Clicker: Attempting to show ad...");
 
         show_9459352().then(async () => { // Make this async to await grantClickerReward
+            console.log("Clicker: Ad displayed successfully. Granting reward...");
             await grantClickerReward(); // Grant reward after ad is watched
             clicksCount = 0; // Reset clicks locally
             updateClickerDisplay(); // Update display after reset
             showMessageModal("Reward Claimed!", `Congratulations! You earned +${pointsPerAd} points.`);
+            console.log("Clicker: Reward claimed and clicks reset.");
         }).catch(e => {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("Ad Error", "Ad could not be displayed or was skipped. Please try again.");
+            showMessageModal("Ad Error", "Ad could not be displayed or was skipped. Please try again. Error: " + e.message);
+            console.error("Clicker: Ad display failed or skipped:", e);
         });
     }
 
     // --- Earning Function (called after clicker ad is watched) ---
     async function grantClickerReward() {
+        console.log("Clicker: Granting reward...");
         if (!window.userId || !window.db) {
             showMessageModal("Error", "You must be logged in to grant the reward.");
+            console.error("Clicker: Cannot grant reward. User not logged in or DB not available.");
             return;
         }
         
@@ -870,10 +914,10 @@
                 clicksCount: 0 // Reset clicksCount in Firestore
             });
             await addToHistory('earn', `+${pointsPerAd} points from clicker task`); // This will also update Firestore
-            console.log("Clicker reward granted and saved to Firestore.");
+            console.log("Clicker reward granted and saved to Firestore successfully.");
         } catch (error) {
-            console.error("Error granting clicker reward to Firestore:", error);
-            showMessageModal("Reward Error", "Failed to grant and save reward.");
+            console.error("Clicker: Error granting clicker reward to Firestore:", error);
+            showMessageModal("Reward Error", "Failed to grant and save reward. Error: " + error.message);
             // Revert local state if save fails (optional, but good practice)
             points -= pointsPerAd;
             balance -= (pointsPerAd * ratePerPoint);
@@ -883,6 +927,7 @@
 
     // --- Wheel of Fortune Functions ---
     function updateWheelDisplay() {
+        console.log("Wheel: Updating display...");
         const codeInput = document.getElementById('daily-code-input');
         const activateButton = document.getElementById('activate-wheel-button');
         const spinButton = document.getElementById('spin-wheel-button');
@@ -901,6 +946,7 @@
             wheelResult.textContent = 'Come back tomorrow for more chances!';
             wheelArea.style.opacity = '0.5'; // Dim the wheel
             Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
+            console.log("Wheel: Spun today. Buttons disabled.");
         } else {
             // Not spun today
             codeInput.disabled = false;
@@ -913,58 +959,70 @@
                 joinChannelButton.classList.add('hidden');
                 spinButton.classList.remove('hidden');
                 wheelResult.textContent = 'Code is correct! Spin the wheel!';
+                console.log("Wheel: Code active. Spin button shown.");
             } else {
                 // Waiting for code
                 activateButton.classList.remove('hidden');
                 joinChannelButton.classList.remove('hidden');
                 spinButton.classList.add('hidden');
                 wheelResult.textContent = 'Enter daily code to activate the wheel.';
+                console.log("Wheel: Waiting for daily code.");
             }
         }
         saveData(); // Save wheel state
     }
 
     async function checkDailyCode() {
+        console.log("Wheel: Checking daily code...");
         if (!window.userId || !window.db) {
             showMessageModal("Error", "You must be logged in to use the wheel.");
+            console.error("Wheel: Cannot check code. User not logged in or DB not available.");
             return;
         }
         // Fetch daily code securely from Firestore before checking
         await fetchDailyCodeFromFirestore(); // Ensure currentDailyCode is up-to-date
 
         const inputCode = document.getElementById('daily-code-input').value.trim().toUpperCase();
+        console.log(`Wheel: Input code='${inputCode}', Current daily code='${currentDailyCode}'`);
         if (inputCode === currentDailyCode) {
             isWheelActive = true;
             updateWheelDisplay();
             showMessageModal("Success", "Code is correct! You can now spin the wheel.");
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            console.log("Wheel: Daily code matched.");
         } else {
             isWheelActive = false;
             showMessageModal("Error", "Incorrect code. Please check and try again.");
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            console.warn("Wheel: Daily code mismatch.");
         }
     }
 
     async function spinWheel() {
+        console.log("Wheel: Spin initiated.");
         if (!isWheelActive) {
             showMessageModal("Error", "Please enter the daily code first or come back tomorrow.");
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            console.warn("Wheel: Spin failed. Wheel not active.");
             return;
         }
 
         if (lastSpinDate === new Date().toDateString()) {
             showMessageModal("Sorry", "You have already spun the wheel today. Come back tomorrow!");
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            console.warn("Wheel: Spin failed. Already spun today.");
             return;
         }
 
         showMessageModal("Loading Ad", "Loading ad... Please wait before spinning the wheel.");
+        console.log("Wheel: Attempting to show ad for spin...");
         
         show_9459352().then(async () => { // Make this async to await grantWheelReward
-            // Ad watched, proceed with spin
+            console.log("Wheel: Ad displayed successfully. Proceeding with spin...");
             const prizes = [10, 20, 5, 15, 25, 5, 10, 30]; // Points
             const randomIndex = Math.floor(Math.random() * prizes.length);
             const wonPoints = prizes[randomIndex];
+            console.log("Wheel: Won points:", wonPoints);
 
             const wheelDisplay = document.getElementById('wheel-display');
             const degreesPerSegment = 360 / prizes.length;
@@ -973,8 +1031,10 @@
 
             wheelDisplay.style.transition = 'transform 4s ease-out';
             wheelDisplay.style.transform = `rotate(${targetRotation}deg)`;
+            console.log(`Wheel: Spinning to ${targetRotation} degrees.`);
 
             setTimeout(async () => { // Make this callback async
+                console.log("Wheel: Animation complete. Granting reward...");
                 await grantWheelReward(wonPoints); // Grant reward
                 lastSpinDate = new Date().toDateString(); // Mark as spun today locally
                 await saveData(); // Save the updated lastSpinDate
@@ -985,16 +1045,20 @@
                 // Reset wheel position visually for the next day's spin
                 wheelDisplay.style.transition = 'none'; // Remove transition for instant reset
                 wheelDisplay.style.transform = `rotate(0deg)`; // Reset to initial position
+                console.log("Wheel: Reward granted and display reset.");
             }, 4500); // Allow time for spin animation + a bit more
         }).catch(e => {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("Ad Error", "Ad could not be displayed or was skipped. Please try again.");
+            showMessageModal("Ad Error", "Ad could not be displayed or was skipped. Please try again. Error: " + e.message);
+            console.error("Wheel: Ad display failed or skipped:", e);
         });
     }
 
     async function grantWheelReward(amount) {
+        console.log("Wheel: Granting wheel reward of", amount, "points.");
         if (!window.userId || !window.db) {
             showMessageModal("Error", "You must be logged in to grant the reward.");
+            console.error("Wheel: Cannot grant reward. User not logged in or DB not available.");
             return;
         }
         
@@ -1011,10 +1075,10 @@
                 lastSpinDate: new Date().toDateString() // Update lastSpinDate in Firestore
             });
             await addToHistory('earn', `+${amount} points from wheel of fortune`);
-            console.log("Wheel reward granted and saved to Firestore.");
+            console.log("Wheel reward granted and saved to Firestore successfully.");
         } catch (error) {
-            console.error("Error granting wheel reward to Firestore:", error);
-            showMessageModal("Reward Error", "Failed to grant and save wheel reward.");
+            console.error("Wheel: Error granting wheel reward to Firestore:", error);
+            showMessageModal("Reward Error", "Failed to grant and save wheel reward. Error: " + error.message);
             // Revert local state if save fails
             points -= amount;
             balance -= (amount * ratePerPoint);
@@ -1024,19 +1088,23 @@
 
     // --- Join Telegram Channel Function ---
     function joinTelegramChannel() {
+        console.log("Attempting to join Telegram channel.");
         const channelLink = 'https://t.me/mmoonnaayy1'; // Your Telegram channel link
         // Check if Telegram WebApp object is available and ready
         if (window.Telegram && Telegram.WebApp && Telegram.WebApp.ready) {
             Telegram.WebApp.openTelegramLink(channelLink);
+            console.log("Opened Telegram channel via WebApp link.");
         } else {
             // Fallback for environments where Telegram WebApp is not available (e.g., standard browser)
             window.open(channelLink, '_blank');
             showMessageModal("Notice", "The channel might not open directly. Please ensure you are using the app within Telegram or open the link manually.");
+            console.warn("Telegram WebApp not available, opened channel in new window.");
         }
     }
 
     // --- Referral Page Functions ---
     function renderReferralPage() {
+        console.log("Rendering referral page.");
         const referralLinkDisplay = document.getElementById('referral-link-display');
         const totalReferralsDisplay = document.getElementById('total-referrals');
         const referralEarningsDisplay = document.getElementById('referral-earnings');
@@ -1048,9 +1116,11 @@
         referralLinkDisplay.textContent = referralLink;
         totalReferralsDisplay.textContent = referralCount;
         referralEarningsDisplay.textContent = `$${referralEarnings.toFixed(2)}`;
+        console.log("Referral page rendered. Link:", referralLink);
     }
 
     function copyReferralLink() {
+        console.log("Attempting to copy referral link.");
         const referralLinkDisplay = document.getElementById('referral-link-display');
         const referralLink = referralLinkDisplay.textContent;
 
@@ -1063,9 +1133,10 @@
             document.execCommand('copy');
             showMessageModal("Copied!", "Referral link copied to clipboard!");
             Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            console.log("Referral link copied successfully.");
         } catch (err) {
             console.error('Failed to copy referral link: ', err);
-            showMessageModal("Copy Error", "Failed to copy link. Please try manually.");
+            showMessageModal("Copy Error", "Failed to copy link. Please try manually. Error: " + err.message);
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         } finally {
             document.body.removeChild(tempInput);
@@ -1074,32 +1145,40 @@
 
     // --- Withdrawal Logic ---
     async function openWithdrawModal() {
+        console.log("Attempting to open withdrawal modal.");
         if (balance < 5) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
             showMessageModal("Withdrawal Error", "Minimum withdrawal is $5.00. Keep earning!");
+            console.warn("Withdrawal: Balance too low for withdrawal.");
             return;
         }
         document.getElementById('withdraw-modal').classList.add('active');
+        console.log("Withdrawal modal opened.");
     }
     
     function closeWithdrawModal() {
         document.getElementById('withdraw-modal').classList.remove('active');
+        console.log("Withdrawal modal closed.");
     }
 
     async function requestWithdraw() {
+        console.log("Withdrawal: Request initiated.");
         closeWithdrawModal();
         if (!window.userId || !window.db) {
             showMessageModal("Error", "You must be logged in to request a withdrawal.");
+            console.error("Withdrawal: Cannot request. User not logged in or DB not available.");
             return;
         }
 
         // === Your Bot Token and Admin User ID ===
         const botToken = '7380785513:AAHKo14QwkPgIgHcXZQDJF0Mr0OoxpyPl5w'; // Your bot token
         const adminUserId = '7416599626'; // Your Telegram user ID
+        console.log("Withdrawal: Using botToken:", botToken, "and adminUserId:", adminUserId);
 
         // Use Telegram username/ID if available, otherwise fallback to Firebase UID
         const userInfo = tgUser ? `@${tgUser.username || tgUser.first_name} (Telegram ID: ${tgUser.id})` : `Firebase User ID: ${window.userId}`;
         const message = `💸 *Withdrawal Request*\n\n👤 *User:* ${userInfo}\n💰 *Amount:* $${balance.toFixed(2)}\n\n_Please process this request._`;
+        console.log("Withdrawal: Sending message to Telegram admin:", message);
 
         try {
             const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -1108,6 +1187,7 @@
                 body: JSON.stringify({ chat_id: adminUserId, text: message, parse_mode: "Markdown" })
             });
             const data = await res.json();
+            console.log("Withdrawal: Telegram API response:", data);
 
             if (data.ok) {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('success');
@@ -1123,24 +1203,29 @@
                 balance = 0; // Update local state
                 points = 0;
                 updateDisplay();
+                console.log("Withdrawal: Request successful, data reset in Firestore.");
             } else {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-                showMessageModal("Failed to Send Request", "Failed to send request. Please try again later.");
+                showMessageModal("Failed to Send Request", "Failed to send request. Please try again later. Telegram API Error: " + (data.description || "Unknown error"));
+                console.error("Withdrawal: Telegram API returned error:", data);
             }
         } catch (err) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showMessageModal("Network Error", "An error occurred. Check your connection and try again.");
+            showMessageModal("Network Error", "An error occurred. Check your connection and try again. Error: " + err.message);
+            console.error("Withdrawal: Network error during Telegram API call:", err);
         }
     }
 
     // --- Generic Message Modal Functions ---
     function showMessageModal(title, message) {
+        console.log(`Showing message modal: Title='${title}', Message='${message}'`);
         document.getElementById('message-modal-title').textContent = title;
         document.getElementById('message-modal-text').textContent = message;
         document.getElementById('message-modal').classList.add('active'); 
     }
 
     function closeMessageModal() {
+        console.log("Closing message modal.");
         document.getElementById('message-modal').classList.remove('active'); 
     }
 </script>
