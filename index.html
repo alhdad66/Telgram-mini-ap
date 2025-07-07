@@ -6,7 +6,7 @@
   <title>Easy Earning Bot</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    /* المتغيرات الأساسية للثيم */
+    /* CSS Variables for consistent theming */
     :root {
       --primary-color: #2ed914;
       --primary-hover: #3bff21;
@@ -16,63 +16,87 @@
       --text-muted-color: #a0a0a0;
       --accent-color: #ff8c00;
       --card-bg: #252528;
+      --danger-color: #e74c3c;
     }
-    /* إعادة تعيين CSS الأساسية */
+
+    /* Universal box-sizing and tap highlight removal */
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    /* Body styling: full viewport, centered content, smooth fonts */
     body {
       margin: 0; padding: 0; background-color: var(--background-color); color: var(--text-color);
-      font-family: 'Segoe UI', 'Roboto', sans-serif; display: flex; justify-content: center; align-items: center;
+      font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif; display: flex; justify-content: center; align-items: center;
       height: 100vh; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     }
+
+    /* Main container for the app, responsive on mobile */
     .container {
       width: 100%; height: 100%; max-width: 400px; background: var(--background-color);
       display: flex; flex-direction: column; overflow: hidden; position: relative;
+      border-radius: 16px; /* Added rounded corners to the main container */
+      box-shadow: 0 0 20px rgba(0,0,0,0.5); /* Subtle shadow for depth */
     }
+
+    /* Main content area, scrollable */
     main {
-      flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* مساحة للتنقل السفلي */
+      flex-grow: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* Space for footer nav */
     }
-    /* تأثيرات الانتقال بين العروض */
+
+    /* View transitions */
     .view { display: none; animation: fadeIn 0.4s ease-in-out; }
     .view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    /* بطاقة رأس المستخدم */
+
+    /* User header card styling */
     .user-header-card {
       background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 25px;
       display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Added shadow */
     }
+
+    /* User avatar styling */
     .user-avatar {
       width: 50px; height: 50px; border-radius: 50%; margin-right: 15px; overflow: hidden;
       background: linear-gradient(135deg, var(--primary-color), #00a651);
       display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;
+      color: #fff; /* Avatar text color */
     }
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .user-info .username { font-size: 18px; font-weight: 700; margin: 0; }
     .user-info .title { font-size: 14px; color: var(--text-muted-color); margin: 0; }
-    /* بطاقة الرصيد */
+
+    /* Balance card styling */
     .balance-card {
       background: linear-gradient(135deg, #00a651, #00753a); border-radius: 16px; padding: 20px;
       text-align: center; margin-bottom: 25px;
+      box-shadow: 0 6px 15px rgba(0,166,81,0.4); /* Prominent shadow */
+      position: relative; /* For potential future animations */
     }
     .balance-card .label { font-size: 16px; opacity: 0.8; margin-bottom: 5px; }
     .balance-card .balance-value { font-size: 36px; font-weight: 800; margin: 0; letter-spacing: 1px; }
     .balance-card .points-value { font-size: 16px; font-weight: 600; color: var(--accent-color); margin-top: 10px; }
-    /* عناوين الأقسام */
+
+    /* Section title styling */
     .section-title { font-size: 20px; font-weight: 700; margin-bottom: 15px; padding-left: 5px; border-left: 4px solid var(--primary-color); }
-    /* بطاقات المهام */
+
+    /* Task card styling */
     .task-card {
       background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px;
       display: flex; align-items: center; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease;
       border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Subtle shadow */
     }
     .task-card:hover { transform: translateY(-3px); background-color: var(--secondary-color); }
     .task-icon { font-size: 24px; color: var(--primary-color); margin-right: 20px; width: 30px; text-align: center; }
     .task-details h3 { margin: 0; font-size: 16px; font-weight: 600; }
     .task-details p { margin: 3px 0 0; font-size: 13px; color: var(--text-muted-color); }
     .task-arrow { margin-left: auto; font-size: 18px; color: var(--text-muted-color); }
-    /* عناصر القائمة (للسجل) */
+
+    /* List item styling (for leaderboard and history) */
     .list-item {
       display: flex; align-items: center; background: var(--card-bg); padding: 12px 15px;
       border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.08);
     }
     .list-item .rank { font-size: 16px; font-weight: 700; color: var(--text-muted-color); width: 30px; }
     .list-item .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--secondary-color); margin-right: 15px; object-fit: cover; }
@@ -81,21 +105,25 @@
     .list-item .info .detail { font-size: 13px; color: var(--text-muted-color); }
     .list-item .score { font-size: 16px; font-weight: 700; color: var(--accent-color); }
     .history-icon { color: var(--primary-color); margin-right: 15px; font-size: 18px; }
-    /* شريط التنقل السفلي */
+
+    /* Footer navigation styling */
     .footer-nav {
       position: fixed; bottom: 0; left: 0; right: 0; width: 100%; max-width: 400px; margin: 0 auto;
       display: flex; justify-content: space-around; background: var(--secondary-color);
       padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top-left-radius: 16px; border-top-right-radius: 16px; /* Rounded top corners */
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.3); /* Shadow for depth */
     }
     .nav-button {
       display: flex; flex-direction: column; align-items: center; color: var(--text-muted-color);
       background: none; border: none; font-size: 12px; transition: color 0.2s ease, transform 0.2s ease;
-      cursor: pointer; padding: 5px 10px;
+      cursor: pointer; padding: 5px 10px; flex: 1; /* Make buttons take equal space */
     }
     .nav-button .icon { font-size: 22px; margin-bottom: 4px; }
     .nav-button:hover { color: var(--text-color); }
     .nav-button.active { color: var(--primary-color); transform: scale(1.1); }
-    /* أزرار الإجراءات */
+
+    /* Action button styling */
     .action-button {
       width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700;
       margin-top: 15px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
@@ -104,7 +132,11 @@
     .primary-button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 217, 20, 0.3); }
     .secondary-button { background: var(--secondary-color); color: var(--primary-color); }
     .secondary-button:hover { background: #3a3a3e; }
-    /* نافذة المودال المنبثقة */
+    .danger-button { background: var(--danger-color); color: #fff; }
+    .danger-button:hover { background: #c0392b; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3); }
+
+
+    /* Modal overlay styling */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
       display: none; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.3s;
@@ -113,434 +145,405 @@
     .modal-content {
       background: var(--card-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 320px;
       text-align: center; animation: slideIn 0.3s;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5); /* Stronger shadow for modals */
     }
     @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .modal-content h3 { margin-top: 0; font-size: 20px; }
     .modal-content p { color: var(--text-muted-color); margin-bottom: 25px; }
     .modal-actions { display: flex; gap: 10px; }
+    .modal-actions button { flex: 1; } /* Make modal buttons take equal space */
 
-    /* أنماط صندوق الرسائل المخصص */
-    .custom-message-box {
+    /* Custom Message Box Styling */
+    #message-box {
         position: fixed;
         top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: #333;
-        color: white;
+        background-color: var(--primary-color);
+        color: #000;
         padding: 15px 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        font-weight: 600;
         z-index: 1001;
-        display: none; /* مخفي افتراضياً */
         opacity: 0;
-        transition: opacity 0.3s ease-in-out;
-        max-width: 90%;
-        text-align: center;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
-    .custom-message-box.show {
-        display: block;
+    #message-box.show {
         opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
     }
-    .custom-message-box.error {
-        background-color: #dc2626; /* أحمر للأخطاء */
+    #message-box.error {
+        background-color: var(--danger-color);
+        color: #fff;
     }
-    .custom-message-box.success {
-        background-color: #16a34a; /* أخضر للنجاح */
+    #message-box .icon {
+        font-size: 20px;
     }
 
-    /* شاشة التحميل */
+    /* Loading Indicator Styling */
     #loading-overlay {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: flex;
-        justify-content: center;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
         align-items: center;
+        justify-content: center;
+        z-index: 1002;
         flex-direction: column;
-        z-index: 2000;
-        color: white;
-        font-size: 1.2em;
-        transition: opacity 0.3s ease-in-out;
+        gap: 20px;
     }
-    #loading-overlay.hidden {
-        opacity: 0;
-        pointer-events: none; /* يسمح بالنقر على العناصر خلفها عندما تكون مخفية */
+    #loading-overlay.active {
+        display: flex;
     }
-    #loading-overlay i {
-        margin-bottom: 15px;
+    .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
     }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #loading-text {
+        color: var(--text-color);
+        font-size: 18px;
+        font-weight: 600;
+    }
+
   </style>
 
-  <!-- تضمين SDK للإعلانات -->
+  <!-- Monetag SDK (Ad provider) -->
   <script src='//libtl.com/sdk.js' data-zone='9459352' data-sdk='show_9459352'></script>
-  <!-- تضمين Telegram Web App SDK -->
+  <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-  <!-- شاشة التحميل -->
-  <div id="loading-overlay">
-      <i class="fa-solid fa-spinner fa-spin fa-3x"></i>
-      <p id="loading-message">جاري الاتصال بـ Firebase...</p>
-  </div>
-
   <div class="container">
     <main id="main-content">
 
-      <!-- عرض الصفحة الرئيسية -->
+      <!-- HOME VIEW -->
       <div id="home-view" class="view active">
         <div class="user-header-card">
           <div class="user-avatar" id="profile-pic">EE</div>
           <div class="user-info">
-            <h2 class="username" id="username">جاري التحميل...</h2>
-            <p class="title">مرحباً بك مجدداً!</p>
+            <h2 class="username" id="username">Loading...</h2>
+            <p class="title">Welcome Back!</p>
           </div>
         </div>
         <div class="balance-card">
-            <p class="label">الرصيد الكلي</p>
+            <p class="label">Total Balance</p>
             <h1 class="balance-value" id="balance-value">$0.00</h1>
-            <p class="points-value"><i class="fa-solid fa-coins"></i> <span id="points-value">0</span> نقطة</p>
+            <p class="points-value"><i class="fa-solid fa-coins"></i> <span id="points-value">0</span> Points</p>
         </div>
-        <h2 class="section-title">إجراءات سريعة</h2>
+        <h2 class="section-title">Quick Actions</h2>
         <div class="task-card" onclick="showView('tasks-view')">
             <div class="task-icon"><i class="fa-solid fa-list-check"></i></div>
-            <div class="task-details"><h3>عرض المهام</h3><p>شاهد الإعلانات وأكمل المهام لكسب النقاط.</p></div>
+            <div class="task-details"><h3>View Tasks</h3><p>Watch ads and complete tasks to earn points.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-chevron-right"></i></div>
         </div>
         <div class="task-card" onclick="openWithdrawModal()">
             <div class="task-icon"><i class="fa-solid fa-wallet"></i></div>
-            <div class="task-details"><h3>سحب الأموال</h3><p>اطلب سحب رصيدك المتاح.</p></div>
+            <div class="task-details"><h3>Withdraw Funds</h3><p>Request to withdraw your available balance.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-chevron-right"></i></div>
         </div>
       </div>
 
-      <!-- عرض المهام -->
+      <!-- TASKS VIEW -->
       <div id="tasks-view" class="view">
-        <h2 class="section-title">مهام الكسب</h2>
+        <h2 class="section-title">Earning Tasks</h2>
         <div class="task-card" onclick="showRewardedInterstitial()">
             <div class="task-icon"><i class="fa-solid fa-rectangle-ad"></i></div>
-            <div class="task-details"><h3>إعلان بيني بمكافأة</h3><p>شاهد إعلانًا بملء الشاشة لكسب المكافآت.</p></div>
+            <div class="task-details"><h3>Rewarded Interstitial</h3><p>Watch a full-screen ad to earn rewards.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-play"></i></div>
         </div>
         <div class="task-card" onclick="showRewardedPopup()">
             <div class="task-icon"><i class="fa-solid fa-window-restore"></i></div>
-            <div class="task-details"><h3>إعلان منبثق بمكافأة</h3><p>شاهد إعلانًا منبثقًا للحصول على نقاط سريعة.</p></div>
+            <div class="task-details"><h3>Rewarded Popup</h3><p>View a popup ad for quick points.</p></div>
             <div class="task-arrow"><i class="fa-solid fa-play"></i></div>
         </div>
       </div>
 
-      <!-- عرض السجل -->
+      <!-- LEADERBOARD VIEW -->
+      <div id="leaderboard-view" class="view">
+        <h2 class="section-title">Top Earners</h2>
+        <div id="leaderboard-list"><!-- Leaderboard items will be generated here by JS --></div>
+      </div>
+
+      <!-- HISTORY VIEW -->
       <div id="history-view" class="view">
-        <h2 class="section-title">النشاط الأخير</h2>
-        <div id="history-list"><!-- سيتم إنشاء عناصر السجل هنا بواسطة JS --></div>
+        <h2 class="section-title">Recent Activity</h2>
+        <div id="history-list"><!-- History items will be generated here by JS --></div>
       </div>
 
     </main>
 
-    <!-- شريط التنقل السفلي -->
+    <!-- Footer Navigation -->
     <nav class="footer-nav">
-      <button class="nav-button active" onclick="showView('home-view')"><i class="icon fa-solid fa-house"></i>الرئيسية</button>
-      <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-list-check"></i>المهام</button>
-      <button class="nav-button" onclick="showView('history-view')"><i class="icon fa-solid fa-clock-rotate-left"></i>السجل</button>
-      <button class="nav-button" onclick="shareApp()"><i class="icon fa-solid fa-share-nodes"></i>مشاركة</button>
+      <button class="nav-button active" onclick="showView('home-view')"><i class="icon fa-solid fa-house"></i>Home</button>
+      <button class="nav-button" onclick="showView('tasks-view')"><i class="icon fa-solid fa-list-check"></i>Tasks</button>
+      <button class="nav-button" onclick="showView('leaderboard-view')"><i class="icon fa-solid fa-trophy"></i>Leaders</button>
+      <button class="nav-button" onclick="showView('history-view')"><i class="icon fa-solid fa-clock-rotate-left"></i>History</button>
+      <button class="nav-button" onclick="shareApp()"><i class="icon fa-solid fa-share-nodes"></i>Share</button>
     </nav>
   </div>
   
-  <!-- نافذة سحب الأموال المنبثقة -->
+  <!-- WITHDRAWAL MODAL -->
   <div class="modal-overlay" id="withdraw-modal">
     <div class="modal-content">
-        <h3>تأكيد السحب</h3>
-        <p>أنت على وشك طلب سحب رصيدك بالكامل. يرجى التأكيد.</p>
+        <h3>Confirm Withdrawal</h3>
+        <p>You are about to request a withdrawal of your entire balance ($<span id="withdraw-amount-display">0.00</span>). Please confirm.</p>
         <div class="modal-actions">
-            <button class="action-button secondary-button" onclick="closeWithdrawModal()">إلغاء</button>
-            <button class="action-button primary-button" onclick="requestWithdraw()">تأكيد</button>
+            <button class="action-button secondary-button" onclick="closeWithdrawModal()">Cancel</button>
+            <button class="action-button primary-button" onclick="requestWithdraw()">Confirm</button>
         </div>
     </div>
   </div>
 
-  <!-- صندوق الرسائل المخصص -->
-  <div id="customMessageBox" class="custom-message-box"></div>
+  <!-- CUSTOM MESSAGE BOX -->
+  <div id="message-box">
+      <span class="icon"></span>
+      <span id="message-text"></span>
+  </div>
 
-  <!-- Firebase SDKs -->
-  <script type="module">
-    // استيراد الدوال التي تحتاجها من Firebase SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, addDoc, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-analytics.js"; // تم تضمين Analytics بناءً على طلبك
+  <!-- LOADING OVERLAY -->
+  <div id="loading-overlay">
+      <div class="spinner"></div>
+      <div id="loading-text">Processing...</div>
+  </div>
 
-    // تهيئة Firebase لتطبيق الويب الخاص بك
-    const firebaseConfig = {
-      apiKey: "AIzaSyCEhqlsyg6og3z1ZuQ8ZJsFewgYbSSvUEQ",
-      authDomain: "adsgram-33175.firebaseapp.com",
-      projectId: "adsgram-33175",
-      storageBucket: "adsgram-33175.firebasestorage.app",
-      messagingSenderId: "762757643972",
-      appId: "1:762757643972:web:b716aa8150643c0e071391",
-      measurementId: "G-H5NFFBHPE6"
-    };
-
-    // Firebase Global Variables (provided by Canvas environment, used for fallback/auth)
-    const appId = firebaseConfig.projectId; // استخدم معرف مشروعك كـ appId لمسارات Firestore
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-    // --- مثيلات Firebase ---
-    let app;
-    let db;
-    let auth;
-    let analytics; // تعريف متغير Analytics
-    let currentUserId = null; // معرف المستخدم الفريد من Firebase (UID)
-    let tgUser = null; // بيانات مستخدم Telegram Web App
-
-    // --- متغيرات الحالة (الآن متزامنة مع Firestore) ---
+<script>
+    // --- State Variables ---
     let points = 0;
     let balance = 0.00;
+    let historyLog = [];
+    let tgUser = null;
+    const pointsPerAd = 1;
+    const ratePerPoint = 0.05; // $0.05 per point
 
-    const pointsPerAd = 1; // النقاط المكتسبة لكل إعلان
-    const ratePerPoint = 0.05; // سعر النقطة الواحدة بالدولار
+    // --- DOM Elements Cache ---
+    const elements = {
+        pointsValue: document.getElementById('points-value'),
+        balanceValue: document.getElementById('balance-value'),
+        username: document.getElementById('username'),
+        profilePic: document.getElementById('profile-pic'),
+        historyList: document.getElementById('history-list'),
+        leaderboardList: document.getElementById('leaderboard-list'),
+        withdrawModal: document.getElementById('withdraw-modal'),
+        withdrawAmountDisplay: document.getElementById('withdraw-amount-display'),
+        messageBox: document.getElementById('message-box'),
+        messageText: document.getElementById('message-text'),
+        messageIcon: document.querySelector('#message-box .icon'),
+        loadingOverlay: document.getElementById('loading-overlay'),
+        loadingText: document.getElementById('loading-text')
+    };
 
-    // --- دالة صندوق الرسائل المخصص ---
-    function showCustomMessage(message, type = 'info') {
-        const msgBox = document.getElementById('customMessageBox');
-        msgBox.textContent = message;
-        msgBox.className = 'custom-message-box show'; // إعادة تعيين الفئات
-        if (type === 'error') {
-            msgBox.classList.add('error');
-        } else if (type === 'success') {
-            msgBox.classList.add('success');
-        }
-        setTimeout(() => {
-            msgBox.classList.remove('show');
-        }, 3000); // إخفاء بعد 3 ثوانٍ
-    }
-
-    // --- دالة إظهار/إخفاء شاشة التحميل ---
-    function showLoading(message = "جاري التحميل...") {
-        document.getElementById('loading-message').textContent = message;
-        document.getElementById('loading-overlay').classList.remove('hidden');
-    }
-
-    function hideLoading() {
-        document.getElementById('loading-overlay').classList.add('hidden');
-    }
-
-    // --- منطق التطبيق الأساسي ---
+    // --- Core App Logic ---
     document.addEventListener('DOMContentLoaded', () => {
-        initializeFirebaseAndApp();
+        initApp();
     });
 
-    async function initializeFirebaseAndApp() {
-        showLoading("جاري تهيئة التطبيق...");
-        try {
-            // تهيئة Firebase إذا لم يتم تهيئتها بالفعل
-            if (!app) {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                analytics = getAnalytics(app); // تهيئة Analytics
-            }
-
-            // الاستماع إلى تغييرات حالة المصادقة
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    // المستخدم مسجل الدخول بنجاح (سواء بالرمز المخصص أو مجهول)
-                    currentUserId = user.uid;
-                    console.log("Firebase User Authenticated:", currentUserId);
-                    // تحميل بيانات مستخدم Telegram إذا كانت متاحة
-                    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
-                        tgUser = Telegram.WebApp.initDataUnsafe.user;
-                        console.log("Telegram User Data:", tgUser);
-                    }
-                    await loadUserDataAndSetupListeners(); // تحميل بيانات المستخدم وإعداد المستمعين
-                    showView('home-view'); // عرض الواجهة الرئيسية
-                    initializeInAppAds(); // تهيئة الإعلانات بعد تحميل بيانات المستخدم
-                    hideLoading(); // إخفاء شاشة التحميل بمجرد أن يكون التطبيق جاهزاً
-                } else {
-                    // المستخدم غير مسجل الدخول، حاول تسجيل الدخول
-                    try {
-                        if (initialAuthToken) {
-                            console.log("Attempting sign-in with custom token...");
-                            await signInWithCustomToken(auth, initialAuthToken);
-                            console.log("Signed in with custom token successfully.");
-                        } else {
-                            console.log("No custom token available. Attempting anonymous sign-in...");
-                            await signInAnonymously(auth);
-                            console.log("Signed in anonymously successfully.");
-                        }
-                    } catch (authError) {
-                        console.error("Primary authentication failed (custom token or initial anonymous):", authError);
-                        // إذا فشل تسجيل الدخول بالرمز المخصص، حاول تسجيل الدخول كمستخدم مجهول كخيار احتياطي
-                        showLoading(`فشل المصادقة الأساسية: ${authError.message}. محاولة تسجيل الدخول كمستخدم ضيف...`);
-                        try {
-                            await signInAnonymously(auth);
-                            console.log("Fallback: Signed in anonymously after primary auth failure.");
-                        } catch (fallbackError) {
-                            console.error("Fallback anonymous sign-in also failed:", fallbackError);
-                            showCustomMessage(`فشل تسجيل الدخول بالكامل: ${fallbackError.message}. لن يعمل التطبيق بشكل صحيح.`, 'error');
-                            document.getElementById('username').textContent = 'غير متصل';
-                            document.getElementById('profile-pic').textContent = 'X';
-                            hideLoading(); // إخفاء التحميل حتى لو فشل كل شيء
-                            return; // إيقاف التنفيذ إذا فشلت المصادقة تمامًا
-                        }
-                    }
-                }
-            });
-        } catch (error) {
-            console.error("خطأ في تهيئة Firebase:", error);
-            showCustomMessage(`فشل تهيئة التطبيق: ${error.message}`, 'error');
-            hideLoading();
+    /**
+     * Initializes the application:
+     * - Checks for Telegram Web App context.
+     * - Loads user data and app state from local storage.
+     * - Renders initial views.
+     * - Initializes automatic in-app ads.
+     */
+    function initApp() {
+        // Check if running inside Telegram Web App
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand(); // Expand the app to full height
+            tgUser = Telegram.WebApp.initDataUnsafe.user; // Get user data
         }
-    }
-
-    async function loadUserDataAndSetupListeners() {
-        if (!db || !currentUserId) {
-            console.warn("Firestore أو معرف المستخدم غير جاهز لتحميل البيانات.");
-            return;
-        }
-
-        // مسار مستند بيانات المستخدم الرئيسي
-        const userDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/profile/data`);
-        // مسار مجموعة سجل النشاط
-        const historyCollectionRef = collection(db, `artifacts/${appId}/users/${currentUserId}/history`);
         
-        // --- مستمع ملف تعريف المستخدم ---
-        onSnapshot(userDocRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                points = data.points || 0;
-                balance = data.balance || 0.00;
-                // تحديث معلومات مستخدم Telegram إذا كانت جديدة أو تغيرت
-                if (tgUser && (!data.telegramInfo || data.telegramInfo.id !== tgUser.id)) {
-                    updateUserTelegramInfo(tgUser); // تحديث Firestore بأحدث معلومات TG
-                } else if (data.telegramInfo) {
-                    tgUser = data.telegramInfo; // استخدام معلومات TG المخزنة إذا لم تكن هناك بيانات TG جديدة
-                }
-            } else {
-                // مستند المستخدم غير موجود، قم بإنشائه ببيانات أولية
-                console.log("لم يتم العثور على ملف تعريف المستخدم، يتم إنشاء البيانات الأولية.");
-                points = 0;
-                balance = 0.00;
-                setDoc(userDocRef, {
-                    points: 0,
-                    balance: 0.00,
-                    telegramInfo: tgUser || null, // حفظ معلومات Telegram إذا كانت متاحة
-                    createdAt: new Date()
-                }, { merge: true }).catch(e => console.error("خطأ في إنشاء بيانات المستخدم الأولية:", e));
-            }
-            updateDisplay(); // تحديث عرض النقاط والرصيد
-            loadTelegramUser(); // تحديث واجهة المستخدم ببيانات tgUser الحالية
-        }, (error) => {
-            console.error("خطأ في الاستماع إلى بيانات المستخدم:", error);
-            showCustomMessage(`خطأ في تحميل بيانات المستخدم: ${error.message}`, 'error');
-        });
+        loadData(); // Load points, balance, history from local storage
+        loadTelegramUser(); // Update UI with Telegram user info
+        showView('home-view'); // Show the home view by default
+        renderLeaderboard(); // Render the static leaderboard
 
-        // --- مستمع السجل ---
-        onSnapshot(query(historyCollectionRef, orderBy('timestamp', 'desc')), (snapshot) => {
-            const historyLog = [];
-            snapshot.forEach(doc => historyLog.push(doc.data()));
-            renderHistory(historyLog); // تمرير السجل الذي تم جلبه لدالة العرض
-        }, (error) => {
-            console.error("خطأ في الاستماع إلى بيانات السجل:", error);
-            showCustomMessage(`خطأ في تحميل السجل: ${error.message}`, 'error');
-        });
+        // Initialize automatic in-app ads (Monetag SDK)
+        initializeInAppAds();
     }
-
-    async function updateUserTelegramInfo(info) {
-        if (!db || !currentUserId || !info) return;
-        const userDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/profile/data`);
-        try {
-            await updateDoc(userDocRef, { telegramInfo: info });
-            console.log("تم تحديث معلومات Telegram في Firestore.");
-        } catch (error) {
-            console.error("خطأ في تحديث معلومات Telegram:", error);
-        }
-    }
-
-    // --- تهيئة الإعلانات التلقائية ---
+    
+    /**
+     * Initializes automatic in-app interstitial ads.
+     * Retries if the Monetag SDK is not yet ready.
+     */
     function initializeInAppAds() {
-        // التحقق مما إذا كانت دالة show_9459352 متاحة من SDK الإعلانات
-        if (typeof show_9459352 !== 'function') {
-            console.warn("Monetag SDK غير جاهز للإعلانات داخل التطبيق. إعادة المحاولة...");
-            setTimeout(initializeInAppAds, 2000); // أعد المحاولة بعد ثانيتين
-            return;
+        // Check if the show_9459352 function (from Monetag SDK) is available
+        if (typeof show_9459352 === 'function') {
+            show_9459352({
+              type: 'inApp',
+              inAppSettings: {
+                frequency: 2,      // Show every 2 page views (not relevant for single-page app)
+                capping: 0.1,      // Capping: 10% of users will see it (example)
+                interval: 30,      // Minimum 30 seconds between ads
+                timeout: 5,        // Ad will timeout after 5 seconds if not loaded
+                everyPage: false   // Crucial for single-page applications like this
+              }
+            });
+            console.log("Automatic In-App Interstitial Ads Initialized.");
+        } else {
+            console.warn("Monetag SDK not ready for In-App Ads. Retrying...");
+            // Retry after 2 seconds if SDK is not loaded yet
+            setTimeout(initializeInAppAds, 2000); 
         }
-        show_9459352({
-          type: 'inApp',
-          inAppSettings: {
-            frequency: 2, // عدد مرات عرض الإعلان
-            capping: 0.1, // الحد الأقصى لعدد مرات الظهور لكل مستخدم
-            interval: 30, // الفاصل الزمني بين الإعلانات بالثواني
-            timeout: 5, // مهلة التحميل بالثواني
-            everyPage: false // `false` مهم للتطبيقات أحادية الصفحة مثل هذا
-          }
-        });
-        console.log("تم تهيئة الإعلانات البينية التلقائية داخل التطبيق.");
     }
 
-    // --- إدارة العروض ---
+    // --- UI Utility Functions ---
+
+    /**
+     * Displays a custom message box.
+     * @param {string} message - The message to display.
+     * @param {string} type - 'success' or 'error'. Affects styling and icon.
+     */
+    function showMessageBox(message, type = 'success') {
+        elements.messageText.textContent = message;
+        elements.messageBox.classList.remove('success', 'error'); // Clear previous types
+        elements.messageBox.classList.add(type);
+
+        // Set icon based on type
+        if (type === 'success') {
+            elements.messageIcon.className = 'icon fa-solid fa-check-circle';
+        } else if (type === 'error') {
+            elements.messageIcon.className = 'icon fa-solid fa-times-circle';
+        } else {
+            elements.messageIcon.className = 'icon fa-solid fa-info-circle'; // Default info icon
+        }
+
+        elements.messageBox.classList.add('show');
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+            elements.messageBox.classList.remove('show');
+        }, 3000);
+    }
+
+    /**
+     * Shows or hides the loading overlay.
+     * @param {boolean} show - True to show, false to hide.
+     * @param {string} text - Optional text to display on the loading overlay.
+     */
+    function toggleLoading(show, text = 'Processing...') {
+        if (show) {
+            elements.loadingText.textContent = text;
+            elements.loadingOverlay.classList.add('active');
+        } else {
+            elements.loadingOverlay.classList.remove('active');
+        }
+    }
+
+    // --- View Management ---
+
+    /**
+     * Shows the specified view and updates the active navigation button.
+     * @param {string} viewId - The ID of the view to show (e.g., 'home-view').
+     */
     function showView(viewId) {
-        // إزالة الفئة 'active' من جميع العروض
+        // Hide all views
         document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
-        // إضافة الفئة 'active' للعرض المطلوب
+        // Show the selected view
         document.getElementById(viewId).classList.add('active');
         
-        // إزالة الفئة 'active' من جميع أزرار التنقل
+        // Deactivate all navigation buttons
         document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
-        // إضافة الفئة 'active' للزر النشط
+        // Activate the corresponding navigation button
         const activeBtn = document.querySelector(`.nav-button[onclick="showView('${viewId}')"]`);
         if(activeBtn) activeBtn.classList.add('active');
+        
+        // If navigating to history view, re-render it to show latest data
+        if (viewId === 'history-view') {
+            renderHistory();
+        }
     }
     
-    // --- تحديث عرض البيانات ---
+    // --- Data Persistence ---
+
+    /**
+     * Loads points, balance, and history from local storage.
+     */
+    function loadData() {
+        const savedData = localStorage.getItem('easyEarningBotV2');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            points = data.points || 0;
+            balance = data.balance || 0.00;
+            historyLog = data.historyLog || [];
+        }
+        updateDisplay(); // Update the UI with loaded data
+    }
+
+    /**
+     * Saves current points, balance, and history to local storage.
+     */
+    function saveData() {
+        localStorage.setItem('easyEarningBotV2', JSON.stringify({ points, balance, historyLog }));
+    }
+
+    /**
+     * Updates the displayed points and balance values in the UI.
+     */
     function updateDisplay() {
-        document.getElementById('points-value').textContent = points;
-        document.getElementById('balance-value').textContent = `$${balance.toFixed(2)}`;
+        elements.pointsValue.textContent = points;
+        elements.balanceValue.textContent = `$${balance.toFixed(2)}`;
     }
     
-    // --- تحديث واجهة المستخدم للمستخدم والملف الشخصي ---
+    // --- User & Profile ---
+
+    /**
+     * Loads Telegram user data and updates the user header card.
+     */
     function loadTelegramUser() {
         if (tgUser) {
-            document.getElementById('username').textContent = tgUser.first_name || 'مستخدم Telegram';
-            const profilePicDiv = document.getElementById('profile-pic');
+            elements.username.textContent = tgUser.first_name || 'Telegram User';
             if (tgUser.photo_url) {
-                profilePicDiv.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
+                elements.profilePic.innerHTML = `<img src="${tgUser.photo_url}" alt="P">`;
             } else {
-                profilePicDiv.textContent = (tgUser.first_name || 'U').charAt(0);
+                elements.profilePic.textContent = (tgUser.first_name || 'U').charAt(0);
             }
-        } else {
-            document.getElementById('username').textContent = 'جاري تحميل المستخدم...';
-            document.getElementById('profile-pic').textContent = 'EE';
         }
     }
 
-    // --- منطق السجل ---
-    async function addToHistory(type, detail) {
-        if (!db || !currentUserId) return;
-        try {
-            // إضافة مستند جديد إلى مجموعة السجل الخاصة بالمستخدم
-            await addDoc(collection(db, `artifacts/${appId}/users/${currentUserId}/history`), {
-                type: type,
-                detail: detail,
-                timestamp: new Date().toISOString() // استخدام تنسيق ISO لتسهيل الفرز
-            });
-            console.log("تمت إضافة عنصر إلى السجل.");
-        } catch (error) {
-            console.error("خطأ في إضافة عنصر إلى السجل:", error);
-            showCustomMessage(`خطأ في حفظ السجل: ${error.message}`, 'error');
+    // --- History Logic ---
+
+    /**
+     * Adds a new entry to the history log.
+     * @param {string} type - Type of activity ('earn' or 'withdraw').
+     * @param {string} detail - Description of the activity.
+     */
+    function addToHistory(type, detail) {
+        const timestamp = new Date().toISOString();
+        historyLog.unshift({ type, detail, timestamp }); // Add to the beginning
+        if (historyLog.length > 50) { // Keep history log to a maximum of 50 entries
+            historyLog.pop();
         }
+        saveData(); // Save updated history
     }
 
-    function renderHistory(historyLog) {
-        const list = document.getElementById('history-list');
+    /**
+     * Renders the history log in the history view.
+     */
+    function renderHistory() {
         if (historyLog.length === 0) {
-            list.innerHTML = `<div class="list-item"><div class="info"><div class="name">لا يوجد نشاط بعد.</div><div class="detail">شاهد بعض الإعلانات للبدء!</div></div></div>`;
+            elements.historyList.innerHTML = `<div class="list-item"><div class="info"><div class="name">No activity yet.</div><div class="detail">Watch some ads to get started!</div></div></div>`;
             return;
         }
         
-        // إنشاء عناصر السجل بناءً على البيانات
-        list.innerHTML = historyLog.map(item => {
+        elements.historyList.innerHTML = historyLog.map(item => {
+            // Determine icon based on activity type
             const icon = item.type === 'earn' 
                 ? '<i class="fa-solid fa-plus-circle" style="color: var(--primary-color);"></i>' 
                 : '<i class="fa-solid fa-paper-plane" style="color: var(--accent-color);"></i>';
@@ -555,72 +558,112 @@
         }).join('');
     }
 
-    // --- دوال الكسب ---
-    async function grantReward() {
-        if (!db || !currentUserId) {
-            showCustomMessage("التطبيق غير جاهز. يرجى الانتظار للتهيئة.", 'error');
-            return;
-        }
+    // --- Leaderboard Logic ---
 
-        const userDocRef = doc(db, `artifacts/${appId}/users/${currentUserId}/profile/data`);
-
-        try {
-            // تحديث نقاط المستخدم ورصيده
-            points += pointsPerAd;
-            balance = points * ratePerPoint;
-            await updateDoc(userDocRef, {
-                points: points,
-                balance: balance,
-                lastEarned: new Date()
-            });
-
-            updateDisplay(); // تحديث الواجهة
-            await addToHistory('earn', `+${pointsPerAd} نقطة من الإعلان`); // إضافة إلى السجل
-            Telegram.WebApp.HapticFeedback.notificationOccurred('success'); // ردود فعل لمسية
-            showCustomMessage(`تهانينا! لقد ربحت +${pointsPerAd} نقطة. رصيدك الجديد هو $${balance.toFixed(2)}.`, 'success');
-        } catch (error) {
-            console.error("خطأ في منح المكافأة:", error);
-            showCustomMessage(`فشل منح المكافأة: ${error.message}`, 'error');
-            Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-        }
+    /**
+     * Renders the static leaderboard.
+     * In a real app, this would fetch data from a backend.
+     */
+    function renderLeaderboard() {
+        // Static dummy data for the leaderboard
+        const leaderboardData = [
+            { name: "CryptoKing", score: 2540, avatar: "https://i.pravatar.cc/150?img=1" },
+            { name: "Elena", score: 2210, avatar: "https://i.pravatar.cc/150?img=2" },
+            { name: "ProMiner", score: 1980, avatar: "https://i.pravatar.cc/150?img=3" },
+            { name: "Aisha", score: 1750, avatar: "https://i.pravatar.cc/150?img=4" },
+            { name: "BotMaster", score: 1530, avatar: "https://i.pravatar.cc/150?img=5" },
+            { name: "GoldGetter", score: 1400, avatar: "https://i.pravatar.cc/150?img=6" },
+            { name: "EarnEasy", score: 1250, avatar: "https://i.pravatar.cc/150?img=7" },
+            { name: "CoinHunter", score: 1100, avatar: "https://i.pravatar.cc/150?img=8" },
+            { name: "FastCash", score: 950, avatar: "https://i.pravatar.cc/150?img=9" },
+            { name: "LuckyUser", score: 800, avatar: "https://i.pravatar.cc/150?img=10" },
+        ];
+        
+        elements.leaderboardList.innerHTML = leaderboardData.map((user, index) => `
+            <div class="list-item">
+                <div class="rank">#${index + 1}</div>
+                <img src="${user.avatar}" class="avatar" alt="Avatar">
+                <div class="info"><div class="name">${user.name}</div></div>
+                <div class="score">${user.score} pts</div>
+            </div>
+        `).join('');
     }
 
+    // --- Earning Functions ---
+
+    /**
+     * Grants reward points and updates balance after an ad is successfully watched.
+     */
+    function grantReward() {
+        points += pointsPerAd;
+        balance = points * ratePerPoint;
+        updateDisplay(); // Update UI
+        addToHistory('earn', `+${pointsPerAd} Point(s) from Ad`); // Log activity
+        saveData(); // Save state
+        Telegram.WebApp.HapticFeedback.notificationOccurred('success'); // Haptic feedback
+        showMessageBox(`Congratulations! You've earned +${pointsPerAd} point. Your new balance is $${balance.toFixed(2)}.`, 'success');
+    }
+
+    /**
+     * Shows a rewarded interstitial ad.
+     */
     function showRewardedInterstitial() {
         if (typeof show_9459352 !== 'function') {
-            showCustomMessage('مزود الإعلانات غير جاهز.', 'error');
+            showMessageBox('Ad provider is not ready. Please try again in a moment.', 'error');
             return;
         }
-        show_9459352().then(grantReward).catch(e => showCustomMessage('تعذر عرض الإعلان. يرجى المحاولة مرة أخرى.', 'error'));
+        // Call the ad function and then grant reward on success
+        show_9459352().then(grantReward).catch(e => showMessageBox('Ad could not be shown. Please try again.', 'error'));
     }
 
+    /**
+     * Shows a rewarded popup ad.
+     */
     function showRewardedPopup() {
         if (typeof show_9459352 !== 'function') {
-            showCustomMessage('مزود الإعلانات غير جاهز.', 'error');
+            showMessageBox('Ad provider is not ready. Please try again in a moment.', 'error');
             return;
         }
-        show_9459352('pop').then(grantReward).catch(e => showCustomMessage('تعذر عرض الإعلان. يرجى المحاولة مرة أخرى.', 'error'));
+        // Call the ad function with 'pop' type and then grant reward on success
+        show_9459352('pop').then(grantReward).catch(e => showMessageBox('Ad could not be shown. Please try again.', 'error'));
     }
 
-    // --- منطق السحب ---
+    // --- Withdrawal Logic ---
+
+    /**
+     * Opens the withdrawal confirmation modal.
+     * Checks for minimum withdrawal amount.
+     */
     function openWithdrawModal() {
         if (balance < 5) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showCustomMessage("الحد الأدنى للسحب هو $5.00. استمر في الكسب!", 'error');
+            showMessageBox("Minimum withdrawal amount is $5.00. Keep earning!", 'error');
             return;
         }
-        document.getElementById('withdraw-modal').classList.add('active');
+        elements.withdrawAmountDisplay.textContent = balance.toFixed(2); // Display current balance in modal
+        elements.withdrawModal.classList.add('active');
     }
     
+    /**
+     * Closes the withdrawal confirmation modal.
+     */
     function closeWithdrawModal() {
-        document.getElementById('withdraw-modal').classList.remove('active');
+        elements.withdrawModal.classList.remove('active');
     }
 
+    /**
+     * Sends a withdrawal request to the Telegram bot.
+     */
     async function requestWithdraw() {
-        closeWithdrawModal();
-        const botToken = '7201062892:AAGewLnDhE6l7buTuXAIScVhI4d-XJZZ5Hs'; // رمز البوت الخاص بك
-        const adminUserId = '6357701459'; // معرف مستخدم المشرف الخاص بك
-        const userInfo = tgUser ? `@${tgUser.username || 'N/A'} (ID: ${tgUser.id})` : 'مستخدم غير معروف (Firebase UID: ' + currentUserId + ')';
-        const message = `💸 *طلب سحب*\n\n👤 *المستخدم:* ${userInfo}\n💰 *المبلغ:* $${balance.toFixed(2)}\n\n_يرجى معالجة هذا الطلب._`;
+        closeWithdrawModal(); // Close the modal immediately
+        toggleLoading(true, 'Sending withdrawal request...'); // Show loading indicator
+
+        const botToken = '7201062892:AAGewLnDhE6l7buTuXAIScVhI4d-XJZZ5Hs'; // Your bot token
+        const adminUserId = '6357701459'; // Your admin user ID
+
+        // Get user info for the message
+        const userInfo = tgUser ? `@${tgUser.username || 'N/A'} (ID: ${tgUser.id})` : 'Unknown User (ID: N/A)';
+        const message = `💸 *Withdrawal Request*\n\n👤 *User:* ${userInfo}\n💰 *Amount:* $${balance.toFixed(2)}\n\n_Please process this request._`;
 
         try {
             const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -632,32 +675,50 @@
 
             if (data.ok) {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-                showCustomMessage("تم إرسال طلب السحب بنجاح!", 'success');
-                await addToHistory('withdraw', `طلب سحب بمبلغ $${balance.toFixed(2)}`);
+                showMessageBox("Your withdrawal request has been sent successfully! We will process it shortly.", 'success');
+                addToHistory('withdraw', `Request for $${balance.toFixed(2)}`);
+                // Optionally reset balance after successful withdrawal request
+                // points = 0;
+                // balance = 0.00;
+                // updateDisplay();
+                // saveData();
             } else {
                 Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-                showCustomMessage("فشل إرسال الطلب. يرجى المحاولة مرة أخرى لاحقًا.", 'error');
-                console.error("خطأ في Telegram API:", data);
+                showMessageBox("Failed to send request. Please try again later.", 'error');
+                console.error("Telegram API Error:", data);
             }
         } catch (err) {
             Telegram.WebApp.HapticFeedback.notificationOccurred('error');
-            showCustomMessage("حدث خطأ. تحقق من اتصالك وحاول مرة أخرى.", 'error');
-            console.error("خطأ في الجلب:", err);
+            showMessageBox("An error occurred. Check your internet connection and try again.", 'error');
+            console.error("Fetch Error:", err);
+        } finally {
+            toggleLoading(false); // Hide loading indicator
         }
     }
 
-    // --- مشاركة وإحالة ---
+    // --- Share & Referral ---
+
+    /**
+     * Shares the app with a referral link via Telegram.
+     */
     function shareApp() {
-        if (!tgUser) {
-            showCustomMessage("تعذر الحصول على بيانات المستخدم من Telegram للمشاركة.", 'error');
+        if (!tgUser || !tgUser.id) {
+            showMessageBox("Could not get user data from Telegram to create referral link.", 'error');
             return;
         }
-        const botUsername = "Easyearing99_bot"; // اسم بوتك
+        const botUsername = "Easyearing99_bot"; // Replace with your actual bot username
         const referralLink = `https://t.me/${botUsername}?start=${tgUser.id}`;
-        const text = `🎉 انضم إلى هذا البوت الرائع وابدأ في الكسب! استخدم رابطي للحصول على مكافأة خاصة:`;
+        const text = `🎉 Join this amazing bot and start earning! Use my link to get a special bonus:`;
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(text)}`;
-        Telegram.WebApp.openTelegramLink(shareUrl);
+        
+        try {
+            Telegram.WebApp.openTelegramLink(shareUrl);
+        } catch (e) {
+            showMessageBox("Failed to open Telegram share link. Please try sharing manually.", 'error');
+            console.error("Share error:", e);
+        }
     }
-  </script>
+</script>
+
 </body>
 </html>
